@@ -9,7 +9,12 @@ module graphics.sorter {
     requires org.kordamp.ikonli.javafx;
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
+    requires com.fasterxml.jackson.databind;
 
-    opens graphics.sorter to javafx.fxml;
+    opens graphics.sorter to javafx.fxml, com.fasterxml.jackson.databind;
     exports graphics.sorter;
+    exports graphics.sorter.Structs;
+    opens graphics.sorter.Structs to com.fasterxml.jackson.databind, javafx.fxml;
+    exports graphics.sorter.controllers;
+    opens graphics.sorter.controllers to com.fasterxml.jackson.databind, javafx.fxml;
 }
