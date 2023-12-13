@@ -39,16 +39,17 @@ public class TestController {
         editedMonth = Month.DECEMBER;
         ArrayList<TextArea> areaList = new ArrayList<TextArea>();
         ArrayList<TextArea> dayList = new ArrayList<TextArea>();
+        ArrayList<TextArea> nightList = new ArrayList<TextArea>();
         int i = 0;
         /*
         Vytvoří nadpisy pro jednotlivé dny
          */
-        while (i < editedMonth.length(false)){
+        while (i <= editedMonth.length(false)){
             String inputText;
             if(i == 0){
                 inputText = "Jméno Klienta";
             }else{
-                 inputText = i+1 + "."+ "12"+ "."+"2023";
+                 inputText = i + "."+ "12"+ "."+"2023";
             }
             TextArea newTextArea = new TextArea(inputText);
             dayList.add(newTextArea);
@@ -58,9 +59,14 @@ public class TestController {
         GridPane grid = new GridPane();
         for (TextArea ar : dayList){
             ar.setPrefSize(250,50);
-            grid.setConstraints(ar,i+1,0);
+            grid.setConstraints(ar,i,0,2,1);
             grid.getChildren().addAll(ar);
-            i++;
+            if(i==0){
+                i++;
+            }else{
+                i = i+2;
+            }
+
         }
         Client client = new Client("Client", "Clientov");
         ClientMonth clMoth1 = new ClientMonth(editedMonth, false, client);
@@ -82,20 +88,52 @@ public class TestController {
                 if(i==0){
                     inputText = clm.getClientOwningMonth().getName() + " " + clm.getClientOwningMonth().getName();
                     ar.setEditable(false);
+                    ar.setText(inputText);
+                    areaList.add(ar);
+                    ar.setPrefSize(250,100);
+                    grid.setConstraints(ar,i,clienMothIter+1);
+                    i++;
                 }else{
-                    inputText= "";
+                    inputText= "Day";
+                    ar.setText(inputText);
+                    areaList.add(ar);
+                    ar.setPrefSize(250,100);
+                    grid.setConstraints(ar,i,clienMothIter+1,2,1);
+                    i = i+2;
                 }
-                ar.setText(inputText);
-                areaList.add(ar);
-                ar.setPrefSize(250,100);
-                grid.setConstraints(ar,i+1,clienMothIter+1);
-                i++;
+
+
             }
-            clienMothIter++;
+            i=0;
+            for (ClientDay cl : clm.getClientNightsInMonth()){
+                String inputText;
+                TextArea ar = new TextArea();
+                if(i==0){
+                    inputText = clm.getClientOwningMonth().getName() + " " + clm.getClientOwningMonth().getName();
+                    ar.setEditable(false);
+                    ar.setText(inputText);
+                    areaList.add(ar);
+                    ar.setPrefSize(250,100);
+                    grid.setConstraints(ar,i,clienMothIter+2,2,1);
+                    i++;
+                }else{
+                    inputText= "Night";
+                    ar.setText(inputText);
+                    areaList.add(ar);
+                    i++;
+                    ar.setPrefSize(250,100);
+                    grid.setConstraints(ar,i,clienMothIter+2,2,1);
+                    i = i+2;
+                }
+
+
+            }
+            clienMothIter = clienMothIter+2;
         }
 
         grid.getChildren().addAll(areaList);
         TestScrollPane.setContent(grid);
+        System.out.println("Test");
 
     }
     public void initialize(){

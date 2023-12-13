@@ -23,11 +23,11 @@ public class JsonManip {
     }
     public void saveAssistantInfo(ListOfAssistants lias) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.writeValue(new File("E:\\JsonWriteTest\\Assistants.json"),lias);
+        objectMapper.writeValue(new File("D:\\JsonWriteTest\\Assistants.json"),lias);
     }
     public ListOfAssistants loadAssistantInfo() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\Assistants.json"));
+        byte[]  jsonData = Files.readAllBytes(Paths.get("D:\\JsonWriteTest\\Assistants.json"));
         ListOfAssistants listOfA = objectMapper.readValue(jsonData, ListOfAssistants.class );
         return listOfA;
     }
