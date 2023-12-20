@@ -86,4 +86,19 @@ public class Assistant extends Human{
     public void setClientList(ArrayList<Client> clientList) {
         this.clientList = clientList;
     }
+    @Override
+    public boolean equals(Object o){
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof Assistant)) {
+            return false;
+        }
+        Assistant a = (Assistant) o;
+        if(this.getName().equals(a.getName()) && this.getSurname().equals(a.getSurname())){
+            return true;
+        }else{
+            return false;
+        }
+    }
 }

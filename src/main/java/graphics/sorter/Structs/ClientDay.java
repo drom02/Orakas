@@ -1,11 +1,47 @@
 package graphics.sorter.Structs;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.ArrayList;
 
 public class ClientDay {
+    public Integer getDay() {
+        return day;
+    }
+
+    public void setDay(Integer day) {
+        this.day = day;
+    }
+
+    public Month getMonth() {
+        return month;
+    }
+
+    public void setMonth(Month month) {
+        this.month = month;
+    }
+
+    public Integer getYear() {
+        return year;
+    }
+
+    public void setYear(Integer year) {
+        this.year = year;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
     private Integer day;
-    private Integer month;
+    private Month month;
     private  Integer year;
     private Location location;
     private ServinceIntervalArrayList dayIntervalList = new ServinceIntervalArrayList();
@@ -22,12 +58,20 @@ public class ClientDay {
         System.out.println("test");
 
     }
-    public ClientDay(Integer dayI, Integer monthI){
+    @JsonCreator
+     ClientDay(@JsonProperty("dayI")Integer dayI,@JsonProperty("monthI")Month monthI,@JsonProperty("year")Integer yearI, @JsonProperty("defStarTime")int[] defStarTime,@JsonProperty("defEndTime")int[] defEndTime ){
+        if(defStarTime == null){
+            defStarTime  = new int[]{8, 30};
+        }
+        if(defEndTime == null){
+            defEndTime  = new int[]{8, 30};
+        }
+        int[] defEndStartTime = {20,30};
+        ServiceInterval def = new ServiceInterval(LocalTime.of(defStarTime[0],defStarTime[1],00), LocalTime.of(defEndTime[0],defEndTime[1],00));
+        this.dayIntervalList.add(def);
         this.day = dayI;
-        this.month = dayI;
-        this.year = monthI;
-
-
+        this.month = monthI;
+        this.year = yearI;
     }
 
 

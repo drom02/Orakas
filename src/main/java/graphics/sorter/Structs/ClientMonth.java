@@ -1,34 +1,52 @@
 package graphics.sorter.Structs;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import graphics.sorter.Client;
 
 import java.time.Month;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 public class ClientMonth {
-    private Client clientOwningMonth;
     private ArrayList<ClientDay> clientDaysInMonth = new ArrayList<ClientDay>();
 
-    private ArrayList<ClientDay> clientNightsInMonth = new ArrayList<ClientDay>();
+    public Month getMon() {
+        return mon;
+    }
 
-   public  ClientMonth(Month mon, Boolean leapYear, Client cl){
-       this.clientOwningMonth = cl;
+    public void setMon(Month mon) {
+        this.mon = mon;
+    }
+
+    public int getYear() {
+        return year;
+    }
+
+    public void setYear(int year) {
+        this.year = year;
+    }
+
+    private Month mon;
+    private int year;
+    private ArrayList<ClientDay> clientNightsInMonth = new ArrayList<ClientDay>();
+    @JsonCreator
+   public  ClientMonth(@JsonProperty("mon")Month mon,@JsonProperty("year") int year){
+        GregorianCalendar cal = new GregorianCalendar();
+        this.mon = mon;
+        this.year = year;
+      // this.clientOwningMonth = cl;
         int i = 0;
-        while(i <= mon.length(leapYear)){
-            ClientDay newDay = new ClientDay(i,mon.getValue());
+        while(i <= mon.length(cal.isLeapYear(year))){
+            ClientDay newDay = new ClientDay(i,mon, year, new int[]{8, 30},new int[]{20, 30});
+            ClientDay newNight = new ClientDay(i,mon,year, new int[]{20, 30},new int[]{8, 30});
             clientDaysInMonth.add(newDay);
-            clientNightsInMonth.add(newDay);
+            clientNightsInMonth.add(newNight);
             i++;
         }
     }
-    public Client getClientOwningMonth() {
-        return clientOwningMonth;
-    }
 
-    public void setClientOwningMonth(Client clientOwningMonth) {
-        this.clientOwningMonth = clientOwningMonth;
-    }
 
     public ArrayList<ClientDay> getClientDaysInMonth() {
         return clientDaysInMonth;

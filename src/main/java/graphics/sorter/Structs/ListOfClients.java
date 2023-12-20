@@ -3,23 +3,25 @@ package graphics.sorter.Structs;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import graphics.sorter.Assistant;
+import graphics.sorter.Client;
 
 import java.util.ArrayList;
 
 public class ListOfClients {
 
-    public ArrayList<Assistant> getClientList() {
+
+    public ArrayList<Client> getClientList() {
         return clientList;
     }
 
-    public void setClientList(ArrayList<Assistant> clientList) {
+    public void setClientList(ArrayList<Client> clientList) {
         this.clientList = clientList;
     }
 
-    public ArrayList<Assistant> clientList;
+    public ArrayList<Client> clientList;
 
     @JsonCreator
-    ListOfClients(@JsonProperty("assistantList") ArrayList<Assistant> assistantList) {
-        this.clientList = assistantList;
+    public ListOfClients() {
+        this.clientList = new ArrayList<Client>();
     }
 }

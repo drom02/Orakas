@@ -2,20 +2,20 @@ package graphics.sorter.controllers;
 
 import graphics.sorter.Client;
 import graphics.sorter.HelloApplication;
+import graphics.sorter.JsonManip;
 import graphics.sorter.Structs.ClientDay;
 import graphics.sorter.Structs.ClientMonth;
 import graphics.sorter.Structs.ListOfClientMonths;
+import graphics.sorter.Structs.ListOfClients;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.time.Month;
@@ -35,7 +35,12 @@ public class TestController {
     TextArea textArea1 = new TextArea("Enter your name");
     TextArea textArea2 = new TextArea("Enter your nameeeeeeeeeeeeeeeeee");
 
-    public void test(){
+    public void populateView(ListOfClients LiCcl){
+        ListOfClientMonths LiClMo = new ListOfClientMonths();
+        for(Client cl : LiCcl.getClientList()){
+            LiClMo.getListOfClientMonths().add(cl.getClientsMonth());
+        }
+        //vytahnout y klientu m2s9c2
         editedMonth = Month.DECEMBER;
         ArrayList<TextArea> areaList = new ArrayList<TextArea>();
         ArrayList<TextArea> dayList = new ArrayList<TextArea>();
@@ -61,44 +66,32 @@ public class TestController {
             ar.setPrefSize(250,50);
             grid.setConstraints(ar,i,0,2,1);
             grid.getChildren().addAll(ar);
-            if(i==0){
-                i++;
-            }else{
                 i = i+2;
-            }
-
         }
-        Client client = new Client("Client", "Clientov");
-        ClientMonth clMoth1 = new ClientMonth(editedMonth, false, client);
-        Client client1 = new Client("Client2", "Clientov2");
-        ClientMonth clMoth2 = new ClientMonth(editedMonth, false, client1);
-        ListOfClientMonths LiClMo = new ListOfClientMonths();
-        LiClMo.getListOfClientMonths().add(clMoth1);
-        LiClMo.getListOfClientMonths().add(clMoth2);
-
-        int clienMothIter = 0;
         /* Vytvoří text area pro jednotlivé měsíce klienta
         */
-
+        int clienMothIter = 1;
+        int clientIter = 0;
         for(ClientMonth clm : LiClMo.getListOfClientMonths()){
+            LiClMo.getListOfClientMonths().get(0);
             i = 0;
             for (ClientDay cl : clm.getClientDaysInMonth()){
                 String inputText;
-                TextArea ar = new TextArea();
+                TextArea dayTextAr = new TextArea();
                 if(i==0){
-                    inputText = clm.getClientOwningMonth().getName() + " " + clm.getClientOwningMonth().getName();
-                    ar.setEditable(false);
-                    ar.setText(inputText);
-                    areaList.add(ar);
-                    ar.setPrefSize(250,100);
-                    grid.setConstraints(ar,i,clienMothIter+1);
-                    i++;
+                    inputText = LiCcl.getClientList().get(clientIter).getName() + " " + LiCcl.getClientList().get(clientIter).getSurname();
+                    dayTextAr.setEditable(false);
+                    dayTextAr.setText(inputText);
+                    areaList.add(dayTextAr);
+                    dayTextAr.setPrefSize(250,100);
+                    grid.setConstraints(dayTextAr,i,clienMothIter,2,1);
+                    i = i+2;
                 }else{
                     inputText= "Day";
-                    ar.setText(inputText);
-                    areaList.add(ar);
-                    ar.setPrefSize(250,100);
-                    grid.setConstraints(ar,i,clienMothIter+1,2,1);
+                    dayTextAr.setText(inputText);
+                    areaList.add(dayTextAr);
+                    dayTextAr.setPrefSize(250,100);
+                    grid.setConstraints(dayTextAr,i,clienMothIter,1,1);
                     i = i+2;
                 }
 
@@ -107,22 +100,30 @@ public class TestController {
             i=0;
             for (ClientDay cl : clm.getClientNightsInMonth()){
                 String inputText;
-                TextArea ar = new TextArea();
+                TextArea nightTextAr = new TextArea();
                 if(i==0){
-                    inputText = clm.getClientOwningMonth().getName() + " " + clm.getClientOwningMonth().getName();
-                    ar.setEditable(false);
-                    ar.setText(inputText);
-                    areaList.add(ar);
-                    ar.setPrefSize(250,100);
-                    grid.setConstraints(ar,i,clienMothIter+2,2,1);
-                    i++;
+                    inputText = LiCcl.getClientList().get(clientIter).getName() + " " + LiCcl.getClientList().get(clientIter).getSurname();
+                    nightTextAr.setEditable(false);
+                    nightTextAr.setText(inputText);
+                    areaList.add(nightTextAr);
+                    nightTextAr.setPrefSize(250,100);
+                    grid.setConstraints(nightTextAr,i,clienMothIter+1,2,1);
+                    /*
+                    TextArea ar2 = new TextArea();
+                    inputText = clm.getClientOwningMonth().getName() + " " + clm.getClientOwningMonth().getSurname();
+                    ar2.setEditable(false);
+                    ar2.setText(inputText);
+                    areaList.add(ar2);
+                    ar2.setPrefSize(250,100);
+                    grid.setConstraints(ar2,i+2,clienMothIter+1,1,1);
+                     */
+                    i = i+3;
                 }else{
                     inputText= "Night";
-                    ar.setText(inputText);
-                    areaList.add(ar);
-                    i++;
-                    ar.setPrefSize(250,100);
-                    grid.setConstraints(ar,i,clienMothIter+2,2,1);
+                    nightTextAr.setText(inputText);
+                    areaList.add(nightTextAr);
+                    nightTextAr.setPrefSize(250,100);
+                    grid.setConstraints(nightTextAr,i,clienMothIter+1,2,1);
                     i = i+2;
                 }
 
@@ -136,9 +137,13 @@ public class TestController {
         System.out.println("Test");
 
     }
-    public void initialize(){
-        test();
-        System.out.println("hi");
+    public void initialize() throws IOException {
+        JsonManip jsom = new JsonManip();
+        populateView(jsom.loadClientInfo());
+    }
+    public void initializeClients(){
+
+
     }
 
 
@@ -148,5 +153,11 @@ public class TestController {
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
 
+    }
+    public void switchPageToShift(ActionEvent actionEvent) throws IOException {
+        Scene scen = TestScrollPane.getScene();
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("shiftPicker-view.fxml"));
+        Parent rot = fxmlLoader.load();
+        scen.setRoot(rot);
     }
 }

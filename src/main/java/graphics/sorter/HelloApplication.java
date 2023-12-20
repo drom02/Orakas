@@ -12,14 +12,15 @@ import java.time.Month;
 public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
+        JsonManip jsoM = new JsonManip();
+        jsoM.jsonTest();
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("test-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
         stage.setTitle("Hello!");
         stage.setScene(scene);
         stage.show();
         Month testMonth =Month.DECEMBER;
-        JsonManip jsoM = new JsonManip();
-        jsoM.jsonTest();
+
 
     }
 

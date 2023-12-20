@@ -26,7 +26,10 @@
               <MenuItem mnemonicParsing="false" text="Close" />
             </items>
             <items>
-              <MenuItem mnemonicParsing="false" text="switch page" onAction="#switchPage" />
+              <MenuItem mnemonicParsing="false" text="switch page to assistants" onAction="#switchPage" />
+            </items>
+            <items>
+              <MenuItem mnemonicParsing="false" text="switch page to shift selection" onAction="#switchPageToShift" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">
