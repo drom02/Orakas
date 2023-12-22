@@ -44,6 +44,15 @@ public class ClientDay {
     private Month month;
     private  Integer year;
     private Location location;
+
+    public ServinceIntervalArrayList getDayIntervalList() {
+        return dayIntervalList;
+    }
+
+    public void setDayIntervalList(ServinceIntervalArrayList dayIntervalList) {
+        this.dayIntervalList = dayIntervalList;
+    }
+
     private ServinceIntervalArrayList dayIntervalList = new ServinceIntervalArrayList();
 
     public void test(){
@@ -64,9 +73,8 @@ public class ClientDay {
             defStarTime  = new int[]{8, 30};
         }
         if(defEndTime == null){
-            defEndTime  = new int[]{8, 30};
+            defEndTime  = new int[]{20,30};
         }
-        int[] defEndStartTime = {20,30};
         ServiceInterval def = new ServiceInterval(LocalTime.of(defStarTime[0],defStarTime[1],00), LocalTime.of(defEndTime[0],defEndTime[1],00));
         this.dayIntervalList.add(def);
         this.day = dayI;

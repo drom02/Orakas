@@ -1,5 +1,6 @@
 package graphics.sorter.controllers;
 
+import graphics.sorter.AttachAssistants;
 import graphics.sorter.Client;
 import graphics.sorter.HelloApplication;
 import graphics.sorter.JsonManip;
@@ -32,9 +33,8 @@ public class TestController {
         welcomeText.setText("Welcome to JavaFX Application!");
     }
     private Month editedMonth;
-    TextArea textArea1 = new TextArea("Enter your name");
-    TextArea textArea2 = new TextArea("Enter your nameeeeeeeeeeeeeeeeee");
-
+    private ArrayList<TextArea> nightList = new ArrayList<TextArea>();
+    private ArrayList<TextArea> dayList = new ArrayList<TextArea>();
     public void populateView(ListOfClients LiCcl){
         ListOfClientMonths LiClMo = new ListOfClientMonths();
         for(Client cl : LiCcl.getClientList()){
@@ -43,8 +43,8 @@ public class TestController {
         //vytahnout y klientu m2s9c2
         editedMonth = Month.DECEMBER;
         ArrayList<TextArea> areaList = new ArrayList<TextArea>();
-        ArrayList<TextArea> dayList = new ArrayList<TextArea>();
-        ArrayList<TextArea> nightList = new ArrayList<TextArea>();
+        ArrayList<TextArea> titleList = new ArrayList<TextArea>();
+
         int i = 0;
         /*
         Vytvoří nadpisy pro jednotlivé dny
@@ -57,12 +57,12 @@ public class TestController {
                  inputText = i + "."+ "12"+ "."+"2023";
             }
             TextArea newTextArea = new TextArea(inputText);
-            dayList.add(newTextArea);
+            titleList.add(newTextArea);
             i++;
         }
         i = 0;
         GridPane grid = new GridPane();
-        for (TextArea ar : dayList){
+        for (TextArea ar : titleList){
             ar.setPrefSize(250,50);
             grid.setConstraints(ar,i,0,2,1);
             grid.getChildren().addAll(ar);
@@ -90,6 +90,7 @@ public class TestController {
                     inputText= "Day";
                     dayTextAr.setText(inputText);
                     areaList.add(dayTextAr);
+                    dayList.add(dayTextAr);
                     dayTextAr.setPrefSize(250,100);
                     grid.setConstraints(dayTextAr,i,clienMothIter,1,1);
                     i = i+2;
@@ -106,6 +107,7 @@ public class TestController {
                     nightTextAr.setEditable(false);
                     nightTextAr.setText(inputText);
                     areaList.add(nightTextAr);
+                    nightList.add(nightTextAr);
                     nightTextAr.setPrefSize(250,100);
                     grid.setConstraints(nightTextAr,i,clienMothIter+1,2,1);
                     /*
@@ -140,13 +142,10 @@ public class TestController {
     public void initialize() throws IOException {
         JsonManip jsom = new JsonManip();
         populateView(jsom.loadClientInfo());
+        AttachAssistants attachAssistants = new AttachAssistants();
     }
     public void initializeClients(){
-
-
     }
-
-
     public void switchPage(ActionEvent actionEvent) throws IOException {
        Scene scen = TestScrollPane.getScene();
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("assistant-view.fxml"));
@@ -159,5 +158,8 @@ public class TestController {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("shiftPicker-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
+    }
+
+    public void findSolution(ActionEvent actionEvent) {
     }
 }

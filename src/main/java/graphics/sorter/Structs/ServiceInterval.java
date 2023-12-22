@@ -1,5 +1,8 @@
 package graphics.sorter.Structs;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalTime;
 
 public class ServiceInterval {
@@ -9,7 +12,8 @@ public class ServiceInterval {
     private LocalTime end;
     private Location location;
 //Přidat truncate form
-    public ServiceInterval(LocalTime start, LocalTime end){
+@JsonCreator
+     ServiceInterval(@JsonProperty("start")LocalTime start,@JsonProperty("end") LocalTime end){
         this.start = start;
         this.end = end;
 

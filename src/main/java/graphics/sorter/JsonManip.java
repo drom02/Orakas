@@ -1,6 +1,7 @@
 package graphics.sorter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import graphics.sorter.Structs.AvailableAssistants;
 import graphics.sorter.Structs.ClientMonth;
 import graphics.sorter.Structs.ListOfClients;
@@ -47,30 +48,36 @@ public class JsonManip {
     }
     public void saveAssistantInfo(ListOfAssistants lias) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         objectMapper.writeValue(new File("E:\\JsonWriteTest\\Assistants.json"),lias);
     }
     public ListOfAssistants loadAssistantInfo() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\Assistants.json"));
         ListOfAssistants listOfA = objectMapper.readValue(jsonData, ListOfAssistants.class );
         return listOfA;
     }
     public ListOfClients loadClientInfo() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\Clients.json"));
         ListOfClients listOfA = objectMapper.readValue(jsonData, ListOfClients.class );
         return listOfA;
     }
     public void saveClientInfo(ListOfClients lias) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         objectMapper.writeValue(new File("E:\\JsonWriteTest\\Clients.json"),lias);
     }
     public void saveAvailableAssistantInfo(AvailableAssistants lias) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         objectMapper.writeValue(new File("E:\\JsonWriteTest\\AvailableAssistants.json"),lias);
     }
     public AvailableAssistants loadAvailableAssistantInfo() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\AvailableAssistants.json"));
         AvailableAssistants listOfA = objectMapper.readValue(jsonData, AvailableAssistants.class );
         return listOfA;

@@ -10,6 +10,7 @@ module graphics.sorter {
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
     requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.datatype.jsr310;
 
     opens graphics.sorter to javafx.fxml, com.fasterxml.jackson.databind;
     exports graphics.sorter;
