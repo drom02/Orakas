@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalTime;
 import java.time.Month;
-import java.util.ArrayList;
 
 public class ClientDay {
     public Integer getDay() {
@@ -45,21 +44,21 @@ public class ClientDay {
     private  Integer year;
     private Location location;
 
-    public ServinceIntervalArrayList getDayIntervalList() {
+    public ServiceIntervalArrayList getDayIntervalList() {
         return dayIntervalList;
     }
 
-    public void setDayIntervalList(ServinceIntervalArrayList dayIntervalList) {
+    public void setDayIntervalList(ServiceIntervalArrayList dayIntervalList) {
         this.dayIntervalList = dayIntervalList;
     }
 
-    private ServinceIntervalArrayList dayIntervalList = new ServinceIntervalArrayList();
+    private ServiceIntervalArrayList dayIntervalList = new ServiceIntervalArrayList();
 
     public void test(){
-        ServiceInterval test2 = new ServiceInterval(LocalTime.of(10,00,00), LocalTime.of(14,00,00));
-        ServiceInterval test1 = new ServiceInterval(LocalTime.of(15,00,00), LocalTime.of(16,00,00));
-        ServiceInterval test3 = new ServiceInterval(LocalTime.of(8,00,00), LocalTime.of(9,00,00));
-        ServiceInterval test4 = new ServiceInterval(LocalTime.of(5,00,00), LocalTime.of(6,00,00));
+        ServiceInterval test2 = new ServiceInterval(LocalTime.of(10,00,00), LocalTime.of(14,00,00), null);
+        ServiceInterval test1 = new ServiceInterval(LocalTime.of(15,00,00), LocalTime.of(16,00,00), null);
+        ServiceInterval test3 = new ServiceInterval(LocalTime.of(8,00,00), LocalTime.of(9,00,00), null);
+        ServiceInterval test4 = new ServiceInterval(LocalTime.of(5,00,00), LocalTime.of(6,00,00), null);
         dayIntervalList.add(test1);
         dayIntervalList.add(test2);
         dayIntervalList.add(test3);
@@ -75,7 +74,7 @@ public class ClientDay {
         if(defEndTime == null){
             defEndTime  = new int[]{20,30};
         }
-        ServiceInterval def = new ServiceInterval(LocalTime.of(defStarTime[0],defStarTime[1],00), LocalTime.of(defEndTime[0],defEndTime[1],00));
+        ServiceInterval def = new ServiceInterval(LocalTime.of(defStarTime[0],defStarTime[1],00), LocalTime.of(defEndTime[0],defEndTime[1],00), null);
         this.dayIntervalList.add(def);
         this.day = dayI;
         this.month = monthI;

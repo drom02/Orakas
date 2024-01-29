@@ -2,7 +2,7 @@ package graphics.sorter.Structs;
 
 import java.util.ArrayList;
 
-public class ServinceIntervalArrayList  extends ArrayList<ServiceInterval> {
+public class ServiceIntervalArrayList extends ArrayList<ServiceInterval> {
     @Override
     public boolean add(ServiceInterval e){
         if (e == null) {

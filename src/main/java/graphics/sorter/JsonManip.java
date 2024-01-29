@@ -2,9 +2,7 @@ package graphics.sorter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import graphics.sorter.Structs.AvailableAssistants;
-import graphics.sorter.Structs.ClientMonth;
-import graphics.sorter.Structs.ListOfClients;
+import graphics.sorter.Structs.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,16 +32,28 @@ public class JsonManip {
          lias.assistantList.add(ass5);
          lias.assistantList.add(ass6);
         saveAssistantInfo(lias);
+        /*
          Client client = new Client("Client", "Clientov", new ClientMonth(Month.DECEMBER,2024));
          Client client1 = new Client("Client2", "Clientov2", new ClientMonth(Month.DECEMBER,2024));
          Client client2 = new Client("Client3", "Clientov3", new ClientMonth(Month.DECEMBER,2024));
          Client client3 = new Client("Client4", "Clientov3", new ClientMonth(Month.DECEMBER,2024));
-         ListOfClients clLs = new ListOfClients();
+         */
+         ClientProfile client = new ClientProfile("Client", "Clientov");
+         ClientProfile client1 = new ClientProfile("Client2", "Clientov2");
+         ClientProfile client2 = new ClientProfile("Client3", "Clientov3");
+         ClientProfile client3 = new ClientProfile("Client4", "Clientov3");
+         ListOfClientsProfiles clLs = new ListOfClientsProfiles();
          clLs.getClientList().add(client);
          clLs.getClientList().add(client1);
          clLs.getClientList().add(client2);
          clLs.getClientList().add(client3);
          saveClientInfo(clLs);
+         ListOfClientMonths listOfClientMonths = new ListOfClientMonths();
+         for (ClientProfile cl : clLs.getClientList()){
+             listOfClientMonths.getListOfClientMonths().add(new ClientMonth(Month.of(12),2024,cl.getSurname()));
+
+         }
+         saveClientRequirementsForMonth(listOfClientMonths,12,2024);
 
     }
     public void saveAssistantInfo(ListOfAssistants lias) throws IOException {
@@ -58,14 +68,34 @@ public class JsonManip {
         ListOfAssistants listOfA = objectMapper.readValue(jsonData, ListOfAssistants.class );
         return listOfA;
     }
-    public ListOfClients loadClientInfo() throws IOException {
+    public ListOfClients loadClientInfo(int month, int year) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\Clients.json"));
-        ListOfClients listOfA = objectMapper.readValue(jsonData, ListOfClients.class );
+        ListOfClientsProfiles listOfA = objectMapper.readValue(jsonData, ListOfClientsProfiles.class );
+        byte[]  jsonDataMonth = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\"+month+"."+year+ ".json"));
+        ListOfClientMonths listOfClm = objectMapper.readValue(jsonDataMonth, ListOfClientMonths.class );
+        ListOfClients listOfClients = new ListOfClients();
+        for(ClientProfile clP: listOfA.getClientList()){
+            Client out;
+            if(!(listOfClm.getMonthOfSpecificClient(clP.getClientId()) == null)){
+                out = clP.convertToClient(listOfClm.getMonthOfSpecificClient(clP.getClientId()));
+            }else{
+                out = clP.convertToClient(new ClientMonth(Month.of(month), year, clP.getClientId()));
+            }
+            listOfClients.getClientList().add(out);
+        }
+
+        return listOfClients;
+    }
+    public ListOfClientsProfiles loadClientProfileInfo() throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\Clients.json"));
+        ListOfClientsProfiles listOfA = objectMapper.readValue(jsonData, ListOfClientsProfiles.class );
         return listOfA;
     }
-    public void saveClientInfo(ListOfClients lias) throws IOException {
+    public void saveClientInfo(ListOfClientsProfiles lias) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.writeValue(new File("E:\\JsonWriteTest\\Clients.json"),lias);
@@ -81,6 +111,18 @@ public class JsonManip {
         byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\AvailableAssistants.json"));
         AvailableAssistants listOfA = objectMapper.readValue(jsonData, AvailableAssistants.class );
         return listOfA;
+    }
+    public void saveClientRequirementsForMonth(ListOfClientMonths lias, int month, int year) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.writeValue(new File("E:\\JsonWriteTest\\" +month+"." +year+ ".json"),lias);
+    }
+    public ListOfClientMonths loadClientRequirementsForMonth(int month, int year) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\"+month+"."+year+ ".json"));
+        ListOfClientMonths listOfClm = objectMapper.readValue(jsonData, ListOfClientMonths.class );
+        return listOfClm;
     }
 
 }

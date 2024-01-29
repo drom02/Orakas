@@ -1,13 +1,7 @@
 package graphics.sorter.controllers;
 
-import graphics.sorter.AttachAssistants;
-import graphics.sorter.Client;
-import graphics.sorter.HelloApplication;
-import graphics.sorter.JsonManip;
-import graphics.sorter.Structs.ClientDay;
-import graphics.sorter.Structs.ClientMonth;
-import graphics.sorter.Structs.ListOfClientMonths;
-import graphics.sorter.Structs.ListOfClients;
+import graphics.sorter.*;
+import graphics.sorter.Structs.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -35,6 +29,7 @@ public class TestController {
     private Month editedMonth;
     private ArrayList<TextArea> nightList = new ArrayList<TextArea>();
     private ArrayList<TextArea> dayList = new ArrayList<TextArea>();
+    JsonManip jsom = new JsonManip();
     public void populateView(ListOfClients LiCcl){
         ListOfClientMonths LiClMo = new ListOfClientMonths();
         for(Client cl : LiCcl.getClientList()){
@@ -87,7 +82,12 @@ public class TestController {
                     grid.setConstraints(dayTextAr,i,clienMothIter,2,1);
                     i = i+2;
                 }else{
-                    inputText= "Day";
+                    if(getAssistantOfDay(cl) == null){
+                        inputText= "Day" +"\n" + getAssistantOfDay(cl);
+                    }else{
+                        inputText= "Day" +"\n" + getAssistantOfDay(cl).getName() +" "+getAssistantOfDay(cl).getSurname();
+                    }
+
                     dayTextAr.setText(inputText);
                     areaList.add(dayTextAr);
                     dayList.add(dayTextAr);
@@ -132,16 +132,24 @@ public class TestController {
 
             }
             clienMothIter = clienMothIter+2;
+            clientIter++;
         }
 
         grid.getChildren().addAll(areaList);
         TestScrollPane.setContent(grid);
-        System.out.println("Test");
+    }
+    public Assistant getAssistantOfDay(ClientDay clDay){
+        if(!clDay.getDayIntervalList().isEmpty()){
+            return clDay.getDayIntervalList().get(0).getOverseeingAssistant();
+        }else{
+            return  null;
+        }
+
 
     }
     public void initialize() throws IOException {
-        JsonManip jsom = new JsonManip();
-        populateView(jsom.loadClientInfo());
+
+        populateView(jsom.loadClientInfo(12,2024));
         AttachAssistants attachAssistants = new AttachAssistants();
     }
     public void initializeClients(){
@@ -160,6 +168,40 @@ public class TestController {
         scen.setRoot(rot);
     }
 
-    public void findSolution(ActionEvent actionEvent) {
+    public void findSolution(ActionEvent actionEvent) throws IOException {
+        int monthLength;
+        AvailableAssistants avAs = jsom.loadAvailableAssistantInfo();
+        ListOfClients listOfClients = jsom.loadClientInfo(12,2024);
+        ListOfClientMonths cliM = new ListOfClientMonths();
+        for(Client cl : listOfClients.getClientList()){
+            cliM .getListOfClientMonths().add(cl.getClientsMonth());
+        }
+        monthLength = cliM.getListOfClientMonths().get(0).getClientDaysInMonth().size();
+        System.out.println(getAvailableAssistantForDay(avAs,0,true));
+        for (int dayIter = 0; dayIter < monthLength; dayIter++) {
+            for( Client cl : listOfClients.getClientList()) {
+                ClientDay clDay = cl.getClientsMonth().getClientDaysInMonth().get(dayIter);
+                ArrayList<Assistant> listOfAvailable = getAvailableAssistantForDay(avAs,dayIter,true);
+                if (!listOfAvailable.isEmpty()) {
+                    for (ServiceInterval sevInt : clDay.getDayIntervalList()) {
+                        sevInt.setOverseeingAssistant(listOfAvailable.get(0));
+                    }
+                    listOfAvailable.remove(0);
+                }
+            }
+        }
+
+        jsom.saveClientInfo(listOfClients.convertToListOfClientProfiles());
+        populateView(listOfClients);
+    }
+    private ArrayList<Assistant> getAvailableAssistantForDay(AvailableAssistants lisA, int date, boolean day ){
+        ArrayList<Assistant> output;
+        if(day==true){
+            output = lisA.getAvailableAssistantsAtDays().get(date);
+        }else{
+            output = lisA.getAvailableAssistantsAtNights().get(date);
+        }
+        return output;
+
     }
 }

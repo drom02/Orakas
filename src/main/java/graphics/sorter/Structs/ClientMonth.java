@@ -10,7 +10,11 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 public class ClientMonth {
+
+
+    private String clientId;
     private ArrayList<ClientDay> clientDaysInMonth = new ArrayList<ClientDay>();
+    private ArrayList<ClientDay> clientNightsInMonth = new ArrayList<ClientDay>();
 
     public Month getMon() {
         return mon;
@@ -30,10 +34,11 @@ public class ClientMonth {
 
     private Month mon;
     private int year;
-    private ArrayList<ClientDay> clientNightsInMonth = new ArrayList<ClientDay>();
+
     @JsonCreator
-   public  ClientMonth(@JsonProperty("mon")Month mon,@JsonProperty("year") int year){
+   public  ClientMonth(@JsonProperty("mon")Month mon,@JsonProperty("year") int year,@JsonProperty("clientId") String clientId){
         GregorianCalendar cal = new GregorianCalendar();
+        this.clientId = clientId;
         this.mon = mon;
         this.year = year;
       // this.clientOwningMonth = cl;
@@ -48,7 +53,13 @@ public class ClientMonth {
         }
     }
 
+    public String getClientId() {
+        return clientId;
+    }
 
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
     public ArrayList<ClientDay> getClientDaysInMonth() {
         return clientDaysInMonth;
     }

@@ -12,4 +12,16 @@ public class ListOfClientMonths {
     }
 
     private ArrayList<ClientMonth> listOfClientMonths = new ArrayList<ClientMonth>();
+    public ClientMonth getMonthOfSpecificClient(String id){
+        if(!getListOfClientMonths().isEmpty()){
+            for( ClientMonth iter : getListOfClientMonths()){
+                if(iter.getClientId().equals(id)){
+                    return  iter;
+                }
+            }
+        }else{
+            return null;
+        }
+       return null;
+    }
 }

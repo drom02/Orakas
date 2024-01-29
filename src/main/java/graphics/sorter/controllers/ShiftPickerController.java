@@ -1,6 +1,7 @@
 package graphics.sorter.controllers;
 
 import graphics.sorter.*;
+import graphics.sorter.Structs.AssistantCellFactory;
 import graphics.sorter.Structs.AvailableAssistants;
 import graphics.sorter.Structs.ShiftTextArea;
 import javafx.collections.FXCollections;
@@ -21,7 +22,10 @@ import javafx.scene.layout.GridPane;
 import java.io.IOException;
 import java.time.Month;
 import java.util.ArrayList;
-
+/*
+Controller for shift picker window. It is used to select when are assistants available. Select name from the list and
+left click to field to add the assistant for specific shift. Right click to remove.
+ */
 public class ShiftPickerController {
     @FXML
     private ScrollPane TestScrollPane;
@@ -40,8 +44,11 @@ public class ShiftPickerController {
    private  ArrayList<ShiftTextArea> assistantsNightList = new ArrayList<ShiftTextArea>();
 
 
-    public void test(){
-        editedMonth = Month.DECEMBER;
+   /*
+   Method will generate empty table with only column and row titles.
+    */
+    public void populateTable(Month moth, int year){
+        editedMonth = moth;
         listOfAssistantLists.add(assistantsDayList);
         listOfAssistantLists.add(assistantsNightList);
         ArrayList<TextArea> rowTitles = new ArrayList<TextArea>();
@@ -70,7 +77,7 @@ public class ShiftPickerController {
                 i++;
             }else{
                 int row = 0;
-                inputText = i + "."+ "12"+ "."+"2023";
+                inputText = i + "."+ moth.getValue()+ "."+year;
                 rowTitleAr.setText(inputText);
                 areaList.add(rowTitleAr);
                 rowTitleAr.setPrefSize(250,100);
@@ -98,20 +105,24 @@ public class ShiftPickerController {
         grid.getChildren().addAll(assistantsDayList);
         grid.getChildren().addAll(rowTitles);
         TestScrollPane.setContent(grid);
-        System.out.println("Test");
-
     }
+    /*
+    Method initialize
+    */
     public void initialize() throws IOException {
+        assistantList.setCellFactory(new AssistantCellFactory());
         JsonManip jsoMap= new JsonManip();
         ListOfAssistants listOfA = jsoMap.loadAssistantInfo();
         listOfAssist = listOfA .getAssistantList();
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.assistantList);
         assistantList.setItems(observAssistantList);
-        test();
+        populateTable(Month.DECEMBER,2024);
         loadAvailableAssistants();
-        System.out.println("hi");
     }
 
+    /*
+    Will switch window to main window.
+     */
     public void switchPageToMain(ActionEvent actionEvent) throws IOException {
        Scene scen = TestScrollPane.getScene();
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("test-view.fxml"));
@@ -119,9 +130,15 @@ public class ShiftPickerController {
         scen.setRoot(rot);
 
     }
+    /*
+    Will select assistant based on the clicked field in list.
+     */
     public void selectAssistant(MouseEvent mouseEvent) {
         selectedAssistant = (Assistant) assistantList.getSelectionModel().getSelectedItem();
     }
+    /*
+    Will add or remove selected assistant to clicked shift field.
+     */
     public void onTextAreaClicked(MouseEvent mouseEvent){
        ShiftTextArea loadedArea = (ShiftTextArea) mouseEvent.getSource();
         MouseButton button = mouseEvent.getButton();
@@ -152,6 +169,10 @@ public class ShiftPickerController {
 
 
     }
+    /*
+    Will populate the table with latest saved state.
+    //Todo option to select save to load.
+     */
     public void loadAvailableAssistants() throws IOException {
         JsonManip jsom = new JsonManip();
         int i =0;
@@ -183,6 +204,10 @@ public class ShiftPickerController {
         }
 
     }
+    /*
+    Will save current state to json file.
+    //TODO better save system
+     */
     public void saveCurrentState() throws IOException {
         JsonManip jsom = new JsonManip();
         AvailableAssistants availableAssistants = new AvailableAssistants();

@@ -22,8 +22,13 @@ public class AttachAssistants {
 
     }
     public void initialize() throws IOException {
-       availableAssistants = jsom.loadAvailableAssistantInfo();
-       listOfClients = jsom.loadClientInfo();
+        try {
+            availableAssistants = jsom.loadAvailableAssistantInfo();
+        }catch(Exception e){
+            jsom.saveAvailableAssistantInfo(new AvailableAssistants());
+        }
+
+       listOfClients = jsom.loadClientInfo(12,2024);
        extractClientsForDay(1);
     }
     private ArrayList<ClientDay> extractClientsForDay(int day ){
