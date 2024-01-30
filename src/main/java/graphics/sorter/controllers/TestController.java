@@ -7,10 +7,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
+import javafx.scene.text.Text;
 
 import java.io.IOException;
 import java.time.Month;
@@ -21,7 +23,16 @@ public class TestController {
     private ScrollPane TestScrollPane;
     @FXML
     private Label welcomeText;
-
+    @FXML
+    private DatePicker datePick;
+    @FXML
+    private Text selectedYear;
+    @FXML
+    private Text selectedMonth;
+    @FXML
+    private Text selectedYearValue;
+    @FXML
+    private Text selectedMonthValue;
     @FXML
     protected void onHelloButtonClick() {
         welcomeText.setText("Welcome to JavaFX Application!");
@@ -30,6 +41,7 @@ public class TestController {
     private ArrayList<TextArea> nightList = new ArrayList<TextArea>();
     private ArrayList<TextArea> dayList = new ArrayList<TextArea>();
     JsonManip jsom = new JsonManip();
+    private Settings settings;
     public void populateView(ListOfClients LiCcl){
         ListOfClientMonths LiClMo = new ListOfClientMonths();
         for(Client cl : LiCcl.getClientList()){
@@ -70,7 +82,7 @@ public class TestController {
         for(ClientMonth clm : LiClMo.getListOfClientMonths()){
             LiClMo.getListOfClientMonths().get(0);
             i = 0;
-            for (ClientDay cl : clm.getClientDaysInMonth()){
+            for (int dayIter = -1; dayIter < clm.getClientDaysInMonth().size(); dayIter++){
                 String inputText;
                 TextArea dayTextAr = new TextArea();
                 if(i==0){
@@ -82,10 +94,10 @@ public class TestController {
                     grid.setConstraints(dayTextAr,i,clienMothIter,2,1);
                     i = i+2;
                 }else{
-                    if(getAssistantOfDay(cl) == null){
-                        inputText= "Day" +"\n" + getAssistantOfDay(cl);
+                    if(getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)) == null){
+                        inputText= "Day" +"\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter));
                     }else{
-                        inputText= "Day" +"\n" + getAssistantOfDay(cl).getName() +" "+getAssistantOfDay(cl).getSurname();
+                        inputText= "Day" +"\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getName() +" "+getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getSurname();
                     }
 
                     dayTextAr.setText(inputText);
@@ -148,7 +160,7 @@ public class TestController {
 
     }
     public void initialize() throws IOException {
-
+        settings = jsom.loadSettings("E:\\JsonWriteTest\\");
         populateView(jsom.loadClientInfo(12,2024));
         AttachAssistants attachAssistants = new AttachAssistants();
     }
@@ -202,6 +214,19 @@ public class TestController {
             output = lisA.getAvailableAssistantsAtNights().get(date);
         }
         return output;
+
+    }
+    public void saveChangedDate(){
+        String[] parts = datePick.getValue().toString().split("-");
+        selectedYearValue.setText(parts[0]);
+        selectedMonthValue.setText(parts[1]);
+        settings.setCurrentYear(Integer.parseInt(parts[0]));
+        settings.setCurrentMonth(Integer.parseInt(parts[1]));
+        try {
+            jsom.saveSettings(settings, settings.getFilePath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 }

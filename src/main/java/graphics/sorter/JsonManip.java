@@ -41,7 +41,7 @@ public class JsonManip {
          ClientProfile client = new ClientProfile("Client", "Clientov");
          ClientProfile client1 = new ClientProfile("Client2", "Clientov2");
          ClientProfile client2 = new ClientProfile("Client3", "Clientov3");
-         ClientProfile client3 = new ClientProfile("Client4", "Clientov3");
+         ClientProfile client3 = new ClientProfile("Client4", "Clientov4");
          ListOfClientsProfiles clLs = new ListOfClientsProfiles();
          clLs.getClientList().add(client);
          clLs.getClientList().add(client1);
@@ -124,5 +124,16 @@ public class JsonManip {
         ListOfClientMonths listOfClm = objectMapper.readValue(jsonData, ListOfClientMonths.class );
         return listOfClm;
     }
-
+    public Settings loadSettings(String path) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        byte[]  jsonData = Files.readAllBytes(Paths.get(path+"Settings"+ ".json"));
+        Settings set = objectMapper.readValue(jsonData, Settings.class );
+        return set;
+    }
+    public void saveSettings(Settings lias, String path) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.writeValue(new File(path+"Settings"+".json"),lias);
+    }
 }
