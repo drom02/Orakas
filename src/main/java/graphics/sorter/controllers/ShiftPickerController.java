@@ -21,6 +21,7 @@ import javafx.scene.layout.GridPane;
 
 import java.io.IOException;
 import java.time.Month;
+import java.time.Year;
 import java.util.ArrayList;
 /*
 Controller for shift picker window. It is used to select when are assistants available. Select name from the list and
@@ -42,6 +43,7 @@ public class ShiftPickerController {
     private ArrayList<ArrayList> listOfAssistantLists = new ArrayList<>();
    private  ArrayList<ShiftTextArea> assistantsDayList = new ArrayList<ShiftTextArea>();
    private  ArrayList<ShiftTextArea> assistantsNightList = new ArrayList<ShiftTextArea>();
+   private Settings settings;
 
 
    /*
@@ -110,13 +112,15 @@ public class ShiftPickerController {
     Method initialize
     */
     public void initialize() throws IOException {
-        assistantList.setCellFactory(new AssistantCellFactory());
         JsonManip jsoMap= new JsonManip();
+        settings = jsoMap.loadSettings("E:\\JsonWriteTest\\");
+        assistantList.setCellFactory(new AssistantCellFactory());
+
         ListOfAssistants listOfA = jsoMap.loadAssistantInfo();
         listOfAssist = listOfA .getAssistantList();
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.assistantList);
         assistantList.setItems(observAssistantList);
-        populateTable(Month.DECEMBER,2024);
+        populateTable(Month.of(settings.getCurrentMonth()),settings.getCurrentYear());
         loadAvailableAssistants();
     }
 
@@ -177,7 +181,8 @@ public class ShiftPickerController {
         JsonManip jsom = new JsonManip();
         int i =0;
         ArrayList<ShiftTextArea> tempListDay = listOfAssistantLists.get(0);
-        AvailableAssistants avAsD = jsom.loadAvailableAssistantInfo();
+        AvailableAssistants avAsD = null;
+        avAsD = jsom.loadAvailableAssistantInfo(settings);
         ArrayList<ArrayList<Assistant>> listDays = avAsD.getAvailableAssistantsAtDays();
         for(ShiftTextArea arList: tempListDay ){
                 arList.setAvailableAssistants(listDays.get(i));
@@ -191,7 +196,7 @@ public class ShiftPickerController {
         }
         i = 0;
         ArrayList<ShiftTextArea> tempListNight = listOfAssistantLists.get(1);
-        AvailableAssistants avAsN = jsom.loadAvailableAssistantInfo();
+        AvailableAssistants avAsN = jsom.loadAvailableAssistantInfo(settings);
         ArrayList<ArrayList<Assistant>> listNights = avAsD.getAvailableAssistantsAtNights();
         for(ShiftTextArea sText: tempListNight ){
                 sText.setAvailableAssistants(listNights.get(i));
@@ -226,6 +231,23 @@ public class ShiftPickerController {
 
         availableAssistants.setAvailableAssistantsAtDays(dayList);
             availableAssistants.setAvailableAssistantsAtNights(nightList);
-          jsom.saveAvailableAssistantInfo(availableAssistants);
+          jsom.saveAvailableAssistantInfo(availableAssistants,settings);
+    }
+    public void generateEmptyState() throws IOException {
+        JsonManip jsom = new JsonManip();
+        AvailableAssistants availableAssistants = new AvailableAssistants();
+        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
+        ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
+        int shift = 0;
+
+            for(int i =0; i < Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear())); i++){
+                    dayList.add(new ArrayList<>());
+                    nightList.add(new ArrayList<>());
+
+        }
+
+        availableAssistants.setAvailableAssistantsAtDays(dayList);
+        availableAssistants.setAvailableAssistantsAtNights(nightList);
+        jsom.saveAvailableAssistantInfo(availableAssistants,settings);
     }
 }

@@ -43,7 +43,7 @@ public class ClientMonth {
         this.year = year;
       // this.clientOwningMonth = cl;
         int i = 1;
-        while(i <=+
+        while(i <=
                 mon.length(cal.isLeapYear(year))){
             ClientDay newDay = new ClientDay(i,mon, year, new int[]{8, 30},new int[]{20, 30});
             ClientDay newNight = new ClientDay(i,mon,year, new int[]{20, 30},new int[]{8, 30});

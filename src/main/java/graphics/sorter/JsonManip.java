@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Month;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,7 +54,7 @@ public class JsonManip {
              listOfClientMonths.getListOfClientMonths().add(new ClientMonth(Month.of(12),2024,cl.getSurname()));
 
          }
-         saveClientRequirementsForMonth(listOfClientMonths,12,2024);
+         saveClientRequirementsForMonth(listOfClientMonths, loadSettings("E:\\JsonWriteTest\\"));
 
     }
     public void saveAssistantInfo(ListOfAssistants lias) throws IOException {
@@ -68,12 +69,12 @@ public class JsonManip {
         ListOfAssistants listOfA = objectMapper.readValue(jsonData, ListOfAssistants.class );
         return listOfA;
     }
-    public ListOfClients loadClientInfo(int month, int year) throws IOException {
+    public ListOfClients loadClientInfo(Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\Clients.json"));
         ListOfClientsProfiles listOfA = objectMapper.readValue(jsonData, ListOfClientsProfiles.class );
-        byte[]  jsonDataMonth = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\"+month+"."+year+ ".json"));
+        byte[]  jsonDataMonth = Files.readAllBytes(Paths.get(set.getFilePath()+ "ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"));
         ListOfClientMonths listOfClm = objectMapper.readValue(jsonDataMonth, ListOfClientMonths.class );
         ListOfClients listOfClients = new ListOfClients();
         for(ClientProfile clP: listOfA.getClientList()){
@@ -81,7 +82,7 @@ public class JsonManip {
             if(!(listOfClm.getMonthOfSpecificClient(clP.getClientId()) == null)){
                 out = clP.convertToClient(listOfClm.getMonthOfSpecificClient(clP.getClientId()));
             }else{
-                out = clP.convertToClient(new ClientMonth(Month.of(month), year, clP.getClientId()));
+                out = clP.convertToClient(new ClientMonth(Month.of(set.getCurrentMonth()), set.getCurrentYear(), clP.getClientId()));
             }
             listOfClients.getClientList().add(out);
         }
@@ -100,27 +101,34 @@ public class JsonManip {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.writeValue(new File("E:\\JsonWriteTest\\Clients.json"),lias);
     }
-    public void saveAvailableAssistantInfo(AvailableAssistants lias) throws IOException {
+    public void saveAvailableAssistantInfo(AvailableAssistants lias, Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.writeValue(new File("E:\\JsonWriteTest\\AvailableAssistants.json"),lias);
+        objectMapper.writeValue(new File("E:\\JsonWriteTest\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"),lias);
     }
-    public AvailableAssistants loadAvailableAssistantInfo() throws IOException {
+    public AvailableAssistants loadAvailableAssistantInfo(Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\AvailableAssistants.json"));
+        byte[]  jsonData = new byte[0];
+        try {
+            jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
+        } catch (IOException e) {
+            generateEmptyState(loadSettings("E:\\JsonWriteTest\\"));
+            jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
+        }
         AvailableAssistants listOfA = objectMapper.readValue(jsonData, AvailableAssistants.class );
+
         return listOfA;
     }
-    public void saveClientRequirementsForMonth(ListOfClientMonths lias, int month, int year) throws IOException {
+    public void saveClientRequirementsForMonth(ListOfClientMonths lias, Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.writeValue(new File("E:\\JsonWriteTest\\" +month+"." +year+ ".json"),lias);
+        objectMapper.writeValue(new File(set.getFilePath()+ "ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"),lias);
     }
-    public ListOfClientMonths loadClientRequirementsForMonth(int month, int year) throws IOException {
+    public ListOfClientMonths loadClientRequirementsForMonth( Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\"+month+"."+year+ ".json"));
+        byte[]  jsonData = Files.readAllBytes(Paths.get(set.getFilePath()+ "ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"));
         ListOfClientMonths listOfClm = objectMapper.readValue(jsonData, ListOfClientMonths.class );
         return listOfClm;
     }
@@ -135,5 +143,22 @@ public class JsonManip {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.writeValue(new File(path+"Settings"+".json"),lias);
+    }
+    public void generateEmptyState(Settings settings) throws IOException {
+        JsonManip jsom = new JsonManip();
+        AvailableAssistants availableAssistants = new AvailableAssistants();
+        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
+        ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
+        int shift = 0;
+
+        for(int i = 0; i < Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear())); i++){
+            dayList.add(new ArrayList<>());
+            nightList.add(new ArrayList<>());
+
+        }
+
+        availableAssistants.setAvailableAssistantsAtDays(dayList);
+        availableAssistants.setAvailableAssistantsAtNights(nightList);
+        jsom.saveAvailableAssistantInfo(availableAssistants,settings);
     }
 }

@@ -1,20 +1,27 @@
 package graphics.sorter.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import graphics.sorter.*;
 import graphics.sorter.Structs.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Month;
 import java.util.ArrayList;
 
@@ -42,13 +49,15 @@ public class TestController {
     private ArrayList<TextArea> dayList = new ArrayList<TextArea>();
     JsonManip jsom = new JsonManip();
     private Settings settings;
+    GridPane grid = new GridPane();
     public void populateView(ListOfClients LiCcl){
+        grid.getChildren().clear();
         ListOfClientMonths LiClMo = new ListOfClientMonths();
         for(Client cl : LiCcl.getClientList()){
             LiClMo.getListOfClientMonths().add(cl.getClientsMonth());
         }
         //vytahnout y klientu m2s9c2
-        editedMonth = Month.DECEMBER;
+        editedMonth = Month.of(settings.getCurrentMonth());
         ArrayList<TextArea> areaList = new ArrayList<TextArea>();
         ArrayList<TextArea> titleList = new ArrayList<TextArea>();
 
@@ -61,14 +70,16 @@ public class TestController {
             if(i == 0){
                 inputText = "Jméno Klienta";
             }else{
-                 inputText = i + "."+ "12"+ "."+"2023";
+                 inputText = i + "."+ settings.getCurrentMonth()+ "."+settings.getCurrentYear();
             }
             TextArea newTextArea = new TextArea(inputText);
             titleList.add(newTextArea);
             i++;
         }
+        TextArea newTextArea = new TextArea("Další měsíc");
+        titleList.add(newTextArea);
         i = 0;
-        GridPane grid = new GridPane();
+
         for (TextArea ar : titleList){
             ar.setPrefSize(250,50);
             grid.setConstraints(ar,i,0,2,1);
@@ -95,7 +106,7 @@ public class TestController {
                     i = i+2;
                 }else{
                     if(getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)) == null){
-                        inputText= "Day" +"\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter));
+                        inputText= "Day" + i/2 +"\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter));
                     }else{
                         inputText= "Day" +"\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getName() +" "+getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getSurname();
                     }
@@ -130,14 +141,45 @@ public class TestController {
                     areaList.add(ar2);
                     ar2.setPrefSize(250,100);
                     grid.setConstraints(ar2,i+2,clienMothIter+1,1,1);
-                     */
-                    i = i+3;
+
+                    TextArea ar2 = new TextArea();
+                    inputText = "lolololo";
+                    ar2.setEditable(false);
+                    ar2.setText(inputText);
+                    ar2.setMaxSize(125,100);
+                    areaList.add(ar2);
+                    nightList.add(ar2);
+                    ar2.setPrefSize(125,100);
+                    grid.setConstraints(ar2,i+2,clienMothIter+1,1,1);
+
+                    TextArea ar3 = new TextArea();
+                    inputText = "lolololo";
+                    ar3.setEditable(false);
+                    ar3.setText(inputText);
+                    ar3.setMaxSize(125,100);
+                    areaList.add(ar3);
+                    nightList.add(ar3);
+                    ar3.setPrefSize(125,100);
+                    grid.setConstraints(ar3,i+2,clienMothIter+1,1,1);
+*/
+                    TextArea ar2 = new TextArea();
+                    inputText= "Night" + 1;
+                    ar2.setText(inputText);
+                    grid.setMargin(ar2,new Insets(0, 0, 0, 125));
+                    areaList.add(ar2);
+                    nightList.add(ar2);
+                    ar2.setPrefSize(250,100);
+                    grid.setConstraints(ar2,i+2,clienMothIter+1,3,1);
+
+                    i = i+4;
                 }else{
-                    inputText= "Night";
+                    inputText= "Night" + i/2;
                     nightTextAr.setText(inputText);
                     areaList.add(nightTextAr);
+                    grid.setMargin(nightTextAr,new Insets(0, 0, 0, 125));
+                    nightList.add(nightTextAr);
                     nightTextAr.setPrefSize(250,100);
-                    grid.setConstraints(nightTextAr,i,clienMothIter+1,2,1);
+                    grid.setConstraints(nightTextAr,i,clienMothIter+1,3,1);
                     i = i+2;
                 }
 
@@ -148,7 +190,31 @@ public class TestController {
         }
 
         grid.getChildren().addAll(areaList);
+
         TestScrollPane.setContent(grid);
+    }
+    public ListOfClients getClientsOfMonth(Settings settings) throws IOException {
+        try{
+            ListOfClients out =   jsom.loadClientInfo(settings);
+            return  out;
+        }catch(Exception e){
+            ListOfClientsProfiles lOCP = jsom.loadClientProfileInfo();
+            ListOfClientMonths listOfClm = new ListOfClientMonths();
+            ListOfClients listOfClients = new ListOfClients();
+            for(ClientProfile clP: lOCP.getClientList()){
+                Client out;
+                if(!(listOfClm.getMonthOfSpecificClient(clP.getClientId()) == null)){
+                    out = clP.convertToClient(listOfClm.getMonthOfSpecificClient(clP.getClientId()));
+                }else{
+                    ClientMonth temp = new ClientMonth(Month.of(settings.getCurrentMonth()), settings.getCurrentYear(), clP.getClientId());
+                    listOfClm.getListOfClientMonths().add(temp);
+                    out = clP.convertToClient(temp);
+                }
+                listOfClients.getClientList().add(out);
+            }
+            jsom.saveClientRequirementsForMonth(listOfClm,settings);
+            return listOfClients;
+        }
     }
     public Assistant getAssistantOfDay(ClientDay clDay){
         if(!clDay.getDayIntervalList().isEmpty()){
@@ -161,8 +227,11 @@ public class TestController {
     }
     public void initialize() throws IOException {
         settings = jsom.loadSettings("E:\\JsonWriteTest\\");
-        populateView(jsom.loadClientInfo(12,2024));
+        selectedYearValue.setText(String.valueOf(settings.getCurrentMonth()));
+        selectedMonthValue.setText(String.valueOf(settings.getCurrentYear()));
+        populateView(getClientsOfMonth(settings));
         AttachAssistants attachAssistants = new AttachAssistants();
+
     }
     public void initializeClients(){
     }
@@ -182,8 +251,10 @@ public class TestController {
 
     public void findSolution(ActionEvent actionEvent) throws IOException {
         int monthLength;
-        AvailableAssistants avAs = jsom.loadAvailableAssistantInfo();
-        ListOfClients listOfClients = jsom.loadClientInfo(12,2024);
+        AvailableAssistants avAs = null;
+        avAs = jsom.loadAvailableAssistantInfo(settings);
+
+        ListOfClients listOfClients = jsom.loadClientInfo(settings);
         ListOfClientMonths cliM = new ListOfClientMonths();
         for(Client cl : listOfClients.getClientList()){
             cliM .getListOfClientMonths().add(cl.getClientsMonth());
@@ -202,9 +273,9 @@ public class TestController {
                 }
             }
         }
-
+        jsom.saveClientRequirementsForMonth(cliM,settings);
         jsom.saveClientInfo(listOfClients.convertToListOfClientProfiles());
-        populateView(listOfClients);
+        populateView(getClientsOfMonth(settings));
     }
     private ArrayList<Assistant> getAvailableAssistantForDay(AvailableAssistants lisA, int date, boolean day ){
         ArrayList<Assistant> output;
@@ -216,7 +287,7 @@ public class TestController {
         return output;
 
     }
-    public void saveChangedDate(){
+    public void saveChangedDate() throws IOException {
         String[] parts = datePick.getValue().toString().split("-");
         selectedYearValue.setText(parts[0]);
         selectedMonthValue.setText(parts[1]);
@@ -227,6 +298,25 @@ public class TestController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        settings = jsom.loadSettings("E:\\JsonWriteTest\\");
+        populateView(getClientsOfMonth(settings));
+        /*
+        for( Node ce : grid.getChildren()){
+            if( ce instanceof TextArea){
+                TextArea textArea = (TextArea) ce;
+                System.out.println("Text " +textArea.getText());
+                System.out.println("Column index " +grid.getColumnIndex(textArea));
+                System.out.println("Column span " + grid.getColumnSpan(textArea));
+                System.out.println(textArea.getWidth());
+                System.out.println("------------------------------------------------------------");
+            }
 
+            ColumnConstraints col1 = new ColumnConstraints();
+            col1.setMaxWidth(125);
+            col1.setMinWidth(125);
+            col1.setPrefWidth(125);
+            grid.getColumnConstraints().addAll(col1);
+             */
+
+        }
     }
-}

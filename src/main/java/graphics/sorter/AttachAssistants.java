@@ -22,13 +22,14 @@ public class AttachAssistants {
 
     }
     public void initialize() throws IOException {
+        Settings set = jsom.loadSettings("E:\\JsonWriteTest\\");
         try {
-            availableAssistants = jsom.loadAvailableAssistantInfo();
+            availableAssistants = jsom.loadAvailableAssistantInfo(set);
         }catch(Exception e){
-            jsom.saveAvailableAssistantInfo(new AvailableAssistants());
+            jsom.generateEmptyState(set);
         }
 
-       listOfClients = jsom.loadClientInfo(12,2024);
+       listOfClients = jsom.loadClientInfo(set);
        extractClientsForDay(1);
     }
     private ArrayList<ClientDay> extractClientsForDay(int day ){
