@@ -8,11 +8,12 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.UUID;
 
 public class ClientMonth {
 
 
-    private String clientId;
+    private UUID clientId;
     private ArrayList<ClientDay> clientDaysInMonth = new ArrayList<ClientDay>();
     private ArrayList<ClientDay> clientNightsInMonth = new ArrayList<ClientDay>();
 
@@ -36,7 +37,7 @@ public class ClientMonth {
     private int year;
 
     @JsonCreator
-   public  ClientMonth(@JsonProperty("mon")Month mon,@JsonProperty("year") int year,@JsonProperty("clientId") String clientId){
+   public  ClientMonth(@JsonProperty("mon")Month mon,@JsonProperty("year") int year,@JsonProperty("clientId") UUID clientId){
         GregorianCalendar cal = new GregorianCalendar();
         this.clientId = clientId;
         this.mon = mon;
@@ -53,11 +54,11 @@ public class ClientMonth {
         }
     }
 
-    public String getClientId() {
+    public UUID getClientId() {
         return clientId;
     }
 
-    public void setClientId(String clientId) {
+    public void setClientId(UUID clientId) {
         this.clientId = clientId;
     }
     public ArrayList<ClientDay> getClientDaysInMonth() {

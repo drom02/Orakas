@@ -1,6 +1,7 @@
 package graphics.sorter.Structs;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class ListOfClientMonths {
     public ArrayList<ClientMonth> getListOfClientMonths() {
@@ -12,7 +13,7 @@ public class ListOfClientMonths {
     }
 
     private ArrayList<ClientMonth> listOfClientMonths = new ArrayList<ClientMonth>();
-    public ClientMonth getMonthOfSpecificClient(String id){
+    public ClientMonth getMonthOfSpecificClient(UUID id){
         if(!getListOfClientMonths().isEmpty()){
             for( ClientMonth iter : getListOfClientMonths()){
                 if(iter.getClientId().equals(id)){

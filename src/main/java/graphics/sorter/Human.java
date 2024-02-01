@@ -1,8 +1,10 @@
 package graphics.sorter;
 
+import java.util.UUID;
+
 public class Human {
 
-    private String ID;
+    private UUID ID;
     private String name;
     private  String surname;
     private String middlename;
@@ -30,11 +32,11 @@ public class Human {
         this.middlename = middlename;
     }
 
-    public String getID() {
+    public UUID getID() {
         return ID;
     }
 
-    public void setID(String ID) {
+    public void setID(UUID ID) {
         this.ID = ID;
     }
 }

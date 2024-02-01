@@ -203,10 +203,10 @@ public class TestController {
             ListOfClients listOfClients = new ListOfClients();
             for(ClientProfile clP: lOCP.getClientList()){
                 Client out;
-                if(!(listOfClm.getMonthOfSpecificClient(clP.getClientId()) == null)){
-                    out = clP.convertToClient(listOfClm.getMonthOfSpecificClient(clP.getClientId()));
+                if(!(listOfClm.getMonthOfSpecificClient(clP.getID()) == null)){
+                    out = clP.convertToClient(listOfClm.getMonthOfSpecificClient(clP.getID()));
                 }else{
-                    ClientMonth temp = new ClientMonth(Month.of(settings.getCurrentMonth()), settings.getCurrentYear(), clP.getClientId());
+                    ClientMonth temp = new ClientMonth(Month.of(settings.getCurrentMonth()), settings.getCurrentYear(), clP.getID());
                     listOfClm.getListOfClientMonths().add(temp);
                     out = clP.convertToClient(temp);
                 }

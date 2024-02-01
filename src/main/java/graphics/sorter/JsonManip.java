@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 import java.time.Month;
 import java.time.Year;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 
 public class JsonManip {
 
@@ -39,10 +39,10 @@ public class JsonManip {
          Client client2 = new Client("Client3", "Clientov3", new ClientMonth(Month.DECEMBER,2024));
          Client client3 = new Client("Client4", "Clientov3", new ClientMonth(Month.DECEMBER,2024));
          */
-         ClientProfile client = new ClientProfile("Client", "Clientov");
-         ClientProfile client1 = new ClientProfile("Client2", "Clientov2");
-         ClientProfile client2 = new ClientProfile("Client3", "Clientov3");
-         ClientProfile client3 = new ClientProfile("Client4", "Clientov4");
+         ClientProfile client = new ClientProfile(UUID.randomUUID(),"Client", "Clientov");
+         ClientProfile client1 = new ClientProfile(UUID.randomUUID(),"Client2", "Clientov2");
+         ClientProfile client2 = new ClientProfile(UUID.randomUUID(),"Client3", "Clientov3");
+         ClientProfile client3 = new ClientProfile(UUID.randomUUID(),"Client4", "Clientov4");
          ListOfClientsProfiles clLs = new ListOfClientsProfiles();
          clLs.getClientList().add(client);
          clLs.getClientList().add(client1);
@@ -51,7 +51,7 @@ public class JsonManip {
          saveClientInfo(clLs);
          ListOfClientMonths listOfClientMonths = new ListOfClientMonths();
          for (ClientProfile cl : clLs.getClientList()){
-             listOfClientMonths.getListOfClientMonths().add(new ClientMonth(Month.of(12),2024,cl.getSurname()));
+             listOfClientMonths.getListOfClientMonths().add(new ClientMonth(Month.of(loadSettings("E:\\JsonWriteTest\\").getCurrentMonth()),loadSettings("E:\\JsonWriteTest\\").getCurrentYear(),cl.getID()));
 
          }
          saveClientRequirementsForMonth(listOfClientMonths, loadSettings("E:\\JsonWriteTest\\"));
@@ -79,10 +79,10 @@ public class JsonManip {
         ListOfClients listOfClients = new ListOfClients();
         for(ClientProfile clP: listOfA.getClientList()){
             Client out;
-            if(!(listOfClm.getMonthOfSpecificClient(clP.getClientId()) == null)){
-                out = clP.convertToClient(listOfClm.getMonthOfSpecificClient(clP.getClientId()));
+            if(!(listOfClm.getMonthOfSpecificClient(clP.getID()) == null)){
+                out = clP.convertToClient(listOfClm.getMonthOfSpecificClient(clP.getID()));
             }else{
-                out = clP.convertToClient(new ClientMonth(Month.of(set.getCurrentMonth()), set.getCurrentYear(), clP.getClientId()));
+                out = clP.convertToClient(new ClientMonth(Month.of(set.getCurrentMonth()), set.getCurrentYear(), clP.getID()));
             }
             listOfClients.getClientList().add(out);
         }
