@@ -12,10 +12,20 @@ public class Location {
     private String address;
     private String casualName;
 
+    public String getComments() {
+        return comments;
+    }
+
+    public void setComments(String comments) {
+        this.comments = comments;
+    }
+
+    private String comments;
+
 
     @JsonCreator
-    Location(@JsonProperty("ID")UUID dummyVal, @JsonProperty("address")String address, @JsonProperty("casualName") String casualName){
-        setID(UUID.randomUUID());
+    Location(@JsonProperty("ID")UUID ID, @JsonProperty("address")String address, @JsonProperty("casualName") String casualName){
+        setID(ID);
         setAddress(address);
         setCasualName(casualName);
     }
@@ -42,5 +52,20 @@ public class Location {
     public void setCasualName(String casualName) {
         this.casualName = casualName;
     }
+    @Override
+    public boolean equals(Object o) {
 
+        // If the object is compared with itself then return true
+        if (o == this) {
+            return true;
+        }
+
+        /* Check if o is an instance of Location or not
+          "null instanceof [type]" also returns false */
+        if (!(o instanceof Location)) {
+            return false;
+        }
+        // Compare the data members and return accordingly
+        return this.ID.equals(((Location) o).getID());
+    }
 }

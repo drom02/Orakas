@@ -39,10 +39,10 @@ public class JsonManip {
          Client client2 = new Client("Client3", "Clientov3", new ClientMonth(Month.DECEMBER,2024));
          Client client3 = new Client("Client4", "Clientov3", new ClientMonth(Month.DECEMBER,2024));
          */
-         ClientProfile client = new ClientProfile(UUID.randomUUID(),"Client", "Clientov");
-         ClientProfile client1 = new ClientProfile(UUID.randomUUID(),"Client2", "Clientov2");
-         ClientProfile client2 = new ClientProfile(UUID.randomUUID(),"Client3", "Clientov3");
-         ClientProfile client3 = new ClientProfile(UUID.randomUUID(),"Client4", "Clientov4");
+         ClientProfile client = new ClientProfile(UUID.randomUUID(),"Client", "Clientov", null);
+         ClientProfile client1 = new ClientProfile(UUID.randomUUID(),"Client2", "Clientov2", null);
+         ClientProfile client2 = new ClientProfile(UUID.randomUUID(),"Client3", "Clientov3", null);
+         ClientProfile client3 = new ClientProfile(UUID.randomUUID(),"Client4", "Clientov4", null);
          ListOfClientsProfiles clLs = new ListOfClientsProfiles();
          clLs.getClientList().add(client);
          clLs.getClientList().add(client1);
@@ -51,11 +51,11 @@ public class JsonManip {
          saveClientInfo(clLs);
          ListOfClientMonths listOfClientMonths = new ListOfClientMonths();
          for (ClientProfile cl : clLs.getClientList()){
-             listOfClientMonths.getListOfClientMonths().add(new ClientMonth(Month.of(loadSettings("E:\\JsonWriteTest\\").getCurrentMonth()),loadSettings("E:\\JsonWriteTest\\").getCurrentYear(),cl.getID()));
+             listOfClientMonths.getListOfClientMonths().add(new ClientMonth(Month.of(loadSettings("E:\\JsonWriteTest\\").getCurrentMonth()),loadSettings("E:\\JsonWriteTest\\").getCurrentYear(),cl.getID(), null));
 
          }
          saveClientRequirementsForMonth(listOfClientMonths, loadSettings("E:\\JsonWriteTest\\"));
-
+        //saveLocations(new ListOfLocations(), loadSettings("E:\\JsonWriteTest\\").getFilePath());
     }
     public void saveAssistantInfo(ListOfAssistants lias) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -82,7 +82,7 @@ public class JsonManip {
             if(!(listOfClm.getMonthOfSpecificClient(clP.getID()) == null)){
                 out = clP.convertToClient(listOfClm.getMonthOfSpecificClient(clP.getID()));
             }else{
-                out = clP.convertToClient(new ClientMonth(Month.of(set.getCurrentMonth()), set.getCurrentYear(), clP.getID()));
+                out = clP.convertToClient(new ClientMonth(Month.of(set.getCurrentMonth()), set.getCurrentYear(), clP.getID(), clP.getHomeLocation()));
             }
             listOfClients.getClientList().add(out);
         }
@@ -160,5 +160,18 @@ public class JsonManip {
         availableAssistants.setAvailableAssistantsAtDays(dayList);
         availableAssistants.setAvailableAssistantsAtNights(nightList);
         jsom.saveAvailableAssistantInfo(availableAssistants,settings);
+    }
+    public void  saveLocations(ListOfLocations lOL, String path) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.writeValue(new File(path+"Locations"+".json"),lOL);
+
+    }
+    public ListOfLocations loadLocations(String path) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        byte[]  jsonData = Files.readAllBytes(Paths.get(path+"Locations"+ ".json"));
+        ListOfLocations lot = objectMapper.readValue(jsonData, ListOfLocations.class );
+        return lot;
     }
 }

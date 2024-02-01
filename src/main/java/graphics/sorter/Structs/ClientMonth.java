@@ -3,6 +3,7 @@ package graphics.sorter.Structs;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import graphics.sorter.Client;
+import graphics.sorter.Location;
 
 import java.time.Month;
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public class ClientMonth {
     private int year;
 
     @JsonCreator
-   public  ClientMonth(@JsonProperty("mon")Month mon,@JsonProperty("year") int year,@JsonProperty("clientId") UUID clientId){
+   public  ClientMonth(@JsonProperty("mon")Month mon,@JsonProperty("year") int year,@JsonProperty("clientId") UUID clientId,@JsonProperty("location") Location location ){
         GregorianCalendar cal = new GregorianCalendar();
         this.clientId = clientId;
         this.mon = mon;
@@ -46,8 +47,8 @@ public class ClientMonth {
         int i = 1;
         while(i <=
                 mon.length(cal.isLeapYear(year))){
-            ClientDay newDay = new ClientDay(i,mon, year, new int[]{8, 30},new int[]{20, 30});
-            ClientDay newNight = new ClientDay(i,mon,year, new int[]{20, 30},new int[]{8, 30});
+            ClientDay newDay = new ClientDay(i,mon, year, new int[]{8, 30},new int[]{20, 30}, location);
+            ClientDay newNight = new ClientDay(i,mon,year, new int[]{20, 30},new int[]{8, 30},location);
             clientDaysInMonth.add(newDay);
             clientNightsInMonth.add(newNight);
             i++;

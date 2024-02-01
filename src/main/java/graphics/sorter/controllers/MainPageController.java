@@ -1,31 +1,25 @@
 package graphics.sorter.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import graphics.sorter.*;
 import graphics.sorter.Structs.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Month;
 import java.util.ArrayList;
 
-public class TestController {
+public class MainPageController {
     @FXML
     private ScrollPane TestScrollPane;
     @FXML
@@ -206,7 +200,7 @@ public class TestController {
                 if(!(listOfClm.getMonthOfSpecificClient(clP.getID()) == null)){
                     out = clP.convertToClient(listOfClm.getMonthOfSpecificClient(clP.getID()));
                 }else{
-                    ClientMonth temp = new ClientMonth(Month.of(settings.getCurrentMonth()), settings.getCurrentYear(), clP.getID());
+                    ClientMonth temp = new ClientMonth(Month.of(settings.getCurrentMonth()), settings.getCurrentYear(), clP.getID(), clP.getHomeLocation());
                     listOfClm.getListOfClientMonths().add(temp);
                     out = clP.convertToClient(temp);
                 }
@@ -319,4 +313,18 @@ public class TestController {
              */
 
         }
+
+    public void switchPageToLocation(ActionEvent actionEvent) throws IOException {
+        Scene scen = TestScrollPane.getScene();
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Location-view.fxml"));
+        Parent rot = fxmlLoader.load();
+        scen.setRoot(rot);
     }
+
+    public void switchPageToClient(ActionEvent actionEvent) throws IOException {
+        Scene scen = TestScrollPane.getScene();
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Client-view.fxml"));
+        Parent rot = fxmlLoader.load();
+        scen.setRoot(rot);
+    }
+}

@@ -40,7 +40,7 @@ public class AssistantListController {
 
     public void switchPage(ActionEvent actionEvent) throws IOException {
        Scene scen = menu.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("test-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Main-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
 

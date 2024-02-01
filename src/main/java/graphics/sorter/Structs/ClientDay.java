@@ -2,6 +2,7 @@ package graphics.sorter.Structs;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import graphics.sorter.Location;
 
 import java.time.LocalTime;
 import java.time.Month;
@@ -67,7 +68,7 @@ public class ClientDay {
 
     }
     @JsonCreator
-     ClientDay(@JsonProperty("dayI")Integer dayI,@JsonProperty("monthI")Month monthI,@JsonProperty("year")Integer yearI, @JsonProperty("defStarTime")int[] defStarTime,@JsonProperty("defEndTime")int[] defEndTime ){
+     ClientDay(@JsonProperty("dayI")Integer dayI,@JsonProperty("monthI")Month monthI,@JsonProperty("year")Integer yearI, @JsonProperty("defStarTime")int[] defStarTime,@JsonProperty("defEndTime")int[] defEndTime,@JsonProperty("Location")Location location ){
         if(defStarTime == null){
             defStarTime  = new int[]{8, 30};
         }
@@ -79,6 +80,7 @@ public class ClientDay {
         this.day = dayI;
         this.month = monthI;
         this.year = yearI;
+        this.location = location;
     }
 
 

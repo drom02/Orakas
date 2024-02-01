@@ -5,6 +5,7 @@ import graphics.sorter.Assistant;
 import graphics.sorter.HelloApplication;
 import graphics.sorter.JsonManip;
 import graphics.sorter.ListOfAssistants;
+import graphics.sorter.Structs.HumanCellFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -51,6 +52,7 @@ public class AssistantViewController {
     public void saveAssistant(MouseEvent mouseEvent) {
     }
     public void initialize() throws IOException {
+        listViewofA.setCellFactory(new HumanCellFactory());
         JsonManip jsoMap= new JsonManip();
         ListOfAssistants listOfA = jsoMap.loadAssistantInfo();
         listOfAssist = listOfA .getAssistantList();
@@ -68,7 +70,7 @@ public class AssistantViewController {
 
     public void switchPage(ActionEvent actionEvent) throws IOException {
         Scene scen = listViewofA.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("test-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Main-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
     }

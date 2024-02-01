@@ -1,7 +1,7 @@
 package graphics.sorter.controllers;
 
 import graphics.sorter.*;
-import graphics.sorter.Structs.AssistantCellFactory;
+import graphics.sorter.Structs.HumanCellFactory;
 import graphics.sorter.Structs.AvailableAssistants;
 import graphics.sorter.Structs.ShiftTextArea;
 import javafx.collections.FXCollections;
@@ -114,7 +114,7 @@ public class ShiftPickerController {
     public void initialize() throws IOException {
         JsonManip jsoMap= new JsonManip();
         settings = jsoMap.loadSettings("E:\\JsonWriteTest\\");
-        assistantList.setCellFactory(new AssistantCellFactory());
+        assistantList.setCellFactory(new HumanCellFactory());
 
         ListOfAssistants listOfA = jsoMap.loadAssistantInfo();
         listOfAssist = listOfA .getAssistantList();
@@ -129,7 +129,7 @@ public class ShiftPickerController {
      */
     public void switchPageToMain(ActionEvent actionEvent) throws IOException {
        Scene scen = TestScrollPane.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("test-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Main-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
 

@@ -3,6 +3,7 @@ package graphics.sorter.Structs;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import graphics.sorter.Assistant;
+import graphics.sorter.Location;
 
 import java.time.LocalTime;
 

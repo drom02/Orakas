@@ -1,18 +1,18 @@
 package graphics.sorter.Structs;
 
-import graphics.sorter.Assistant;
+import graphics.sorter.Human;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 
 
 import javafx.util.Callback;
 
-public class AssistantCellFactory implements Callback<ListView<Assistant>, ListCell<Assistant>> {
+public class HumanCellFactory implements Callback<ListView<Human>, ListCell<Human>> {
     @Override
-    public ListCell<Assistant> call(ListView<Assistant> param) {
+    public ListCell<Human> call(ListView<Human> param) {
         return new ListCell<>(){
             @Override
-            public void updateItem(Assistant person, boolean empty) {
+            public void updateItem(Human person, boolean empty) {
                 super.updateItem(person, empty);
                 if (empty || person == null) {
                     setText(null);

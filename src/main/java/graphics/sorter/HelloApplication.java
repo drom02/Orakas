@@ -16,12 +16,11 @@ public class HelloApplication extends Application {
         Settings set = new Settings(12,2024,"");
         set.createNewSettingsFile();
         jsoM.jsonTest();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("test-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Main-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
-        stage.setTitle("Hello!");
+        stage.setTitle("Sorter");
         stage.setScene(scene);
         stage.show();
-        Month testMonth =Month.DECEMBER;
 
 
     }

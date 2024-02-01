@@ -12,8 +12,8 @@ public class Client extends ClientProfile{
     private ClientMonth clientsMonth;
     private Location loc;
     @JsonCreator
-    public Client(@JsonProperty("ID") UUID ID, @JsonProperty("name")String name, @JsonProperty("surname")String surname, @JsonProperty("clientMonth")ClientMonth clientMonth){
-        super(ID,name, surname);
+    public Client(@JsonProperty("ID") UUID ID, @JsonProperty("name")String name, @JsonProperty("surname")String surname, @JsonProperty("clientMonth")ClientMonth clientMonth, @JsonProperty("homeLocation")Location homeLocation){
+        super(ID,name, surname, homeLocation);
         setClientsMonth(clientMonth);
     }
 
@@ -25,7 +25,7 @@ public class Client extends ClientProfile{
         this.clientsMonth = clientsMonth;
     }
     public ClientProfile convertToClientProfile(){
-        ClientProfile clP = new ClientProfile(this.getID(),this.getName(), this.getSurname());
+        ClientProfile clP = new ClientProfile(this.getID(),this.getName(), this.getSurname(), this.getHomeLocation());
         return  clP;
     }
 }
