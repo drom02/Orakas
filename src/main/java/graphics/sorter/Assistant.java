@@ -38,7 +38,7 @@ public class Assistant extends Human{
         setWorksOnlyNight(worksNight);
         setComments(comments);
         if( (workDays == null)){
-            setWorkDays(new int[]{1,1,1,1,1,0,0});
+            setWorkDays(new int[]{1,1,1,1,1,0,0,1,1,1,1,1,0,0});
         }else{
             setWorkDays(workDays);
         }

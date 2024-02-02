@@ -212,13 +212,25 @@ public class AssistantViewController {
     public void switchState(MouseEvent mouseEvent) {
         TextArea loadedArea = (TextArea) mouseEvent.getSource();
         int rowIndex = daysInWeekGrid.getRowIndex(loadedArea);
-        if(selectedAssistant.getWorkDays()[rowIndex] ==0){
-            selectedAssistant.getWorkDays()[rowIndex] =1;
-            setDayState(loadedArea,1);
+        int colIndex = daysInWeekGrid.getColumnIndex(loadedArea);
+        if(colIndex == 0){
+            if(selectedAssistant.getWorkDays()[rowIndex] ==0){
+                selectedAssistant.getWorkDays()[rowIndex] = 1;
+                setDayState(loadedArea,1);
+            }else{
+                selectedAssistant.getWorkDays()[rowIndex] = 0;
+                setDayState(loadedArea,0);
+            }
         }else{
-            selectedAssistant.getWorkDays()[rowIndex] =0;
-            setDayState(loadedArea,0);
+            if(selectedAssistant.getWorkDays()[rowIndex+7] ==0){
+                selectedAssistant.getWorkDays()[rowIndex+7] = 1;
+                setDayState(loadedArea,1);
+            }else{
+                selectedAssistant.getWorkDays()[rowIndex+7] = 0;
+                setDayState(loadedArea,0);
+            }
         }
+
     System.out.println(rowIndex);
 
     }

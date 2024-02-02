@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
 import java.util.ArrayList;
@@ -113,7 +114,7 @@ public class JsonManip {
         try {
             jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
         } catch (IOException e) {
-            generateEmptyState(loadSettings("E:\\JsonWriteTest\\"));
+            generateNewMonthsAssistants(loadSettings("E:\\JsonWriteTest\\"));
             jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
         }
         AvailableAssistants listOfA = objectMapper.readValue(jsonData, AvailableAssistants.class );
@@ -154,6 +155,34 @@ public class JsonManip {
         for(int i = 0; i < Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear())); i++){
             dayList.add(new ArrayList<>());
             nightList.add(new ArrayList<>());
+
+        }
+
+        availableAssistants.setAvailableAssistantsAtDays(dayList);
+        availableAssistants.setAvailableAssistantsAtNights(nightList);
+        jsom.saveAvailableAssistantInfo(availableAssistants,settings);
+    }
+    public void generateNewMonthsAssistants(Settings settings) throws IOException {
+        JsonManip jsom = new JsonManip();
+        ListOfAssistants listOfA = jsom.loadAssistantInfo();
+        AvailableAssistants availableAssistants = new AvailableAssistants();
+        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
+        ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
+        for(int i =0; i < Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear())); i++){
+            ArrayList<Assistant> inputDayList = new ArrayList<>();
+            ArrayList<Assistant> inputNightList = new ArrayList<>();
+            dayList.add(inputDayList);
+            nightList.add(inputNightList);
+            for(Assistant asis : listOfA.getAssistantList()){
+                if(asis.getWorkDays()[(LocalDate.of(settings.getCurrentYear(), settings.getCurrentMonth(), i+1).getDayOfWeek().getValue()-1)] == 1 ){
+                    inputDayList.add(asis);
+                }
+                if(asis.getWorkDays()[(LocalDate.of(settings.getCurrentYear(), settings.getCurrentMonth(), i+1).getDayOfWeek().getValue()+6)] == 1 ){
+                    inputNightList.add(asis);
+                }
+
+            }
+
 
         }
 

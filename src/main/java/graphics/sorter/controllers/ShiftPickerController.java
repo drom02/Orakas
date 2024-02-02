@@ -20,9 +20,15 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 
 import java.io.IOException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+
 /*
 Controller for shift picker window. It is used to select when are assistants available. Select name from the list and
 left click to field to add the assistant for specific shift. Right click to remove.
@@ -79,7 +85,9 @@ public class ShiftPickerController {
                 i++;
             }else{
                 int row = 0;
-                inputText = i + "."+ moth.getValue()+ "."+year;
+                LocalDate date = LocalDate.of(year, editedMonth.getValue(), i);
+                DayOfWeek dayValue = date.getDayOfWeek();
+                inputText = i + "."+ moth.getValue()+ "."+year +"\n" + dayValue.getDisplayName(TextStyle.FULL, new Locale("cs", "CZ"));
                 rowTitleAr.setText(inputText);
                 areaList.add(rowTitleAr);
                 rowTitleAr.setPrefSize(250,100);
@@ -179,6 +187,7 @@ public class ShiftPickerController {
      */
     public void loadAvailableAssistants() throws IOException {
         JsonManip jsom = new JsonManip();
+
         int i =0;
         ArrayList<ShiftTextArea> tempListDay = listOfAssistantLists.get(0);
         AvailableAssistants avAsD = null;
@@ -208,6 +217,34 @@ public class ShiftPickerController {
                 i++;
         }
 
+    }
+    public void generateNewMonthsAssistants() throws IOException {
+        JsonManip jsom = new JsonManip();
+        ListOfAssistants listOfA = jsom.loadAssistantInfo();
+        AvailableAssistants availableAssistants = new AvailableAssistants();
+        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
+        ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
+        for(int i =0; i < Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear())); i++){
+            ArrayList<Assistant> inputDayList = new ArrayList<>();
+            ArrayList<Assistant> inputNightList = new ArrayList<>();
+            dayList.add(inputDayList);
+            nightList.add(inputNightList);
+            for(Assistant asis : listOfA.getAssistantList()){
+                if(asis.getWorkDays()[(LocalDate.of(settings.getCurrentYear(), settings.getCurrentMonth(), i).getDayOfWeek().getValue()-1)] == 1 ){
+                    inputDayList.add(asis);
+                }
+                if(asis.getWorkDays()[(LocalDate.of(settings.getCurrentYear(), settings.getCurrentMonth(), i).getDayOfWeek().getValue()+7)] == 1 ){
+                    inputNightList.add(asis);
+                }
+
+            }
+
+
+        }
+
+        availableAssistants.setAvailableAssistantsAtDays(dayList);
+        availableAssistants.setAvailableAssistantsAtNights(nightList);
+        jsom.saveAvailableAssistantInfo(availableAssistants,settings);
     }
     /*
     Will save current state to json file.
