@@ -17,13 +17,13 @@ public class JsonManip {
 
      public void jsonTest() throws IOException {
        // byte[] jsonData = Files.readAllBytes(Paths.get("employee.txt"));
-        Assistant ass = new Assistant("Matěj", "Matějov", "Dpp", 0, false,false,false, "");
-         Assistant ass1 = new Assistant("Jan", "Janov", "Dpp", 75, true,false,true, "Tralalal");
-         Assistant ass2 = new Assistant("Honza", "Honzov", "Dpp", 75, true,false,true, "Tralalal");
-         Assistant ass3 = new Assistant("Milan", "Milanov", "Dpp", 75, true,false,true, "Tralalal");
-         Assistant ass4 = new Assistant("Martin", "Martinov", "Dpp", 75, true,false,true, "Tralalal");
-         Assistant ass5 = new Assistant("Test", "Testov", "Dpp", 75, true,false,true, "Tralalal");
-         Assistant ass6 = new Assistant("Jan", "Testov", "Dpp", 75, true,false,true, "Tralalal");
+        Assistant ass = new Assistant(UUID.randomUUID(),"Matěj", "Matějov", "Dpp", 0, false,false,false, "",null);
+         Assistant ass1 = new Assistant(UUID.randomUUID(),"Jan", "Janov", "Dpp", 75, true,false,true, "Tralalal",null);
+         Assistant ass2 = new Assistant(UUID.randomUUID(),"Honza", "Honzov", "Dpp", 75, true,false,true, "Tralalal",null);
+         Assistant ass3 = new Assistant(UUID.randomUUID(),"Milan", "Milanov", "Dpp", 75, true,false,true, "Tralalal",null);
+         Assistant ass4 = new Assistant(UUID.randomUUID(),"Martin", "Martinov", "Dpp", 75, true,false,true, "Tralalal",null);
+         Assistant ass5 = new Assistant(UUID.randomUUID(),"Test", "Testov", "Dpp", 75, true,false,true, "Tralalal",null);
+         Assistant ass6 = new Assistant(UUID.randomUUID(),"Jan", "Testov", "Dpp", 75, true,false,true, "Tralalal",null);
         ListOfAssistants lias = new ListOfAssistants(new ArrayList<Assistant>());
         lias.assistantList.add(ass);
         lias.assistantList.add(ass1);

@@ -24,7 +24,7 @@ public class Location {
 
 
     @JsonCreator
-    Location(@JsonProperty("ID")UUID ID, @JsonProperty("address")String address, @JsonProperty("casualName") String casualName){
+    public Location(@JsonProperty("ID") UUID ID, @JsonProperty("address") String address, @JsonProperty("casualName") String casualName){
         setID(ID);
         setAddress(address);
         setCasualName(casualName);

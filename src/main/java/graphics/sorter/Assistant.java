@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class Assistant extends Human{
     //Typ pracovní smlouvy
@@ -20,8 +21,14 @@ public class Assistant extends Human{
     private String comments;
     //Seznam klientů a vztahu s nimi
     private ArrayList<Client> clientList;
+
+
+
+
+    private int[] workDays;
     @JsonCreator
-     Assistant(@JsonProperty("name")String name, @JsonProperty("surname")String surname, @JsonProperty("contract")String contract, @JsonProperty("work")double work, @JsonProperty("overtime")boolean overtime, @JsonProperty("worksDay")boolean worksDay, @JsonProperty("worksNight")boolean worksNight, @JsonProperty("comments")String comments){
+     public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("name")String name, @JsonProperty("surname")String surname, @JsonProperty("contract")String contract, @JsonProperty("work")double work, @JsonProperty("overtime")boolean overtime, @JsonProperty("worksDay")boolean worksDay, @JsonProperty("worksNight")boolean worksNight, @JsonProperty("comments")String comments, @JsonProperty("workDays")int[] workDays){
+        setID(ID);
         setName(name);
         setSurname(surname);
         setContractType(contract);
@@ -30,6 +37,12 @@ public class Assistant extends Human{
         setWorksOnlyDay(worksDay);
         setWorksOnlyNight(worksNight);
         setComments(comments);
+        if( (workDays == null)){
+            setWorkDays(new int[]{1,1,1,1,1,0,0});
+        }else{
+            setWorkDays(workDays);
+        }
+
 
     }
     public String getContractType() {
@@ -85,6 +98,37 @@ public class Assistant extends Human{
 
     public void setClientList(ArrayList<Client> clientList) {
         this.clientList = clientList;
+    }
+    public boolean isLikesOvertime() {
+        return likesOvertime;
+    }
+
+    public void setLikesOvertime(boolean likesOvertime) {
+        this.likesOvertime = likesOvertime;
+    }
+
+    public boolean isWorksOnlyDay() {
+        return worksOnlyDay;
+    }
+
+    public void setWorksOnlyDay(boolean worksOnlyDay) {
+        this.worksOnlyDay = worksOnlyDay;
+    }
+
+    public boolean isWorksOnlyNight() {
+        return worksOnlyNight;
+    }
+
+    public void setWorksOnlyNight(boolean worksOnlyNight) {
+        this.worksOnlyNight = worksOnlyNight;
+    }
+
+    public int[] getWorkDays() {
+        return workDays;
+    }
+
+    public void setWorkDays(int[] workDays) {
+        this.workDays = workDays;
     }
     @Override
     public boolean equals(Object o){
