@@ -10,12 +10,10 @@ import javafx.css.converter.ColorConverter;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.ColumnConstraints;
@@ -28,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.MonthDay;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class AssistantViewController {
@@ -60,11 +59,32 @@ public class AssistantViewController {
     private int[] stateOfDays;
     private JsonManip jsoMap;
     private ListOfAssistants listOfA;
+    private ArrayList<Control> assistantNodes;
     Settings set;
-    public void deleteAssistant(MouseEvent mouseEvent) {
-    }
+    public void deleteAssistant(MouseEvent mouseEvent) throws IOException {
+        if(!(selectedAssistant == null)){
+            listOfA.getAssistantList().remove(selectedAssistant);
+            ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.assistantList);
+            listViewofA.setItems(observAssistantList);
+            for(Control n : assistantNodes){
+                if (n instanceof TextArea) {
+                    ((TextArea) n).clear();
+                } else if (n instanceof TextField) {
+                    ((TextField) n).clear();
+                } else if (n instanceof CheckBox) {
+                    ((CheckBox) n).setSelected(false);
+                }
+            }
+            jsoMap.saveAssistantInfo(listOfA);
+        }else{
+            System.out.println("Vyberte asistenta k odstranění.");
+        }
 
-    public void saveAssistant(MouseEvent mouseEvent) throws IOException {
+    }
+   /*
+   @TODO Add how to deal with somebody changing name and surname, check that it is still unique.
+    */
+public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         selectedAssistant.setName(nameField.getText());
         selectedAssistant.setSurname(surnameField.getText());
         selectedAssistant.setContractType(contractField.getText());
@@ -80,6 +100,7 @@ public class AssistantViewController {
 
     }
     public void initialize() throws IOException {
+        assistantNodes = new ArrayList<>(Arrays.asList(nameField, surnameField,overtimeCheck,dayCheck,nightCheck,contractField,workField,comments));
         listViewofA.setCellFactory(new HumanCellFactory());
         jsoMap= new JsonManip();
         set = jsoMap.loadSettings("E:\\JsonWriteTest\\");
@@ -108,16 +129,19 @@ public class AssistantViewController {
 
     public void loadAssistant(MouseEvent mouseEvent) {
         selectedAssistant = (Assistant) listViewofA.getSelectionModel().getSelectedItem();
-       nameField.setText(selectedAssistant.getName());
-       surnameField.setText(selectedAssistant.getSurname());
-       contractField.setText(selectedAssistant.getContractType());
-       overtimeCheck.setSelected(selectedAssistant.getLikesOvertime());
-       dayCheck.setSelected(selectedAssistant.getWorksOnlyDay());
-       nightCheck.setSelected(selectedAssistant.getWorksOnlyNight());
-       workField.setText(String.valueOf(selectedAssistant.getWorkTime()));
-       comments.setText(selectedAssistant.getComments());
-       stateOfDays = selectedAssistant.getWorkDays();
+    if(!(selectedAssistant== null)){
+        nameField.setText(selectedAssistant.getName());
+        surnameField.setText(selectedAssistant.getSurname());
+        contractField.setText(selectedAssistant.getContractType());
+        overtimeCheck.setSelected(selectedAssistant.getLikesOvertime());
+        dayCheck.setSelected(selectedAssistant.getWorksOnlyDay());
+        nightCheck.setSelected(selectedAssistant.getWorksOnlyNight());
+        workField.setText(String.valueOf(selectedAssistant.getWorkTime()));
+        comments.setText(selectedAssistant.getComments());
+        stateOfDays = selectedAssistant.getWorkDays();
         populateDaysInWeekTable();
+    }
+
     }
 
 

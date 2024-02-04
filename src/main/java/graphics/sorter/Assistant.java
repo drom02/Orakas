@@ -27,7 +27,8 @@ public class Assistant extends Human{
 
     private int[] workDays;
     @JsonCreator
-     public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("name")String name, @JsonProperty("surname")String surname, @JsonProperty("contract")String contract, @JsonProperty("work")double work, @JsonProperty("overtime")boolean overtime, @JsonProperty("worksDay")boolean worksDay, @JsonProperty("worksNight")boolean worksNight, @JsonProperty("comments")String comments, @JsonProperty("workDays")int[] workDays){
+     public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("name")String name, @JsonProperty("surname")String surname,
+                      @JsonProperty("contract")String contract, @JsonProperty("work")double work, @JsonProperty("overtime")boolean overtime, @JsonProperty("worksDay")boolean worksDay, @JsonProperty("worksNight")boolean worksNight, @JsonProperty("comments")String comments, @JsonProperty("workDays")int[] workDays){
         setID(ID);
         setName(name);
         setSurname(surname);

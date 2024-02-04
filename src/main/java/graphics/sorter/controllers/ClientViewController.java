@@ -30,23 +30,28 @@ public class ClientViewController {
     @FXML
     private TextField surnameField;
     private Settings settings;
+    private ListOfClientsProfiles listOfc;
+    private ClientProfile selectedClient;
+    private JsonManip jsoMap;
 
     public void saveClient(MouseEvent mouseEvent) {
     }
     public void loadClient(MouseEvent mouseEvent) {
-        ClientProfile selectedClient = (ClientProfile) listViewofC.getSelectionModel().getSelectedItem();
-        nameField.setText(selectedClient.getName());
-        surnameField.setText(selectedClient.getSurname());
-        comments.setText("Temporarily unavailable");
-        homeLocationField.setText(selectedClient.getSurname());
+        selectedClient = (ClientProfile) listViewofC.getSelectionModel().getSelectedItem();
+        if(!(selectedClient==null)){
+            nameField.setText(selectedClient.getName());
+            surnameField.setText(selectedClient.getSurname());
+            comments.setText("Temporarily unavailable");
+            homeLocationField.setText(selectedClient.getSurname());
+        }
+
 
     }
     public void initialize() throws IOException {
         listViewofC.setCellFactory(new HumanCellFactory());
-        JsonManip jsoMap= new JsonManip();
+        jsoMap= new JsonManip();
         settings = jsoMap.loadSettings("E:\\JsonWriteTest\\");
-
-        ListOfClientsProfiles listOfc = jsoMap.loadClientProfileInfo();
+        listOfc = jsoMap.loadClientProfileInfo();
         ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getClientList());
         listViewofC.setItems(observClientList);
     }
@@ -59,8 +64,15 @@ public class ClientViewController {
         scen.setRoot(rot);
     }
 
-    public void deleteClient(MouseEvent mouseEvent) {
-
+    public void deleteClient(MouseEvent mouseEvent) throws IOException {
+        listOfc.getClientList().remove(selectedClient);
+        jsoMap.saveClientInfo(listOfc);
+        nameField.clear();
+        homeLocationField.clear();
+        surnameField.clear();
+        comments.clear();
+        ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getClientList());
+        listViewofC.setItems(observClientList);
 
     }
 }

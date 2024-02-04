@@ -12,12 +12,14 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 
 import java.io.IOException;
 import java.time.Month;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MainPageController {
     @FXML
@@ -35,15 +37,27 @@ public class MainPageController {
     @FXML
     private Text selectedMonthValue;
     @FXML
+    private GridPane mainGrid;
+    @FXML
+    private GridPane dayInfoGrid;
+    @FXML
     protected void onHelloButtonClick() {
         welcomeText.setText("Welcome to JavaFX Application!");
     }
     private Month editedMonth;
     private ArrayList<TextArea> nightList = new ArrayList<TextArea>();
     private ArrayList<TextArea> dayList = new ArrayList<TextArea>();
-    JsonManip jsom = new JsonManip();
+    private ArrayList<TextArea> areaList;
+    private ArrayList<TextArea> titleList;
+    private JsonManip jsom = new JsonManip();
     private Settings settings;
-    GridPane grid = new GridPane();
+    private GridPane grid = new GridPane();
+    private Boolean isMenuVisible;
+    private HashMap<TextArea,ClientDay> textClientIndex = new HashMap<>();
+
+
+
+
     public void populateView(ListOfClients LiCcl){
         grid.getChildren().clear();
         ListOfClientMonths LiClMo = new ListOfClientMonths();
@@ -52,8 +66,8 @@ public class MainPageController {
         }
         //vytahnout y klientu m2s9c2
         editedMonth = Month.of(settings.getCurrentMonth());
-        ArrayList<TextArea> areaList = new ArrayList<TextArea>();
-        ArrayList<TextArea> titleList = new ArrayList<TextArea>();
+         areaList = new ArrayList<TextArea>();
+         titleList = new ArrayList<TextArea>();
 
         int i = 0;
         /*
@@ -92,23 +106,18 @@ public class MainPageController {
                 TextArea dayTextAr = new TextArea();
                 if(i==0){
                     inputText = LiCcl.getClientList().get(clientIter).getName() + " " + LiCcl.getClientList().get(clientIter).getSurname();
-                    dayTextAr.setEditable(false);
-                    dayTextAr.setText(inputText);
-                    areaList.add(dayTextAr);
-                    dayTextAr.setPrefSize(250,100);
+                    setTextArea(dayTextAr,inputText,true,titleList);
                     grid.setConstraints(dayTextAr,i,clienMothIter,2,1);
                     i = i+2;
                 }else{
                     if(getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)) == null){
-                        inputText= "Day" + i/2 +"\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter));
+                        //inputText= "Day" + i/2 +"\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter));
+                        inputText= "Day" + i/2 +"\n" + "none" ;
                     }else{
-                        inputText= "Day" +"\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getName() +" "+getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getSurname();
+                        inputText= "Day" + i/2 + "\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getName() +" "+getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getSurname();
+                        System.out.println(inputText);
                     }
-
-                    dayTextAr.setText(inputText);
-                    areaList.add(dayTextAr);
-                    dayList.add(dayTextAr);
-                    dayTextAr.setPrefSize(250,100);
+                    setTextArea(dayTextAr,inputText,false,dayList,clm.getClientDaysInMonth().get(dayIter));
                     grid.setConstraints(dayTextAr,i,clienMothIter,1,1);
                     i = i+2;
                 }
@@ -116,63 +125,24 @@ public class MainPageController {
 
             }
             i=0;
-            for (ClientDay cl : clm.getClientNightsInMonth()){
+            for (int dayIter = 0; dayIter < clm.getClientNightsInMonth().size(); dayIter++){
                 String inputText;
                 TextArea nightTextAr = new TextArea();
                 if(i==0){
                     inputText = LiCcl.getClientList().get(clientIter).getName() + " " + LiCcl.getClientList().get(clientIter).getSurname();
-                    nightTextAr.setEditable(false);
-                    nightTextAr.setText(inputText);
-                    areaList.add(nightTextAr);
-                    nightList.add(nightTextAr);
-                    nightTextAr.setPrefSize(250,100);
+                    setTextArea(nightTextAr,inputText,true,titleList);
                     grid.setConstraints(nightTextAr,i,clienMothIter+1,2,1);
-                    /*
-                    TextArea ar2 = new TextArea();
-                    inputText = clm.getClientOwningMonth().getName() + " " + clm.getClientOwningMonth().getSurname();
-                    ar2.setEditable(false);
-                    ar2.setText(inputText);
-                    areaList.add(ar2);
-                    ar2.setPrefSize(250,100);
-                    grid.setConstraints(ar2,i+2,clienMothIter+1,1,1);
-
-                    TextArea ar2 = new TextArea();
-                    inputText = "lolololo";
-                    ar2.setEditable(false);
-                    ar2.setText(inputText);
-                    ar2.setMaxSize(125,100);
-                    areaList.add(ar2);
-                    nightList.add(ar2);
-                    ar2.setPrefSize(125,100);
-                    grid.setConstraints(ar2,i+2,clienMothIter+1,1,1);
-
-                    TextArea ar3 = new TextArea();
-                    inputText = "lolololo";
-                    ar3.setEditable(false);
-                    ar3.setText(inputText);
-                    ar3.setMaxSize(125,100);
-                    areaList.add(ar3);
-                    nightList.add(ar3);
-                    ar3.setPrefSize(125,100);
-                    grid.setConstraints(ar3,i+2,clienMothIter+1,1,1);
-*/
                     TextArea ar2 = new TextArea();
                     inputText= "Night" + 1;
-                    ar2.setText(inputText);
+                    setTextArea(ar2,inputText,false,nightList,clm.getClientDaysInMonth().get(dayIter));
                     grid.setMargin(ar2,new Insets(0, 0, 0, 125));
-                    areaList.add(ar2);
-                    nightList.add(ar2);
-                    ar2.setPrefSize(250,100);
                     grid.setConstraints(ar2,i+2,clienMothIter+1,3,1);
 
                     i = i+4;
                 }else{
                     inputText= "Night" + i/2;
-                    nightTextAr.setText(inputText);
-                    areaList.add(nightTextAr);
+                    setTextArea(nightTextAr,inputText,false,nightList,clm.getClientDaysInMonth().get(dayIter));
                     grid.setMargin(nightTextAr,new Insets(0, 0, 0, 125));
-                    nightList.add(nightTextAr);
-                    nightTextAr.setPrefSize(250,100);
                     grid.setConstraints(nightTextAr,i,clienMothIter+1,3,1);
                     i = i+2;
                 }
@@ -184,9 +154,12 @@ public class MainPageController {
         }
 
         grid.getChildren().addAll(areaList);
-
+        System.out.println("end");
         TestScrollPane.setContent(grid);
     }
+
+
+
     public ListOfClients getClientsOfMonth(Settings settings) throws IOException {
         try{
             ListOfClients out =   jsom.loadClientInfo(settings);
@@ -220,11 +193,13 @@ public class MainPageController {
 
     }
     public void initialize() throws IOException {
+        dayInfoGrid.setVisible(false);
+        isMenuVisible = false;
         settings = jsom.loadSettings("E:\\JsonWriteTest\\");
         selectedYearValue.setText(String.valueOf(settings.getCurrentMonth()));
         selectedMonthValue.setText(String.valueOf(settings.getCurrentYear()));
         populateView(getClientsOfMonth(settings));
-        AttachAssistants attachAssistants = new AttachAssistants();
+        mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)+1);
 
     }
     public void initializeClients(){
@@ -264,12 +239,21 @@ public class MainPageController {
                         sevInt.setOverseeingAssistant(listOfAvailable.get(0));
                     }
                     listOfAvailable.remove(0);
+                }else{
+                    for (ServiceInterval sevInt : clDay.getDayIntervalList()) {
+                        sevInt.setOverseeingAssistant(null);
+                    }
                 }
             }
         }
         jsom.saveClientRequirementsForMonth(cliM,settings);
         jsom.saveClientInfo(listOfClients.convertToListOfClientProfiles());
+        for(TextArea tex : areaList){
+            tex.clear();
+
+        }
         populateView(getClientsOfMonth(settings));
+        System.out.println("aa");
     }
     private ArrayList<Assistant> getAvailableAssistantForDay(AvailableAssistants lisA, int date, boolean day ){
         ArrayList<Assistant> output;
@@ -326,5 +310,32 @@ public class MainPageController {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Client-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
+    }
+    private void setTextArea(TextArea textArea, String inputText, Boolean isDescrip, ArrayList arList){
+        textArea.setEditable(false);
+        textArea.setText(inputText);
+        textArea.setPrefSize(250,100);
+        arList.add(textArea);
+        areaList.add(textArea);
+        if(isDescrip==false){
+            textArea.setOnMouseClicked(this :: displayDayInfoFull);
+
+        }
+    }
+
+    private void setTextArea(TextArea textArea, String inputText, Boolean isDescrip, ArrayList arList, ClientDay day){
+        setTextArea(textArea,inputText,isDescrip,arList);
+        textClientIndex.put(textArea,day);
+    }
+    public void displayDayInfoFull(MouseEvent mouseEvent){
+    if(isMenuVisible==true){
+        mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)+1);
+        dayInfoGrid.setVisible(false);
+        isMenuVisible=false;
+
+    }else{mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)-1);
+        dayInfoGrid.setVisible(true);
+        isMenuVisible=true;
+    }
     }
 }
