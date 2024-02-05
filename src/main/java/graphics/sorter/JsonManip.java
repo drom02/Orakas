@@ -18,7 +18,8 @@ public class JsonManip {
 
      public void jsonTest() throws IOException {
        // byte[] jsonData = Files.readAllBytes(Paths.get("employee.txt"));
-        Assistant ass = new Assistant(UUID.randomUUID(),"Matěj", "Matějov", "Dpp", 0, false,false,false, "",null);
+         /*
+         Assistant ass = new Assistant(UUID.randomUUID(),"Matěj", "Matějov", "Dpp", 0, false,false,false, "",null);
          Assistant ass1 = new Assistant(UUID.randomUUID(),"Jan", "Janov", "Dpp", 75, true,false,true, "Tralalal",null);
          Assistant ass2 = new Assistant(UUID.randomUUID(),"Honza", "Honzov", "Dpp", 75, true,false,true, "Tralalal",null);
          Assistant ass3 = new Assistant(UUID.randomUUID(),"Milan", "Milanov", "Dpp", 75, true,false,true, "Tralalal",null);
@@ -34,6 +35,8 @@ public class JsonManip {
          lias.assistantList.add(ass5);
          lias.assistantList.add(ass6);
         saveAssistantInfo(lias);
+          */
+
         /*
          Client client = new Client("Client", "Clientov", new ClientMonth(Month.DECEMBER,2024));
          Client client1 = new Client("Client2", "Clientov2", new ClientMonth(Month.DECEMBER,2024));

@@ -1,6 +1,7 @@
 package graphics.sorter.controllers;
 
 import graphics.sorter.*;
+import graphics.sorter.Filters.Sorter;
 import graphics.sorter.Structs.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -14,12 +15,15 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.Month;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.time.format.TextStyle;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MainPageController {
     @FXML
@@ -54,6 +58,7 @@ public class MainPageController {
     private GridPane grid = new GridPane();
     private Boolean isMenuVisible;
     private HashMap<TextArea,ClientDay> textClientIndex = new HashMap<>();
+    private TextArea selectedTextArea = null;
 
 
 
@@ -115,7 +120,6 @@ public class MainPageController {
                         inputText= "Day" + i/2 +"\n" + "none" ;
                     }else{
                         inputText= "Day" + i/2 + "\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getName() +" "+getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getSurname();
-                        System.out.println(inputText);
                     }
                     setTextArea(dayTextAr,inputText,false,dayList,clm.getClientDaysInMonth().get(dayIter));
                     grid.setConstraints(dayTextAr,i,clienMothIter,1,1);
@@ -133,16 +137,25 @@ public class MainPageController {
                     setTextArea(nightTextAr,inputText,true,titleList);
                     grid.setConstraints(nightTextAr,i,clienMothIter+1,2,1);
                     TextArea ar2 = new TextArea();
-                    inputText= "Night" + 1;
-                    setTextArea(ar2,inputText,false,nightList,clm.getClientDaysInMonth().get(dayIter));
+                    if(getAssistantOfDay(clm.getClientNightsInMonth().get(dayIter)) == null){
+                        inputText= "Night" + 1 +"\n" + "none" ;
+                    }else{
+                        inputText= "Night" + 1 + "\n" + getAssistantOfDay(clm.getClientNightsInMonth().get(dayIter)).getName() +" "+getAssistantOfDay(clm.getClientNightsInMonth().get(dayIter)).getSurname();
+                    }
+                    setTextArea(ar2,inputText,false,nightList,clm.getClientNightsInMonth().get(dayIter));
                     grid.setMargin(ar2,new Insets(0, 0, 0, 125));
                     grid.setConstraints(ar2,i+2,clienMothIter+1,3,1);
 
                     i = i+4;
                 }else{
-                    inputText= "Night" + i/2;
-                    setTextArea(nightTextAr,inputText,false,nightList,clm.getClientDaysInMonth().get(dayIter));
-                    grid.setMargin(nightTextAr,new Insets(0, 0, 0, 125));
+                    if(getAssistantOfDay(clm.getClientNightsInMonth().get(dayIter)) == null){
+                        inputText= "Night" + i/2 +"\n" + "none" ;
+                    }else{
+                        inputText= "Night" + i/2 + "\n" + getAssistantOfDay(clm.getClientNightsInMonth().get(dayIter)).getName() +" "+getAssistantOfDay(clm.getClientNightsInMonth().get(dayIter)).getSurname();
+                    }
+                    //inputText= "Night" + i/2;
+                    setTextArea(nightTextAr,inputText,false,nightList,clm.getClientNightsInMonth().get(dayIter));
+                    grid.setMargin(nightTextAr,new Insets(0, 126, 0, 125));
                     grid.setConstraints(nightTextAr,i,clienMothIter+1,3,1);
                     i = i+2;
                 }
@@ -154,7 +167,6 @@ public class MainPageController {
         }
 
         grid.getChildren().addAll(areaList);
-        System.out.println("end");
         TestScrollPane.setContent(grid);
     }
 
@@ -229,22 +241,37 @@ public class MainPageController {
             cliM .getListOfClientMonths().add(cl.getClientsMonth());
         }
         monthLength = cliM.getListOfClientMonths().get(0).getClientDaysInMonth().size();
-        System.out.println(getAvailableAssistantForDay(avAs,0,true));
         for (int dayIter = 0; dayIter < monthLength; dayIter++) {
             for( Client cl : listOfClients.getClientList()) {
                 ClientDay clDay = cl.getClientsMonth().getClientDaysInMonth().get(dayIter);
-                ArrayList<Assistant> listOfAvailable = getAvailableAssistantForDay(avAs,dayIter,true);
-                if (!listOfAvailable.isEmpty()) {
+                ClientDay clNight = cl.getClientsMonth().getClientNightsInMonth().get(dayIter);
+                ArrayList<Assistant> listOfAvailableAtDay = getAvailableAssistantForDay(avAs,dayIter,true);
+                ArrayList<Assistant> listOfAvailableAtNight = getAvailableAssistantForDay(avAs,dayIter,false);
+
+                if (!listOfAvailableAtDay.isEmpty()) {
                     for (ServiceInterval sevInt : clDay.getDayIntervalList()) {
-                        sevInt.setOverseeingAssistant(listOfAvailable.get(0));
+                        sevInt.setOverseeingAssistant(listOfAvailableAtDay.get(0));
                     }
-                    listOfAvailable.remove(0);
+                    listOfAvailableAtDay.remove(0);
                 }else{
                     for (ServiceInterval sevInt : clDay.getDayIntervalList()) {
                         sevInt.setOverseeingAssistant(null);
                     }
                 }
+
+                if (!listOfAvailableAtNight.isEmpty()) {
+                    for (ServiceInterval sevInt : clNight.getDayIntervalList()) {
+                        sevInt.setOverseeingAssistant(listOfAvailableAtNight.get(0));
+                    }
+                    listOfAvailableAtNight.remove(0);
+                }else {
+                    for (ServiceInterval sevInt : clNight.getDayIntervalList()) {
+                        sevInt.setOverseeingAssistant(null);
+                    }
+                }
+
             }
+
         }
         jsom.saveClientRequirementsForMonth(cliM,settings);
         jsom.saveClientInfo(listOfClients.convertToListOfClientProfiles());
@@ -253,7 +280,63 @@ public class MainPageController {
 
         }
         populateView(getClientsOfMonth(settings));
-        System.out.println("aa");
+    }
+    public void findSolutionV2(ActionEvent actionEvent) throws IOException {
+        Sorter sorter = new Sorter(jsom.loadAssistantInfo());
+
+        int monthLength;
+        AvailableAssistants avAs = null;
+        avAs = jsom.loadAvailableAssistantInfo(settings);
+
+        ListOfClients listOfClients = jsom.loadClientInfo(settings);
+        ListOfClientMonths cliM = new ListOfClientMonths();
+        for(Client cl : listOfClients.getClientList()){
+            cliM .getListOfClientMonths().add(cl.getClientsMonth());
+        }
+        monthLength = cliM.getListOfClientMonths().get(0).getClientDaysInMonth().size();
+        for (int dayIter = 0; dayIter < monthLength; dayIter++) {
+            for( Client cl : listOfClients.getClientList()) {
+                ClientDay clDay = cl.getClientsMonth().getClientDaysInMonth().get(dayIter);
+                ClientDay clNight = cl.getClientsMonth().getClientNightsInMonth().get(dayIter);
+                ArrayList<Assistant> listOfAvailableAtDay = getAvailableAssistantForDay(avAs,dayIter,true);
+                ArrayList<Assistant> listOfAvailableAtNight = getAvailableAssistantForDay(avAs,dayIter,false);
+
+                UUID dayPicked = sorter.sort(sorter.getIdFromList(listOfAvailableAtDay),dayIter,0);
+                //System.out.println(sorter.getIdFromList(listOfAvailableAtDay));
+                UUID nightPicked = sorter.sort(sorter.getIdFromList(listOfAvailableAtNight),dayIter,1);
+                if (dayPicked !=null) {
+                    Assistant pickedForDay= (Assistant) listOfAvailableAtDay.stream().filter(c -> c.getID() == dayPicked).toArray()[0];
+                    for (ServiceInterval sevInt : clDay.getDayIntervalList()) {
+                        sevInt.setOverseeingAssistant(pickedForDay);
+                    }
+                }else{
+                    for (ServiceInterval sevInt : clDay.getDayIntervalList()) {
+                        sevInt.setOverseeingAssistant(null);
+                    }
+                }
+
+                if (nightPicked !=null) {
+                    System.out.println(listOfAvailableAtNight);
+                    Assistant pickedForNight= (Assistant) listOfAvailableAtNight.stream().filter(c -> c.getID() == nightPicked).toArray()[0];
+                    for (ServiceInterval sevInt : clNight.getDayIntervalList()) {
+                        sevInt.setOverseeingAssistant(pickedForNight);
+                    }
+                }else {
+                    for (ServiceInterval sevInt : clNight.getDayIntervalList()) {
+                        sevInt.setOverseeingAssistant(null);
+                    }
+                }
+
+            }
+
+        }
+        jsom.saveClientRequirementsForMonth(cliM,settings);
+        jsom.saveClientInfo(listOfClients.convertToListOfClientProfiles());
+        for(TextArea tex : areaList){
+            tex.clear();
+
+        }
+        populateView(getClientsOfMonth(settings));
     }
     private ArrayList<Assistant> getAvailableAssistantForDay(AvailableAssistants lisA, int date, boolean day ){
         ArrayList<Assistant> output;
@@ -328,14 +411,57 @@ public class MainPageController {
         textClientIndex.put(textArea,day);
     }
     public void displayDayInfoFull(MouseEvent mouseEvent){
-    if(isMenuVisible==true){
-        mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)+1);
-        dayInfoGrid.setVisible(false);
-        isMenuVisible=false;
+        if(selectedTextArea==null){
+            mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)-1);
+            dayInfoGrid.setVisible(true);
+            isMenuVisible=true;
+            selectedTextArea = (TextArea) mouseEvent.getSource();
+            loadDayData(selectedTextArea);
+            selectedTextArea.setStyle("-fx-border-color: green");
+        } else if (selectedTextArea==mouseEvent.getSource()) {
+                mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)+1);
+                dayInfoGrid.setVisible(false);
+                isMenuVisible=false;
+                selectedTextArea.setStyle("-fx-border-color: null");
+                selectedTextArea =null;
 
-    }else{mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)-1);
-        dayInfoGrid.setVisible(true);
-        isMenuVisible=true;
+            }else{
+
+            selectedTextArea.setStyle("-fx-border-color: null");
+            selectedTextArea =(TextArea) mouseEvent.getSource();
+            selectedTextArea.setStyle("-fx-border-color: green");
+            loadDayData(selectedTextArea);
+        }
+        }
+    private void loadDayData(TextArea sourceTex){
+        TextArea outputText = new TextArea();
+        ClientDay day = textClientIndex.get(sourceTex);
+        //.getDisplayName(TextStyle.FULL, new Locale("cs", "CZ")
+        outputText.setText("Datum : " + day.getDay() +"."+ day.getMonth().getValue()+"."+day.getYear() + "\n");
+        String dayName =LocalDate.of(day.getYear(),day.getMonth().getValue(),day.getDay()).getDayOfWeek().getDisplayName(TextStyle.FULL, new Locale("cs", "CZ"));
+        dayName =  dayName.substring(0, 1).toUpperCase() + dayName.substring(1);
+        outputText.setText(outputText.getText() + dayName+ "\n");
+
+        outputText.setText(outputText.getText() + printAssistantsOfDay(day));
+        dayInfoGrid.setConstraints(outputText,0,0,dayInfoGrid.getColumnCount(),dayInfoGrid.getRowCount());
+        dayInfoGrid.getChildren().add(outputText);
     }
+    public String printAssistantsOfDay(ClientDay day){
+        Set<Assistant> assistants = new HashSet<>();
+        for (ServiceInterval sein : day.getDayIntervalList()) {
+            if (sein.getOverseeingAssistant() != null) {
+                assistants.add(sein.getOverseeingAssistant());
+            }
+        }
+
+        return assistants.stream()
+                .map(as -> as.getName() + " " + as.getSurname())
+                .collect(Collectors.joining(", "));
+    }
+    private String toHexString(Color color) {
+        return String.format("#%02X%02X%02X",
+                (int) (color.getRed() * 255),
+                (int) (color.getGreen() * 255),
+                (int) (color.getBlue() * 255));
     }
 }

@@ -210,13 +210,12 @@ public class ShiftPickerController {
         for(ShiftTextArea sText: tempListNight ){
                 sText.setAvailableAssistants(listNights.get(i));
             String output;
-            for(Assistant as: listDays.get(i)){
+            for(Assistant as: listNights.get(i)){
                 output = sText.getText();
                 sText.setText(output + "," + as.getName() +" "+ as.getSurname());
             }
                 i++;
         }
-
     }
     public void generateNewMonthsAssistants() throws IOException {
         JsonManip jsom = new JsonManip();
