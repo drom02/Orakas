@@ -8,7 +8,7 @@ public class AssistantMonthShift {
 
 
     private UUID assistantID;
-    private double workedHours;
+    private long workedHours;
     private int lastDayInWork;
 
     public AssistantMonthShift(UUID id){
@@ -23,11 +23,11 @@ public class AssistantMonthShift {
         this.assistantID = assistantID;
     }
 
-    public double getWorkedHours() {
+    public long getWorkedHours() {
         return workedHours;
     }
 
-    public void setWorkedHours(double workedHours) {
+    public void setWorkedHours(long workedHours) {
         this.workedHours = workedHours;
     }
 

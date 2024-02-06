@@ -2,7 +2,8 @@ package graphics.sorter.Filters;
 
 import graphics.sorter.Assistant;
 import graphics.sorter.ListOfAssistants;
-import graphics.sorter.Structs.ClientMonth;
+import graphics.sorter.Structs.ClientDay;
+import graphics.sorter.Structs.ServiceInterval;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,32 +19,52 @@ public class Sorter {
     Used for record keeping.
      */
     private int day;
-    private ArrayList<AssistantMonthShift> assistantMonthShifts = new ArrayList<AssistantMonthShift>();
+
+    public ListOfAssistantMonthShifts getAssistantMonthShifts() {
+        return assistantMonthShifts;
+    }
+
+    private ListOfAssistantMonthShifts assistantMonthShifts;
     private HardFilters hardFilters = new HardFilters();
+    private SoftFilters softFilters = new SoftFilters();
     public Sorter(ListOfAssistants assistList){
         for(int i=0;i<31;i++){
             past.put(String.valueOf(i), new ArrayList<ArrayList<UUID>>(List.of(new ArrayList<UUID>(),new ArrayList<UUID>() )));
         }
-        for(Assistant as:assistList.getAssistantList()){
-            assistantMonthShifts.add(new AssistantMonthShift(as.getID()));
-        }
+       assistantMonthShifts = new ListOfAssistantMonthShifts(assistList);
     }
 
-    public UUID sort(ArrayList<UUID> availableAssistants,int day, int dayState){
-       // System.out.println(day);
-       // System.out.println(dayState);
-        hardFilters.removePreviousShift(availableAssistants,day,past,dayState);
-        ArrayList<ArrayList<UUID>> tempList = past.get(String.valueOf(day));
-        if(!availableAssistants.isEmpty()){
-            tempList.get(dayState).add(availableAssistants.get(0));
-            past.put(String.valueOf(day),tempList);
+    public UUID sort(ArrayList<Assistant> availableAssistants,int day, int dayState, ClientDay cl){
+        ArrayList<UUID> availableAssistantsID = getIdFromList(availableAssistants);
+        hardFilters.removePreviousShift(availableAssistantsID,day,past,dayState);
+        /*
+        Soft filters have to be applied after all hard filters.
+         */
+         softFilters.penalizeRecent(availableAssistantsID,getAssistantMonthShifts().generateHashMapLatestShift(availableAssistantsID),day,1);
 
-           // System.out.println(past.get(String.valueOf(day)));
-           // System.out.println(availableAssistants);
-            //System.out.println(availableAssistants.get(0));
-            return availableAssistants.get(0);
+        ArrayList<ArrayList<UUID>> tempList = past.get(String.valueOf(day));
+        if(!availableAssistantsID.isEmpty()){
+            System.out.println(availableAssistantsID.get(0));
+            tempList.get(dayState).add(availableAssistantsID.get(0));
+            past.put(String.valueOf(day),tempList);
+            Assistant pickedForDay = availableAssistants.stream()
+                    .filter(c -> c.getID().equals(availableAssistantsID.get(0)))
+                    .findFirst()
+                    .orElse(null);
+            long lenghtOfShift = 0;
+            for (ServiceInterval sevInt : cl.getDayIntervalList()) {
+                sevInt.setOverseeingAssistant(pickedForDay);
+                lenghtOfShift = lenghtOfShift + sevInt.getIntervalLength();
+            }
+            AssistantMonthShift editedShift = assistantMonthShifts.getMontShift(availableAssistantsID.get(0));
+            editedShift.setLastDayInWork(day);
+            editedShift.setWorkedHours(editedShift.getWorkedHours()+ lenghtOfShift);
+            return availableAssistantsID.get(0);
         }else{
-            return null;
+            for (ServiceInterval sevInt : cl.getDayIntervalList()) {
+                sevInt.setOverseeingAssistant(null);
+            }
+            return  null;
         }
 
     }

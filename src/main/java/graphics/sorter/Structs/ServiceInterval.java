@@ -1,11 +1,13 @@
 package graphics.sorter.Structs;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import graphics.sorter.Assistant;
 import graphics.sorter.Location;
 
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 
 public class ServiceInterval {
 
@@ -51,6 +53,7 @@ public class ServiceInterval {
     }
 
     public void setEnd(LocalTime end) {
+
             if(end.compareTo(getStart())>= 0){
                 this.end = end ;
             }else{
@@ -64,5 +67,10 @@ public class ServiceInterval {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+    @JsonIgnore
+    public long getIntervalLength(){
+        long hoursBetween = ChronoUnit.HOURS.between(start, end);
+        return  Math.abs(hoursBetween);
     }
 }

@@ -301,41 +301,14 @@ public class MainPageController {
                 ArrayList<Assistant> listOfAvailableAtDay = getAvailableAssistantForDay(avAs,dayIter,true);
                 ArrayList<Assistant> listOfAvailableAtNight = getAvailableAssistantForDay(avAs,dayIter,false);
 
-                UUID dayPicked = sorter.sort(sorter.getIdFromList(listOfAvailableAtDay),dayIter,0);
+                UUID dayPicked = sorter.sort(listOfAvailableAtDay,dayIter,0,clDay);
                 //System.out.println(sorter.getIdFromList(listOfAvailableAtDay));
-                UUID nightPicked = sorter.sort(sorter.getIdFromList(listOfAvailableAtNight),dayIter,1);
-                if (dayPicked !=null) {
-                    Assistant pickedForDay= (Assistant) listOfAvailableAtDay.stream().filter(c -> c.getID() == dayPicked).toArray()[0];
-                    for (ServiceInterval sevInt : clDay.getDayIntervalList()) {
-                        sevInt.setOverseeingAssistant(pickedForDay);
-                    }
-                }else{
-                    for (ServiceInterval sevInt : clDay.getDayIntervalList()) {
-                        sevInt.setOverseeingAssistant(null);
-                    }
-                }
-
-                if (nightPicked !=null) {
-                    System.out.println(listOfAvailableAtNight);
-                    Assistant pickedForNight= (Assistant) listOfAvailableAtNight.stream().filter(c -> c.getID() == nightPicked).toArray()[0];
-                    for (ServiceInterval sevInt : clNight.getDayIntervalList()) {
-                        sevInt.setOverseeingAssistant(pickedForNight);
-                    }
-                }else {
-                    for (ServiceInterval sevInt : clNight.getDayIntervalList()) {
-                        sevInt.setOverseeingAssistant(null);
-                    }
-                }
-
+                UUID nightPicked = sorter.sort(listOfAvailableAtNight,dayIter,1,clNight);
             }
 
         }
         jsom.saveClientRequirementsForMonth(cliM,settings);
         jsom.saveClientInfo(listOfClients.convertToListOfClientProfiles());
-        for(TextArea tex : areaList){
-            tex.clear();
-
-        }
         populateView(getClientsOfMonth(settings));
     }
     private ArrayList<Assistant> getAvailableAssistantForDay(AvailableAssistants lisA, int date, boolean day ){
