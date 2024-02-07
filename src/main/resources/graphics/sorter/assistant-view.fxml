@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
@@ -54,7 +55,7 @@
         </menus>
       </MenuBar>
       <Button fx:id="deleteButton" mnemonicParsing="false" onMouseClicked="#deleteAssistant" prefHeight="25.0" prefWidth="132.0" text="Smazat" GridPane.columnIndex="3" GridPane.rowIndex="4" />
-      <GridPane GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="1" GridPane.rowSpan="3">
+      <GridPane GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1" GridPane.rowSpan="3">
         <columnConstraints>
             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="25.0" prefWidth="50.0" />
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="40.0" prefWidth="100.0" />
@@ -79,7 +80,6 @@
                </GridPane.margin>
             </TextField>
             <TextField fx:id="surnameField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <TextField fx:id="contractField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
             <TextField fx:id="workField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
             <TextField GridPane.columnIndex="1" GridPane.rowIndex="9" />
             <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Jméno" wrappingWidth="73.13671875">
@@ -126,12 +126,23 @@
             <CheckBox fx:id="overtimeCheck" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
             <CheckBox fx:id="dayCheck" layoutX="164.0" layoutY="178.0" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
             <CheckBox fx:id="nightCheck" layoutX="164.0" layoutY="178.0" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="7" GridPane.valignment="CENTER" />
+            <ChoiceBox fx:id="contractField" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
          </children>
       </GridPane>
       <Button fx:id="saveButton" mnemonicParsing="false" onMouseClicked="#saveAssistant" prefHeight="25.0" prefWidth="128.0" text="Uložit" GridPane.columnIndex="2" GridPane.rowIndex="4" />
       <ListView fx:id="listViewofA" onMouseClicked="#loadAssistant" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" GridPane.rowSpan="5" />
       <Button fx:id="saveNewClientButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#saveNewAssistant" text="Nový asistent" GridPane.columnIndex="1" GridPane.rowIndex="4" />
       <GridPane fx:id="daysInWeekGrid" GridPane.columnIndex="4" GridPane.rowIndex="1" GridPane.rowSpan="4">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+      </GridPane>
+      <GridPane GridPane.columnIndex="3" GridPane.rowIndex="1" GridPane.rowSpan="3">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
         </columnConstraints>

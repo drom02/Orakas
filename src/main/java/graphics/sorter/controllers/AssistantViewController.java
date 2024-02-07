@@ -15,10 +15,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
 import java.io.IOException;
@@ -48,7 +45,7 @@ public class AssistantViewController {
     @FXML
     private TextField surnameField;
     @FXML
-    private TextField contractField;
+    private ChoiceBox contractField;
     @FXML
     private TextField workField;
     @FXML
@@ -87,7 +84,7 @@ public class AssistantViewController {
 public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         selectedAssistant.setName(nameField.getText());
         selectedAssistant.setSurname(surnameField.getText());
-        selectedAssistant.setContractType(contractField.getText());
+        selectedAssistant.setContractType((String) contractField.getValue());
         selectedAssistant.setLikesOvertime(overtimeCheck.isSelected());
         selectedAssistant.setWorksOnlyDay(dayCheck.isSelected());
         selectedAssistant.setWorksOnlyNight(nightCheck.isSelected());
@@ -100,7 +97,12 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
 
     }
     public void initialize() throws IOException {
-        assistantNodes = new ArrayList<>(Arrays.asList(nameField, surnameField,overtimeCheck,dayCheck,nightCheck,contractField,workField,comments));
+
+        assistantNodes = new ArrayList<>(Arrays.asList(nameField, surnameField,overtimeCheck,dayCheck,nightCheck,workField,comments));
+        contractField.getItems().addAll("HPP","DPP","DPČ");
+        contractField.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->{
+
+                });
         listViewofA.setCellFactory(new HumanCellFactory());
         jsoMap= new JsonManip();
         set = jsoMap.loadSettings("E:\\JsonWriteTest\\");
@@ -132,7 +134,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
     if(!(selectedAssistant== null)){
         nameField.setText(selectedAssistant.getName());
         surnameField.setText(selectedAssistant.getSurname());
-        contractField.setText(selectedAssistant.getContractType());
+        contractField.setValue(selectedAssistant.getContractType());
         overtimeCheck.setSelected(selectedAssistant.getLikesOvertime());
         dayCheck.setSelected(selectedAssistant.getWorksOnlyDay());
         nightCheck.setSelected(selectedAssistant.getWorksOnlyNight());
@@ -148,7 +150,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
     public void saveNewAssistant(ActionEvent actionEvent) throws IOException {
         if(!(nameField.getText().isEmpty()) & !(surnameField.getText().isEmpty())){
             if(listOfA.getAssistantList().isEmpty()){
-                listOfAssist.add(new Assistant(UUID.randomUUID(),nameField.getText(), surnameField.getText(),contractField.getText(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), dayCheck.isSelected(), nightCheck.isSelected(), comments.getText(),stateOfDays));
+                listOfAssist.add(new Assistant(UUID.randomUUID(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), dayCheck.isSelected(), nightCheck.isSelected(), comments.getText(),stateOfDays));
                 jsoMap.saveAssistantInfo(listOfA);
                 ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getAssistantList());
                 listViewofA.setItems(observLocationList);
@@ -161,7 +163,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                 nameAndSurname.add(loc.getName() +" "+ loc.getSurname());
             }
                 if(!( nameAndSurname.contains(nameField.getText() +" "+ surnameField.getText()))){
-                    listOfAssist.add(new Assistant(UUID.randomUUID(),nameField.getText(), surnameField.getText(),contractField.getText(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), dayCheck.isSelected(), nightCheck.isSelected(), comments.getText(),stateOfDays));
+                    listOfAssist.add(new Assistant(UUID.randomUUID(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), dayCheck.isSelected(), nightCheck.isSelected(), comments.getText(),stateOfDays));
                     jsoMap.saveAssistantInfo(listOfA);
                     ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getAssistantList());
                     listViewofA.setItems(observLocationList);
