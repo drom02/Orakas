@@ -47,8 +47,8 @@ public class ClientMonth {
         int i = 1;
         while(i <=
                 mon.length(cal.isLeapYear(year))){
-            ClientDay newDay = new ClientDay(i,mon, year, new int[]{8, 30},new int[]{20, 30}, location);
-            ClientDay newNight = new ClientDay(i,mon,year, new int[]{20, 30},new int[]{8, 30},location);
+            ClientDay newDay = new ClientDay(i,mon, year, new int[]{8, 30},new int[]{20, 30}, location,false);
+            ClientDay newNight = new ClientDay(i,mon,year, new int[]{20, 30},new int[]{8, 30},location,false);
             clientDaysInMonth.add(newDay);
             clientNightsInMonth.add(newNight);
             i++;

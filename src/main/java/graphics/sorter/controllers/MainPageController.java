@@ -14,7 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
@@ -45,6 +45,8 @@ public class MainPageController {
     @FXML
     private GridPane dayInfoGrid;
     @FXML
+    private GridPane barGrid;
+    @FXML
     protected void onHelloButtonClick() {
         welcomeText.setText("Welcome to JavaFX Application!");
     }
@@ -58,6 +60,7 @@ public class MainPageController {
     private GridPane grid = new GridPane();
     private Boolean isMenuVisible;
     private HashMap<TextArea,ClientDay> textClientIndex = new HashMap<>();
+    private HashMap<AnchorPane,ServiceInterval> paneServiceIndex = new HashMap<>();
     private TextArea selectedTextArea = null;
 
 
@@ -170,8 +173,6 @@ public class MainPageController {
         TestScrollPane.setContent(grid);
     }
 
-
-
     public ListOfClients getClientsOfMonth(Settings settings) throws IOException {
         try{
             ListOfClients out =   jsom.loadClientInfo(settings);
@@ -213,8 +214,6 @@ public class MainPageController {
         populateView(getClientsOfMonth(settings));
         mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)+1);
 
-    }
-    public void initializeClients(){
     }
     public void switchPage(ActionEvent actionEvent) throws IOException {
        Scene scen = TestScrollPane.getScene();
@@ -397,9 +396,7 @@ public class MainPageController {
                 isMenuVisible=false;
                 selectedTextArea.setStyle("-fx-border-color: null");
                 selectedTextArea =null;
-
             }else{
-
             selectedTextArea.setStyle("-fx-border-color: null");
             selectedTextArea =(TextArea) mouseEvent.getSource();
             selectedTextArea.setStyle("-fx-border-color: green");
@@ -414,10 +411,49 @@ public class MainPageController {
         String dayName =LocalDate.of(day.getYear(),day.getMonth().getValue(),day.getDay()).getDayOfWeek().getDisplayName(TextStyle.FULL, new Locale("cs", "CZ"));
         dayName =  dayName.substring(0, 1).toUpperCase() + dayName.substring(1);
         outputText.setText(outputText.getText() + dayName+ "\n");
-
         outputText.setText(outputText.getText() + printAssistantsOfDay(day));
-        dayInfoGrid.setConstraints(outputText,0,0,dayInfoGrid.getColumnCount(),dayInfoGrid.getRowCount());
+        setIntervalBars(day);
+        dayInfoGrid.setConstraints(outputText,0,0,dayInfoGrid.getColumnCount()-1,dayInfoGrid.getRowCount()-2);
         dayInfoGrid.getChildren().add(outputText);
+    }
+
+    private void setIntervalBars(ClientDay day){
+
+        int c = 0;
+        ArrayList<Pane> listToAdd = new ArrayList<>();
+
+        barGrid.getColumnConstraints().clear();
+        barGrid.getRowConstraints().clear();
+        barGrid.getRowConstraints().add(new RowConstraints() {{ setPercentHeight(100); }});
+        //barGrid.getRowConstraints().add(new RowConstraints() {{ setPercentHeight(30); }});
+        for(ServiceInterval serv : day.getDayIntervalList()){
+            AnchorPane bar = new AnchorPane();
+            paneServiceIndex.put(bar,serv);
+            bar.setOnMouseClicked(this :: displayIntervalInfo);
+            setIntervalDescription(bar,serv);
+            bar.setStyle("-fx-background-color: #FF0000;");
+            listToAdd.add(bar);
+            bar.setMinSize(10, 10);
+            ColumnConstraints colC = new ColumnConstraints();
+            colC .setPercentWidth(100/day.getDayIntervalList().size());
+            barGrid.getColumnConstraints().add(colC );
+            barGrid.setConstraints(bar,c,0,1,1);
+            c++;
+        }
+        barGrid.getChildren().addAll(listToAdd);
+    }
+
+    private void displayIntervalInfo(MouseEvent mouseEvent) {
+    }
+    private void setIntervalDescription(AnchorPane anch, ServiceInterval serv){
+        Text start = new Text(serv.getStart().toString());
+        Text end = new Text(serv.getEnd().toString());
+        anch.setTopAnchor(start,7.0);
+        anch.setLeftAnchor(start,1.0);
+        anch.setTopAnchor(end,7.0);
+        anch.setRightAnchor(end,1.0);
+        anch.getChildren().add(start);
+        anch.getChildren().add(end);
     }
     public String printAssistantsOfDay(ClientDay day){
         Set<Assistant> assistants = new HashSet<>();
@@ -436,5 +472,16 @@ public class MainPageController {
                 (int) (color.getRed() * 255),
                 (int) (color.getGreen() * 255),
                 (int) (color.getBlue() * 255));
+    }
+
+    public void removeInterval(ActionEvent actionEvent) {
+    }
+
+    public void createNewInterval(ActionEvent actionEvent) {
+       // textClientIndex.get(selectedTextArea).getDayIntervalList().add(new ServiceInterval());
+        //jsom.saveClientRequirementsForMonth(,settings);
+    }
+
+    public void saveIntervalChanges(ActionEvent actionEvent) {
     }
 }

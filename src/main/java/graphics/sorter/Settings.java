@@ -22,8 +22,26 @@ public class Settings {
         this.currentMonth = currentMonth;
     }
 
+    public int[] getDeftStart() {
+        return deftStart;
+    }
+
+    public void setDeftStart(int[] deftStart) {
+        this.deftStart = deftStart;
+    }
+
+    public int[] getDefEnd() {
+        return defEnd;
+    }
+
+    public void setDefEnd(int[] defEnd) {
+        this.defEnd = defEnd;
+    }
     private int currentYear;
     private int currentMonth;
+
+    private int[] deftStart;
+    private int[] defEnd;
 
     public String getFilePath() {
         return filePath;
@@ -37,13 +55,18 @@ public class Settings {
 
     public void createNewSettingsFile() throws IOException {
         JsonManip jsom = new JsonManip();
-        Settings defset = new Settings(12,2024, "E:\\JsonWriteTest\\");
+        deftStart = new int[]{8,30};
+        defEnd = new int[]{20,30};
+        Settings defset = new Settings(12,2024, "E:\\JsonWriteTest\\",deftStart,defEnd);
         jsom.saveSettings(defset, defset.getFilePath());
+
     }
     @JsonCreator
-    public Settings(@JsonProperty("currentMonth")int currentMonth,@JsonProperty("currentYear")int currentYear,@JsonProperty("filePath")String filePath ){
+    public Settings(@JsonProperty("currentMonth")int currentMonth,@JsonProperty("currentYear")int currentYear,@JsonProperty("filePath")String filePath,@JsonProperty("defStart")int[] defstart,@JsonProperty("defend")int[] defend){
             setCurrentMonth(currentMonth);
             setCurrentYear(currentYear);
             setFilePath(filePath);
+            setDeftStart(deftStart);
+            setDefEnd(defEnd);
     }
 }

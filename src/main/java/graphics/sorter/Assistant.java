@@ -9,7 +9,7 @@ import java.util.UUID;
 public class Assistant extends Human{
     //Typ pracovní smlouvy
     private String ContractType;
-    //Počet odpracovaných hodin za daný měsíc
+    //Hodnota pro contract type
     private double workTime;
     //Zda preferuje pracovat přesčasy
     private boolean likesOvertime;

@@ -17,6 +17,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -48,6 +49,8 @@ public class AssistantViewController {
     private ChoiceBox contractField;
     @FXML
     private TextField workField;
+    @FXML
+    private Text workText;
     @FXML
     private TextArea comments;
     @FXML
@@ -101,7 +104,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         assistantNodes = new ArrayList<>(Arrays.asList(nameField, surnameField,overtimeCheck,dayCheck,nightCheck,workField,comments));
         contractField.getItems().addAll("HPP","DPP","DPČ");
         contractField.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->{
-
+                    loadContract();
                 });
         listViewofA.setCellFactory(new HumanCellFactory());
         jsoMap= new JsonManip();
@@ -138,6 +141,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         overtimeCheck.setSelected(selectedAssistant.getLikesOvertime());
         dayCheck.setSelected(selectedAssistant.getWorksOnlyDay());
         nightCheck.setSelected(selectedAssistant.getWorksOnlyNight());
+        loadContract();
         workField.setText(String.valueOf(selectedAssistant.getWorkTime()));
         comments.setText(selectedAssistant.getComments());
         stateOfDays = selectedAssistant.getWorkDays();
@@ -146,7 +150,13 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
 
     }
 
-
+public void loadContract(){
+    if(contractField.getValue().equals("HPP") ){
+        workText.setText("Úvazek");
+    }else{
+        workText.setText("Počet smluvních hodin v měsíci");
+    }
+}
     public void saveNewAssistant(ActionEvent actionEvent) throws IOException {
         if(!(nameField.getText().isEmpty()) & !(surnameField.getText().isEmpty())){
             if(listOfA.getAssistantList().isEmpty()){

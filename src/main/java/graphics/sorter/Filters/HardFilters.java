@@ -36,4 +36,14 @@ public class HardFilters {
             return input;
         }
     }
+    public ArrayList<UUID> limitWorkedTime(ArrayList<UUID> input, ListOfAssistantMonthShifts assistantMonthShifts){
+        ArrayList<UUID> toRemove = new ArrayList<>();
+        for(UUID id : input){
+            if(assistantMonthShifts.getMontShift(id).getWorkedHours()>0)
+            {toRemove.add(id);
+            }
+        }
+        input.removeAll(toRemove);
+        return  input;
+    }
 }
