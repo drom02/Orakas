@@ -13,7 +13,7 @@ public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         JsonManip jsoM = new JsonManip();
-        Settings set = new Settings(12,2024,"",null,null);
+        Settings set = new Settings(12,2024,"",null,null,16);
         set.createNewSettingsFile();
         jsoM.jsonTest();
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Main-view.fxml"));

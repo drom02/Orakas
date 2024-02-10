@@ -37,11 +37,19 @@ public class Settings {
     public void setDefEnd(int[] defEnd) {
         this.defEnd = defEnd;
     }
+    public int getMaxShiftLength() {
+        return maxShiftLength;
+    }
+
+    public void setMaxShiftLength(int maxShiftLength) {
+        this.maxShiftLength = maxShiftLength;
+    }
     private int currentYear;
     private int currentMonth;
 
     private int[] deftStart;
     private int[] defEnd;
+    private int maxShiftLength;
 
     public String getFilePath() {
         return filePath;
@@ -57,16 +65,17 @@ public class Settings {
         JsonManip jsom = new JsonManip();
         deftStart = new int[]{8,30};
         defEnd = new int[]{20,30};
-        Settings defset = new Settings(12,2024, "E:\\JsonWriteTest\\",deftStart,defEnd);
+        Settings defset = new Settings(12,2024, "E:\\JsonWriteTest\\",deftStart,defEnd,16);
         jsom.saveSettings(defset, defset.getFilePath());
 
     }
     @JsonCreator
-    public Settings(@JsonProperty("currentMonth")int currentMonth,@JsonProperty("currentYear")int currentYear,@JsonProperty("filePath")String filePath,@JsonProperty("defStart")int[] defstart,@JsonProperty("defend")int[] defend){
+    public Settings(@JsonProperty("currentMonth")int currentMonth,@JsonProperty("currentYear")int currentYear,@JsonProperty("filePath")String filePath,@JsonProperty("defStart")int[] defstart,@JsonProperty("defend")int[] defend,@JsonProperty("maxShiftLength")int maxShiftLength){
             setCurrentMonth(currentMonth);
             setCurrentYear(currentYear);
             setFilePath(filePath);
             setDeftStart(deftStart);
             setDefEnd(defEnd);
+            setMaxShiftLength(maxShiftLength);
     }
 }

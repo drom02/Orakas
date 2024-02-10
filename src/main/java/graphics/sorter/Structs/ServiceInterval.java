@@ -17,6 +17,9 @@ public class ServiceInterval {
     private LocalTime start;
     private LocalTime end;
     private Location location;
+    private boolean isNotRequired;
+
+    private String comment;
 //Přidat truncate form
     /*
 @JsonCreator
@@ -27,10 +30,11 @@ public class ServiceInterval {
 
      */
     @JsonCreator
-    ServiceInterval(@JsonProperty("start")LocalTime start,@JsonProperty("end") LocalTime end,@JsonProperty("overseeingAssistant") Assistant overseeingAssistant){
+    public ServiceInterval(@JsonProperty("start")LocalTime start,@JsonProperty("end") LocalTime end,@JsonProperty("overseeingAssistant") Assistant overseeingAssistant,@JsonProperty("comment") String comment){
         this.start = start;
         this.end = end;
         this.overseeingAssistant = overseeingAssistant != null ? overseeingAssistant : null;
+        this.comment = comment == null ? new String() : comment;
 
     }
     public Assistant getOverseeingAssistant() {
@@ -51,6 +55,13 @@ public class ServiceInterval {
     public LocalTime getEnd() {
         return end;
     }
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
 
     public void setEnd(LocalTime end) {
 
@@ -67,6 +78,13 @@ public class ServiceInterval {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+    public boolean getIsNotRequired() {
+        return isNotRequired;
+    }
+
+    public void setNotRequired(boolean notRequired) {
+        isNotRequired = notRequired;
     }
     @JsonIgnore
     public long getIntervalLength(){

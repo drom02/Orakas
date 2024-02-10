@@ -52,7 +52,7 @@ public class Sorter {
                     .findFirst()
                     .orElse(null);
             long lenghtOfShift = 0;
-            for (ServiceInterval sevInt : cl.getDayIntervalList()) {
+            for (ServiceInterval sevInt : cl.getDayIntervalListUsefull()) {
                 sevInt.setOverseeingAssistant(pickedForDay);
                 lenghtOfShift = lenghtOfShift + sevInt.getIntervalLength();
             }
@@ -61,7 +61,7 @@ public class Sorter {
             editedShift.setWorkedHours(editedShift.getWorkedHours()+ lenghtOfShift);
             return availableAssistantsID.get(0);
         }else{
-            for (ServiceInterval sevInt : cl.getDayIntervalList()) {
+            for (ServiceInterval sevInt : cl.getDayIntervalListUsefull()) {
                 sevInt.setOverseeingAssistant(null);
             }
             return  null;

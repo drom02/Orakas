@@ -1,6 +1,7 @@
 package graphics.sorter.Structs;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import graphics.sorter.Location;
 
@@ -19,10 +20,10 @@ public class ClientDay {
     private ServiceIntervalArrayList dayIntervalList = new ServiceIntervalArrayList();
 
     public void test(){
-        ServiceInterval test2 = new ServiceInterval(LocalTime.of(10,00,00), LocalTime.of(14,00,00), null);
-        ServiceInterval test1 = new ServiceInterval(LocalTime.of(15,00,00), LocalTime.of(16,00,00), null);
-        ServiceInterval test3 = new ServiceInterval(LocalTime.of(8,00,00), LocalTime.of(9,00,00), null);
-        ServiceInterval test4 = new ServiceInterval(LocalTime.of(5,00,00), LocalTime.of(6,00,00), null);
+        ServiceInterval test2 = new ServiceInterval(LocalTime.of(10,00,00), LocalTime.of(14,00,00), null, null);
+        ServiceInterval test1 = new ServiceInterval(LocalTime.of(15,00,00), LocalTime.of(16,00,00), null, null);
+        ServiceInterval test3 = new ServiceInterval(LocalTime.of(8,00,00), LocalTime.of(9,00,00), null, null);
+        ServiceInterval test4 = new ServiceInterval(LocalTime.of(5,00,00), LocalTime.of(6,00,00), null, null);
         dayIntervalList.add(test1);
         dayIntervalList.add(test2);
         dayIntervalList.add(test3);
@@ -38,7 +39,7 @@ public class ClientDay {
         if(defEndTime == null){
             defEndTime  = new int[]{20,30};
         }
-        ServiceInterval def = new ServiceInterval(LocalTime.of(defStarTime[0],defStarTime[1],00), LocalTime.of(defEndTime[0],defEndTime[1],00), null);
+        ServiceInterval def = new ServiceInterval(LocalTime.of(defStarTime[0],defStarTime[1],00), LocalTime.of(defEndTime[0],defEndTime[1],00), null, null);
         this.dayIntervalList.add(def);
         this.day = dayI;
         this.month = monthI;
@@ -93,9 +94,23 @@ public class ClientDay {
     public void setYear(Integer year) {
         this.year = year;
     }
+
+    @JsonIgnore
+    public ServiceIntervalArrayList getDayIntervalListUsefull() {
+        ServiceIntervalArrayList out = new ServiceIntervalArrayList();
+        for(ServiceInterval serv : dayIntervalList){
+            if(serv.getIsNotRequired()==false){
+                out.add(serv);
+            }
+
+        }
+        return out;
+    }
     public ServiceIntervalArrayList getDayIntervalList() {
+
         return dayIntervalList;
     }
+
 
     public void setDayIntervalList(ServiceIntervalArrayList dayIntervalList) {
         this.dayIntervalList = dayIntervalList;
