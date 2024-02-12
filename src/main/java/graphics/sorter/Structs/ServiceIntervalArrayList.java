@@ -16,7 +16,7 @@ public class ServiceIntervalArrayList extends ArrayList<ServiceInterval> {
         int lastIndex = 0;
         while(i < this.size()){
             this.get(i);
-            if(e.getStart().compareTo(this.get(i).getEnd())>= 0) {
+            if(e.getStart().isAfter(this.get(i).getEnd())||e.getStart().isEqual(this.get(i).getEnd() )) {
                 lastIndex = i+1;
                     }
             i++;

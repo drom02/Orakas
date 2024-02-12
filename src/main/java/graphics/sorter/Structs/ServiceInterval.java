@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import graphics.sorter.Assistant;
 import graphics.sorter.Location;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 public class ServiceInterval {
@@ -14,8 +14,8 @@ public class ServiceInterval {
 
 
     private Assistant overseeingAssistant;
-    private LocalTime start;
-    private LocalTime end;
+    private LocalDateTime start;
+    private LocalDateTime end;
     private Location location;
     private boolean isNotRequired;
 
@@ -30,7 +30,7 @@ public class ServiceInterval {
 
      */
     @JsonCreator
-    public ServiceInterval(@JsonProperty("start")LocalTime start,@JsonProperty("end") LocalTime end,@JsonProperty("overseeingAssistant") Assistant overseeingAssistant,@JsonProperty("comment") String comment,@JsonProperty("isNotRequired") boolean isNotRequired){
+    public ServiceInterval(@JsonProperty("start") LocalDateTime start, @JsonProperty("end") LocalDateTime end, @JsonProperty("overseeingAssistant") Assistant overseeingAssistant, @JsonProperty("comment") String comment, @JsonProperty("isNotRequired") boolean isNotRequired){
         this.start = start;
         this.end = end;
         this.overseeingAssistant = overseeingAssistant != null ? overseeingAssistant : null;
@@ -45,15 +45,15 @@ public class ServiceInterval {
     public void setOverseeingAssistant(Assistant overseeingAssistant) {
         this.overseeingAssistant = overseeingAssistant;
     }
-    public LocalTime getStart() {
+    public LocalDateTime getStart() {
         return start;
     }
 
-    public void setStart(LocalTime start) {
+    public void setStart(LocalDateTime start) {
         this.start = start;
     }
 
-    public LocalTime getEnd() {
+    public LocalDateTime getEnd() {
         return end;
     }
     public String getComment() {
@@ -64,7 +64,7 @@ public class ServiceInterval {
         this.comment = comment;
     }
 
-    public void setEnd(LocalTime end) {
+    public void setEnd(LocalDateTime end) {
 
             if(end.compareTo(getStart())>= 0){
                 this.end = end ;
