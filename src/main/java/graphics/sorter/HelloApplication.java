@@ -13,7 +13,9 @@ public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         JsonManip jsoM = new JsonManip();
-        Settings set = new Settings(12,2024,"",null,null,16);
+        int[] deftStart = new int[]{8,30};
+        int[] defEnd = new int[]{20,30};
+        Settings set = new Settings(12,2024,"",deftStart,defEnd,16);
         set.createNewSettingsFile();
         jsoM.jsonTest();
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Main-view.fxml"));

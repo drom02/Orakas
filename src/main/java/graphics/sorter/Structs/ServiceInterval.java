@@ -30,11 +30,12 @@ public class ServiceInterval {
 
      */
     @JsonCreator
-    public ServiceInterval(@JsonProperty("start")LocalTime start,@JsonProperty("end") LocalTime end,@JsonProperty("overseeingAssistant") Assistant overseeingAssistant,@JsonProperty("comment") String comment){
+    public ServiceInterval(@JsonProperty("start")LocalTime start,@JsonProperty("end") LocalTime end,@JsonProperty("overseeingAssistant") Assistant overseeingAssistant,@JsonProperty("comment") String comment,@JsonProperty("isNotRequired") boolean isNotRequired){
         this.start = start;
         this.end = end;
         this.overseeingAssistant = overseeingAssistant != null ? overseeingAssistant : null;
         this.comment = comment == null ? new String() : comment;
+        setNotRequired(isNotRequired);
 
     }
     public Assistant getOverseeingAssistant() {

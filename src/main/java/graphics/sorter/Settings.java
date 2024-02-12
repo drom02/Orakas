@@ -74,8 +74,8 @@ public class Settings {
             setCurrentMonth(currentMonth);
             setCurrentYear(currentYear);
             setFilePath(filePath);
-            setDeftStart(deftStart);
-            setDefEnd(defEnd);
+            setDeftStart(defstart);
+            setDefEnd(defend);
             setMaxShiftLength(maxShiftLength);
     }
 }
