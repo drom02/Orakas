@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class Assistant extends Human{
@@ -23,12 +24,14 @@ public class Assistant extends Human{
     private ArrayList<Client> clientList;
 
 
-
+    private ArrayList<ArrayList<UUID>> clientPreference;
 
     private int[] workDays;
     @JsonCreator
      public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("name")String name, @JsonProperty("surname")String surname,
-                      @JsonProperty("contract")String contract, @JsonProperty("work")double work, @JsonProperty("overtime")boolean overtime, @JsonProperty("worksDay")boolean worksDay, @JsonProperty("worksNight")boolean worksNight, @JsonProperty("comments")String comments, @JsonProperty("workDays")int[] workDays){
+                      @JsonProperty("contract")String contract, @JsonProperty("work")double work, @JsonProperty("overtime")boolean overtime,
+                      @JsonProperty("worksDay")boolean worksDay, @JsonProperty("worksNight")boolean worksNight, @JsonProperty("comments")String comments,
+                      @JsonProperty("workDays")int[] workDays, @JsonProperty("clientPreference") ArrayList<ArrayList<UUID>> clientpreference){
         setID(ID);
         setName(name);
         setSurname(surname);
@@ -38,6 +41,9 @@ public class Assistant extends Human{
         setWorksOnlyDay(worksDay);
         setWorksOnlyNight(worksNight);
         setComments(comments);
+        setClientPreference(clientpreference);
+
+
         if( (workDays == null)){
             setWorkDays(new int[]{1,1,1,1,1,0,0,1,1,1,1,1,0,0});
         }else{
@@ -131,6 +137,15 @@ public class Assistant extends Human{
     public void setWorkDays(int[] workDays) {
         this.workDays = workDays;
     }
+
+    public ArrayList<ArrayList<UUID>> getClientPreference() {
+        return clientPreference;
+    }
+
+    public void setClientPreference(ArrayList<ArrayList<UUID>> clientPreference) {
+        this.clientPreference = clientPreference;
+    }
+
     @Override
     public boolean equals(Object o){
         if (o == this) {

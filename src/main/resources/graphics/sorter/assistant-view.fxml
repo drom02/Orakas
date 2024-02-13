@@ -18,10 +18,11 @@
 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="graphics.sorter.controllers.AssistantViewController">
   <columnConstraints>
       <ColumnConstraints fx:id="parentGrid" hgrow="SOMETIMES" minWidth="10.0" percentWidth="15.0" prefWidth="100.0" />
-    <ColumnConstraints hgrow="SOMETIMES" maxWidth="150.0" minWidth="10.0" percentWidth="35.0" prefWidth="150.0" />
-    <ColumnConstraints hgrow="SOMETIMES" maxWidth="153.0" minWidth="10.0" percentWidth="25.0" prefWidth="153.0" />
-      <ColumnConstraints hgrow="SOMETIMES" maxWidth="110.0" minWidth="10.0" percentWidth="10.0" prefWidth="67.0" />
+    <ColumnConstraints hgrow="SOMETIMES" maxWidth="150.0" minWidth="10.0" percentWidth="25.0" prefWidth="150.0" />
+    <ColumnConstraints hgrow="SOMETIMES" maxWidth="153.0" minWidth="10.0" percentWidth="35.0" prefWidth="153.0" />
+      <ColumnConstraints hgrow="SOMETIMES" maxWidth="110.0" minWidth="10.0" percentWidth="5.0" prefWidth="67.0" />
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="15.0" prefWidth="100.0" />
+      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="5.0" prefWidth="100.0" />
   </columnConstraints>
   <rowConstraints>
     <RowConstraints maxHeight="-Infinity" minHeight="20.0" percentHeight="5.0" prefHeight="20.0" vgrow="SOMETIMES" />
@@ -32,7 +33,7 @@
       <RowConstraints />
   </rowConstraints>
    <children>
-      <MenuBar fx:id="bar" GridPane.columnSpan="5">
+      <MenuBar fx:id="bar" GridPane.columnSpan="6">
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
@@ -55,11 +56,10 @@
         </menus>
       </MenuBar>
       <Button fx:id="deleteButton" mnemonicParsing="false" onMouseClicked="#deleteAssistant" prefHeight="25.0" prefWidth="132.0" text="Smazat" GridPane.columnIndex="3" GridPane.rowIndex="4" />
-      <GridPane GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1" GridPane.rowSpan="3">
+      <GridPane GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.rowSpan="3">
         <columnConstraints>
             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="25.0" prefWidth="50.0" />
-          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="40.0" prefWidth="100.0" />
-          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="35.0" prefWidth="100.0" />
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="75.0" prefWidth="100.0" />
         </columnConstraints>
         <rowConstraints>
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -139,7 +139,7 @@
       <Button fx:id="saveButton" mnemonicParsing="false" onMouseClicked="#saveAssistant" prefHeight="25.0" prefWidth="128.0" text="Uložit" GridPane.columnIndex="2" GridPane.rowIndex="4" />
       <ListView fx:id="listViewofA" onMouseClicked="#loadAssistant" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" GridPane.rowSpan="5" />
       <Button fx:id="saveNewClientButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#saveNewAssistant" text="Nový asistent" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-      <GridPane fx:id="daysInWeekGrid" GridPane.columnIndex="4" GridPane.rowIndex="1" GridPane.rowSpan="4">
+      <GridPane fx:id="daysInWeekGrid" GridPane.columnIndex="4" GridPane.rowIndex="1" GridPane.rowSpan="3">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
         </columnConstraints>
@@ -149,13 +149,16 @@
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
       </GridPane>
-      <GridPane GridPane.columnIndex="3" GridPane.rowIndex="1" GridPane.rowSpan="3">
+      <GridPane fx:id="clientOpinionGrid" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="1" GridPane.rowSpan="3">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
         </columnConstraints>
         <rowConstraints>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
       </GridPane>

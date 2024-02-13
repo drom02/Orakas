@@ -3,6 +3,7 @@ package graphics.sorter.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphics.sorter.*;
 import graphics.sorter.Structs.HumanCellFactory;
+import graphics.sorter.Structs.ListOfClientsProfiles;
 import graphics.sorter.Structs.ShiftTextArea;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -10,6 +11,9 @@ import javafx.css.converter.ColorConverter;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.HPos;
+import javafx.geometry.Insets;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -18,17 +22,19 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import net.synedra.validatorfx.Check;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.MonthDay;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class AssistantViewController {
 
+    @FXML
+    private  GridPane clientOpinionGrid;
     @FXML
     private ColumnConstraints parentGrid;
     @FXML
@@ -60,6 +66,7 @@ public class AssistantViewController {
     private JsonManip jsoMap;
     private ListOfAssistants listOfA;
     private ArrayList<Control> assistantNodes;
+    private HashMap<UUID, ArrayList<Object>> itemIndex;
     Settings set;
     public void deleteAssistant(MouseEvent mouseEvent) throws IOException {
         if(!(selectedAssistant == null)){
@@ -94,6 +101,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         selectedAssistant.setWorkTime(Double.parseDouble(workField.getText()));
         selectedAssistant.setComments(comments.getText());
         selectedAssistant.setWorkDays(stateOfDays);
+        selectedAssistant.setClientPreference(savePreferred());
         jsoMap.saveAssistantInfo(listOfA);
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.assistantList);
         listViewofA.setItems(observAssistantList);
@@ -113,6 +121,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         listOfAssist = listOfA .getAssistantList();
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.assistantList);
         listViewofA.setItems(observAssistantList);
+        populateClientOpinion();
 
 
 
@@ -150,17 +159,32 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
 
     }
 
-public void loadContract(){
+    public void loadContract(){
     if(contractField.getValue().equals("HPP") ){
         workText.setText("Úvazek");
     }else{
         workText.setText("Počet smluvních hodin v měsíci");
     }
 }
+ private ArrayList<ArrayList<UUID>> savePreferred() throws IOException {
+     ArrayList<ArrayList<UUID>> output = new ArrayList<ArrayList<UUID>>(Arrays.asList(new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>()));
+     for(ClientProfile cl : jsoMap.loadClientProfileInfo().getClientList()){
+        // ArrayList<RadioButton>
+        List<Object> buttons = itemIndex.get(cl.getID()).subList(2,4);
+        int i =0;
+        for(Object rad : buttons) {
+                if(((RadioButton) rad).isSelected() == true){
+                    output.get(i).add(cl.getID());
+                }
+            i++;
+        }
+     }
+     return output;
+ }
     public void saveNewAssistant(ActionEvent actionEvent) throws IOException {
         if(!(nameField.getText().isEmpty()) & !(surnameField.getText().isEmpty())){
             if(listOfA.getAssistantList().isEmpty()){
-                listOfAssist.add(new Assistant(UUID.randomUUID(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), dayCheck.isSelected(), nightCheck.isSelected(), comments.getText(),stateOfDays));
+                listOfAssist.add(new Assistant(UUID.randomUUID(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), dayCheck.isSelected(), nightCheck.isSelected(), comments.getText(),stateOfDays, savePreferred()));
                 jsoMap.saveAssistantInfo(listOfA);
                 ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getAssistantList());
                 listViewofA.setItems(observLocationList);
@@ -173,7 +197,7 @@ public void loadContract(){
                 nameAndSurname.add(loc.getName() +" "+ loc.getSurname());
             }
                 if(!( nameAndSurname.contains(nameField.getText() +" "+ surnameField.getText()))){
-                    listOfAssist.add(new Assistant(UUID.randomUUID(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), dayCheck.isSelected(), nightCheck.isSelected(), comments.getText(),stateOfDays));
+                    listOfAssist.add(new Assistant(UUID.randomUUID(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), dayCheck.isSelected(), nightCheck.isSelected(), comments.getText(),stateOfDays, savePreferred()));
                     jsoMap.saveAssistantInfo(listOfA);
                     ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getAssistantList());
                     listViewofA.setItems(observLocationList);
@@ -245,6 +269,63 @@ public void loadContract(){
     }
 
 
+    public void populateClientOpinion() throws IOException {
+    clientOpinionGrid.getRowConstraints().clear();
+    ListOfClientsProfiles lip = jsoMap.loadClientProfileInfo();
+     itemIndex = new HashMap<>();
+    int citer = 0;
+        for(ClientProfile clp : lip.getClientList()) {
+            ArrayList<Object> templist = new ArrayList();
+
+            GridPane grp = new GridPane();
+            grp.getRowConstraints().clear();
+            grp.setStyle("-fx-background-color:" +toHexString(Color.GRAY));
+            grp.setStyle("-fx-border-color:" +toHexString(Color.BLACK));
+            templist.add(grp);
+            templist.add(new Text());
+            ((Text) templist.get(1)).setText(clp.getName() +" "+ clp.getSurname());
+            ToggleGroup group = new ToggleGroup();
+            ArrayList<String> titles = new ArrayList<>(Arrays.asList("Neutrální", "Preferovaný", "Nežádoucí"));
+            for(int i = 0; i<3;i++){
+                RadioButton temp = new RadioButton(titles.get(i));
+                if( i  == 0){
+                    temp.setSelected(true);
+                }
+                temp.setToggleGroup(group);
+                templist.add(temp);
+            }
+           // ArrayList<CheckBox> listOfB = new ArrayList<>(Arrays.asList(new CheckBox(),new CheckBox(),new CheckBox()));
+           // templist.add(listOfB);
+           int[] columnWidth = new int[]{25,25,25,25};
+           int it = 1;
+           for(int i : columnWidth){
+               ColumnConstraints row = new ColumnConstraints();
+               row.setPercentWidth(i);
+               grp.getColumnConstraints().add(row);
+               grp.setConstraints((Node) templist.get(it),it-1,0,1,1);
+               grp.getChildren().add((Node) templist.get(it));
+               grp.setValignment((Node) templist.get(it),VPos.CENTER);
+               it++;
+           }
+            grp.getRowConstraints().add(new RowConstraints(){{setValignment(VPos.CENTER);}});
+            clientOpinionGrid.getChildren().add(grp);
+           System.out.println(grp.getRowCount());
+           clientOpinionGrid.setConstraints(grp,0,citer++);
+            clientOpinionGrid.setMargin(grp, new Insets(0,10,0,10));
+           // clientOpinionGrid.setValignment(grp,VPos.CENTER);
+            //clientOpinionGrid.setHalignment(grp,HPos.CENTER);
+            //clientOpinionGrid.getRowConstraints().add(new RowConstraints() {{ setPercentHeight(10);}});
+            itemIndex.put(clp.getID(),templist);
+        }
+        }
+        private void switchOthers(MouseEvent mouseEvent, ArrayList<Object> ar){
+            ArrayList<CheckBox> checkBoxes = (ArrayList<CheckBox>) ar.get(5);
+            ArrayList<CheckBox> copiedList = (ArrayList<CheckBox>) checkBoxes.stream()
+                    .filter(element -> !element.equals(mouseEvent.getSource()))
+                    .collect(Collectors.toList());
+
+
+        }
     public void switchState(MouseEvent mouseEvent) {
         TextArea loadedArea = (TextArea) mouseEvent.getSource();
         int rowIndex = daysInWeekGrid.getRowIndex(loadedArea);
