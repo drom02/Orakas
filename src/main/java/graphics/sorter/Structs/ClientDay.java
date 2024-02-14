@@ -8,10 +8,15 @@ import graphics.sorter.Location;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
+import java.util.UUID;
 
 public class ClientDay {
 
     public boolean isMerged = false;
+
+
+
+    private UUID client;
     private Integer day;
     private Month month;
     private  Integer year;
@@ -37,7 +42,7 @@ public class ClientDay {
 
     }
     @JsonCreator
-     ClientDay(@JsonProperty("dayI")Integer dayI, @JsonProperty("monthI")Month monthI, @JsonProperty("year")Integer yearI, @JsonProperty("defStarTime") LocalDateTime defStarTime, @JsonProperty("defEndTime")LocalDateTime defEndTime, @JsonProperty("Location")Location location, @JsonProperty("isMerged")boolean ismerged ){
+     ClientDay(@JsonProperty("client")UUID client,@JsonProperty("dayI")Integer dayI, @JsonProperty("monthI")Month monthI, @JsonProperty("year")Integer yearI, @JsonProperty("defStarTime") LocalDateTime defStarTime, @JsonProperty("defEndTime")LocalDateTime defEndTime, @JsonProperty("Location")Location location, @JsonProperty("isMerged")boolean ismerged ){
         ServiceInterval def = new ServiceInterval(defStarTime, defEndTime, null, null,false);
         this.dayIntervalList.add(def);
         this.day = dayI;
@@ -45,6 +50,7 @@ public class ClientDay {
         this.year = yearI;
         this.location = location;
         this.isMerged = ismerged;
+        setClient(client);
     }
 
     public boolean isMerged() {
@@ -120,5 +126,12 @@ public class ClientDay {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+    public UUID getClient() {
+        return client;
+    }
+
+    public void setClient(UUID client) {
+        this.client = client;
     }
 }

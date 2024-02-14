@@ -162,5 +162,6 @@
             </GridPane>
          </children>
       </GridPane>
+      <Button fx:id="newSolution" mnemonicParsing="false" onAction="#findNewSolution" text="Najdi nové řešené" GridPane.rowIndex="2" />
    </children>
 </GridPane>

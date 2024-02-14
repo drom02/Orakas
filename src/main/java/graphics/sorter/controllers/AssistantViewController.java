@@ -125,6 +125,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
 
 
 
+
     }
     private ListOfAssistants loadAssistantsJson() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -155,6 +156,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         comments.setText(selectedAssistant.getComments());
         stateOfDays = selectedAssistant.getWorkDays();
         populateDaysInWeekTable();
+        loadClientOpinion(selectedAssistant);
     }
 
     }
@@ -170,7 +172,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
      ArrayList<ArrayList<UUID>> output = new ArrayList<ArrayList<UUID>>(Arrays.asList(new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>()));
      for(ClientProfile cl : jsoMap.loadClientProfileInfo().getClientList()){
         // ArrayList<RadioButton>
-        List<Object> buttons = itemIndex.get(cl.getID()).subList(2,4);
+        List<Object> buttons = itemIndex.get(cl.getID()).subList(2,5);
         int i =0;
         for(Object rad : buttons) {
                 if(((RadioButton) rad).isSelected() == true){
@@ -316,7 +318,21 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
             //clientOpinionGrid.setHalignment(grp,HPos.CENTER);
             //clientOpinionGrid.getRowConstraints().add(new RowConstraints() {{ setPercentHeight(10);}});
             itemIndex.put(clp.getID(),templist);
+
         }
+        }
+        private void loadClientOpinion(Assistant as){
+            for(UUID rowID : itemIndex.keySet()){
+                int i = 0;
+                for(ArrayList<UUID> id : as.getClientPreference()){
+                    if(id.contains(rowID)) {
+                       RadioButton rad = (RadioButton) itemIndex.get(rowID).get(i+2);
+                       rad.setSelected(true);
+                }
+                i++;
+            }
+        }
+
         }
         private void switchOthers(MouseEvent mouseEvent, ArrayList<Object> ar){
             ArrayList<CheckBox> checkBoxes = (ArrayList<CheckBox>) ar.get(5);

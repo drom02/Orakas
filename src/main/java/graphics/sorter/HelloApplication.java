@@ -17,7 +17,7 @@ public class HelloApplication extends Application {
         int[] defEnd = new int[]{20,30};
         Settings set = new Settings(12,2024,"",deftStart,defEnd,16);
         set.createNewSettingsFile();
-        jsoM.jsonTest();
+       // jsoM.jsonTest();
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Main-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 640, 480);
         stage.setTitle("Sorter");

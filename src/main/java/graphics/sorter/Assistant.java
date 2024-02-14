@@ -1,6 +1,7 @@
 package graphics.sorter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
@@ -99,13 +100,16 @@ public class Assistant extends Human{
         this.comments = comments;
     }
 
-    public ArrayList<Client> getClientList() {
+    @JsonIgnore
+       public ArrayList<Client> getClientList() {
         return clientList;
     }
 
     public void setClientList(ArrayList<Client> clientList) {
         this.clientList = clientList;
     }
+
+
     public boolean isLikesOvertime() {
         return likesOvertime;
     }
