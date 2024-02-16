@@ -2,6 +2,7 @@ package graphics.sorter.controllers;
 
 import graphics.sorter.*;
 import graphics.sorter.Structs.ListOfLocations;
+import graphics.sorter.Structs.LocationCellFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -41,6 +42,7 @@ public class LocationController {
         listOfLoc = listOfL .getListOfLocations();
         ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
         listViewofL.setItems(observLocationList);
+        listViewofL.setCellFactory(new LocationCellFactory());
 
     }
     public void switchPage(ActionEvent actionEvent) throws IOException {

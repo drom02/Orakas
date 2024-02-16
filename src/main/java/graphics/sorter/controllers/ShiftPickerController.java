@@ -198,7 +198,7 @@ public class ShiftPickerController {
                 String output;
                 for(Assistant as: listDays.get(i)){
                      output = arList.getText();
-                    arList.setText(output + "," + as.getName() +" "+ as.getSurname());
+                    arList.setText(output  + as.getName() +" "+ as.getSurname()+"\n");
                 }
                 i++;
 
@@ -212,7 +212,7 @@ public class ShiftPickerController {
             String output;
             for(Assistant as: listNights.get(i)){
                 output = sText.getText();
-                sText.setText(output + "," + as.getName() +" "+ as.getSurname());
+                sText.setText(output + as.getName() +" "+ as.getSurname()+"\n");
             }
                 i++;
         }

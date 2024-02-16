@@ -20,6 +20,7 @@ public class HelloApplication extends Application {
        // jsoM.jsonTest();
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Main-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 640, 480);
+
         stage.setTitle("Sorter");
         stage.setScene(scene);
         stage.show();
