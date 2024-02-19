@@ -8,14 +8,12 @@ import graphics.sorter.Location;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 public class ClientDay {
 
-    public boolean isMerged = false;
-
-
-
+    private boolean isMerged = false;
     private UUID client;
     private Integer day;
     private Month month;
@@ -98,6 +96,9 @@ public class ClientDay {
 
     public void setYear(Integer year) {
         this.year = year;
+    }
+    public long shiftLength(){
+        return ChronoUnit.HOURS.between(dayIntervalList.getFirst().getStart(),dayIntervalList.getLast().getEnd());
     }
 
     @JsonIgnore

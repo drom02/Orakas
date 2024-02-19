@@ -4,6 +4,7 @@ import graphics.sorter.*;
 import graphics.sorter.Structs.HumanCellFactory;
 import graphics.sorter.Structs.ListOfClients;
 import graphics.sorter.Structs.ListOfClientsProfiles;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -15,10 +16,17 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 
 import java.io.IOException;
 
 public class ClientViewController {
+    //region graphical components
+    @FXML
+    private  Pane mainPane;
+    @FXML
+    private  GridPane mainGrid;
     @FXML
     private TextField homeLocationField;
     @FXML
@@ -29,11 +37,13 @@ public class ClientViewController {
     private TextArea comments;
     @FXML
     private TextField surnameField;
+    //endregion
+    //region variables
     private Settings settings;
     private ListOfClientsProfiles listOfc;
     private ClientProfile selectedClient;
     private JsonManip jsoMap;
-
+    //endregion
     public void saveClient(MouseEvent mouseEvent) {
     }
     public void loadClient(MouseEvent mouseEvent) {
@@ -54,6 +64,10 @@ public class ClientViewController {
         listOfc = jsoMap.loadClientProfileInfo();
         ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getClientList());
         listViewofC.setItems(observClientList);
+        Platform.runLater(() -> {
+            GraphicalFunctions.screenResizing(mainPane,mainGrid);
+
+        });
     }
 
 

@@ -4,6 +4,7 @@ import graphics.sorter.*;
 import graphics.sorter.Structs.HumanCellFactory;
 import graphics.sorter.Structs.AvailableAssistants;
 import graphics.sorter.Structs.ShiftTextArea;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -18,6 +19,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 
 import java.io.IOException;
 import java.time.DayOfWeek;
@@ -34,12 +36,19 @@ Controller for shift picker window. It is used to select when are assistants ava
 left click to field to add the assistant for specific shift. Right click to remove.
  */
 public class ShiftPickerController {
+    //region graphical components
+    @FXML
+    private Pane mainPane;
+    @FXML
+    private GridPane mainGrid;
     @FXML
     private ScrollPane TestScrollPane;
     @FXML
     private Label welcomeText;
     @FXML
     private ListView assistantList;
+    //endregion
+    //region variables
     private ArrayList listOfAssist;
     private Month editedMonth;
     private Assistant selectedAssistant;
@@ -50,6 +59,7 @@ public class ShiftPickerController {
    private  ArrayList<ShiftTextArea> assistantsDayList = new ArrayList<ShiftTextArea>();
    private  ArrayList<ShiftTextArea> assistantsNightList = new ArrayList<ShiftTextArea>();
    private Settings settings;
+   //endregion
 
 
    /*
@@ -130,6 +140,11 @@ public class ShiftPickerController {
         assistantList.setItems(observAssistantList);
         populateTable(Month.of(settings.getCurrentMonth()),settings.getCurrentYear());
         loadAvailableAssistants();
+
+        Platform.runLater(() -> {
+            GraphicalFunctions.screenResizing(mainPane,mainGrid);
+
+        });
     }
 
     /*

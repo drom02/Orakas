@@ -5,6 +5,7 @@ import graphics.sorter.*;
 import graphics.sorter.Structs.HumanCellFactory;
 import graphics.sorter.Structs.ListOfClientsProfiles;
 import graphics.sorter.Structs.ShiftTextArea;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.converter.ColorConverter;
@@ -32,7 +33,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class AssistantViewController {
-
+    //region graphical components
+    @FXML
+    private  Pane mainPane;
+    @FXML
+    private  GridPane mainGrid;
     @FXML
     private  GridPane clientOpinionGrid;
     @FXML
@@ -61,12 +66,15 @@ public class AssistantViewController {
     private TextArea comments;
     @FXML
     private ArrayList listOfAssist;
+    //endregion
+    //region variables
     private Assistant selectedAssistant;
     private int[] stateOfDays;
     private JsonManip jsoMap;
     private ListOfAssistants listOfA;
     private ArrayList<Control> assistantNodes;
     private HashMap<UUID, ArrayList<Object>> itemIndex;
+    //endregion
     Settings set;
     public void deleteAssistant(MouseEvent mouseEvent) throws IOException {
         if(!(selectedAssistant == null)){
@@ -122,6 +130,10 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.assistantList);
         listViewofA.setItems(observAssistantList);
         populateClientOpinion();
+        Platform.runLater(() -> {
+            GraphicalFunctions.screenResizing(mainPane,mainGrid);
+
+        });
 
 
 

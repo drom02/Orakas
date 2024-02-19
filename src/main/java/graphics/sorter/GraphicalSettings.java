@@ -45,7 +45,7 @@ public class GraphicalSettings {
         getColors().put("Day", GraphicalFunctions.toHexFromRGBO(Color.GRAY,0.1));
         getColors().put("Night", GraphicalFunctions.toHexFromRGBO(Color.BLACK,0.75));
         getColors().put("Error",GraphicalFunctions.toHexFromRGBO(Color.RED,1.00));
-        getColors().put("PrimaryColor", GraphicalFunctions.toHexFromRGBO(Color.BLUE,1.00));
+        getColors().put("PrimaryColor", GraphicalFunctions.toHexFromRGBO( 166, 207, 245,1));
         getColors().put("SecondaryColor", GraphicalFunctions.toHexFromRGBO(Color.GREEN,1.00));
         getColors().put("TertiaryColor", GraphicalFunctions.toHexFromRGBO(Color.ORANGE,1.00));
         getColors().put("","");
