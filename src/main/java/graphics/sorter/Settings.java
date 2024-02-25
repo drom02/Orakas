@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 public class Settings {
     public int getCurrentYear() {
@@ -66,7 +68,7 @@ public class Settings {
         deftStart = new int[]{8,30};
         defEnd = new int[]{20,30};
         Settings defset = new Settings(12,2024, "E:\\JsonWriteTest\\",deftStart,defEnd,16);
-        jsom.saveSettings(defset, defset.getFilePath());
+        jsom.saveSettings(defset);
 
     }
     @JsonCreator

@@ -4,15 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import graphics.sorter.*;
 import graphics.sorter.Structs.HumanCellFactory;
 import graphics.sorter.Structs.ListOfClientsProfiles;
-import graphics.sorter.Structs.ShiftTextArea;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.css.converter.ColorConverter;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
@@ -23,12 +20,10 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import net.synedra.validatorfx.Check;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.MonthDay;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -124,7 +119,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                 });
         listViewofA.setCellFactory(new HumanCellFactory());
         jsoMap= new JsonManip();
-        set = jsoMap.loadSettings("E:\\JsonWriteTest\\");
+        set = jsoMap.loadSettings();
          listOfA = jsoMap.loadAssistantInfo();
         listOfAssist = listOfA .getAssistantList();
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.assistantList);
@@ -149,7 +144,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
 
     public void switchPage(ActionEvent actionEvent) throws IOException {
         Scene scen = listViewofA.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Main-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("Main-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
     }

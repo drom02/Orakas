@@ -11,6 +11,8 @@ module graphics.sorter {
     requires com.almasb.fxgl.all;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.datatype.jsr310;
+    requires com.opencsv;
+    requires org.apache.poi.ooxml;
 
     opens graphics.sorter to javafx.fxml, com.fasterxml.jackson.databind;
     exports graphics.sorter;

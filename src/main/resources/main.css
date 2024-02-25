@@ -4,10 +4,14 @@
     -fx-text-fill: white;
 }
 .night-area-pane{
--fx-control-inner-background:  #454343;
+-fx-background-color: #454343;
+-fx-border-color:  #000000;
+-fx-border-width: 1px;
 }
 .day-area-pane{
--fx-control-inner-background:  #e6e3e3;
+-fx-background-color:  #e6e3e3;
+-fx-border-color:  #000000;
+-fx-border-width: 2px;
 }
 .day-title-card{
 -fx-font-size: 18px;
@@ -48,6 +52,16 @@
 #sideGrid{
 -fx-border-color:  #000000;
 -fx-border-width: 3 1.5 3 3px;
+}
+.day-Area{
+-fx-font-size: 18px;
+-fx-font-weight: bold;
+-fx-control-inner-background: #e6e3e3;
+}
+.night-Area{
+-fx-font-size: 18px;
+-fx-font-weight: bold;
+-fx-control-inner-background:  #454343;
 }
 /*
 .grid-pane{

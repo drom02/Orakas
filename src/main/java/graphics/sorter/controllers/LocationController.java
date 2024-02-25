@@ -37,7 +37,7 @@ public class LocationController {
     Settings set;
     public void initialize() throws IOException {
         jsoMap= new JsonManip();
-        set = jsoMap.loadSettings("E:\\JsonWriteTest\\");
+        set = jsoMap.loadSettings();
         listOfL = jsoMap.loadLocations(set.getFilePath());
         listOfLoc = listOfL .getListOfLocations();
         ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
@@ -47,7 +47,7 @@ public class LocationController {
     }
     public void switchPage(ActionEvent actionEvent) throws IOException {
         Scene scen = listViewofL.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Main-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("Main-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
     }
@@ -57,7 +57,7 @@ public class LocationController {
         if(!(selectedID==null)){
             listOfLoc.remove(selectedLocationGlobal);
             selectedLocationGlobal = null;
-            jsoMap.saveLocations(listOfL,set.getFilePath());
+            jsoMap.saveLocations(listOfL);
             addressField.clear();
             nameField.clear();
             comments.clear();
@@ -86,7 +86,7 @@ public class LocationController {
         if(!(addressField.getText().isEmpty()) & !(nameField.getText().isEmpty())){
             if(listOfL.getListOfLocations().isEmpty()){
                 listOfLoc.add(new Location(UUID.randomUUID(), addressField.getText(),nameField.getText()));
-                jsoMap.saveLocations(listOfL,set.getFilePath());
+                jsoMap.saveLocations(listOfL);
                 ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
                 listViewofL.setItems(observLocationList);
                 return;
@@ -97,7 +97,7 @@ public class LocationController {
             }
                 if(!(name.contains(nameField.getText()))){
                     listOfLoc.add(new Location(UUID.randomUUID(), addressField.getText(),nameField.getText()));
-                    jsoMap.saveLocations(listOfL,set.getFilePath());
+                    jsoMap.saveLocations(listOfL);
                     ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
                     listViewofL.setItems(observLocationList);
                 }else{

@@ -40,12 +40,12 @@ public class GraphicalFunctions {
         mainPane.setPrefSize(screenBounds.getWidth(),screenBounds.getHeight());
         stage.setWidth(screenBounds.getWidth());
         stage.setHeight(screenBounds.getHeight());
-        mainGrid.setPrefSize(screenBounds.getWidth(),screenBounds.getHeight()-30);
+        mainGrid.setPrefSize(screenBounds.getWidth(),screenBounds.getHeight()-80);
         Rectangle clip = new Rectangle();
         clip.widthProperty().bind(mainPane.widthProperty());
         clip.heightProperty().bind((mainPane.heightProperty()));
         mainPane.setClip(clip);
-        mainPane.setStyle("-fx-control-inner-background: " +GS.getColors().get("PrimaryColor") +";");
-        mainGrid.setStyle("-fx-background-color: " +GS.getColors().get("PrimaryColor") +";");
+       // mainPane.setStyle("-fx-control-inner-background: " +GS.getColors().get("PrimaryColor") +";");
+       // mainGrid.setStyle("-fx-background-color: " +GS.getColors().get("PrimaryColor") +";");
     }
 }

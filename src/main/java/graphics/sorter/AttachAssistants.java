@@ -22,7 +22,7 @@ public class AttachAssistants {
 
     }
     public void initialize() throws IOException {
-        Settings set = jsom.loadSettings("E:\\JsonWriteTest\\");
+        Settings set = jsom.loadSettings();
         try {
             availableAssistants = jsom.loadAvailableAssistantInfo(set);
         }catch(Exception e){

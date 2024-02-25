@@ -2,7 +2,6 @@ package graphics.sorter.controllers;
 
 import graphics.sorter.*;
 import graphics.sorter.Structs.HumanCellFactory;
-import graphics.sorter.Structs.ListOfClients;
 import graphics.sorter.Structs.ListOfClientsProfiles;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -60,7 +59,7 @@ public class ClientViewController {
     public void initialize() throws IOException {
         listViewofC.setCellFactory(new HumanCellFactory());
         jsoMap= new JsonManip();
-        settings = jsoMap.loadSettings("E:\\JsonWriteTest\\");
+        settings = jsoMap.loadSettings();
         listOfc = jsoMap.loadClientProfileInfo();
         ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getClientList());
         listViewofC.setItems(observClientList);
@@ -73,7 +72,7 @@ public class ClientViewController {
 
     public void switchPage(ActionEvent actionEvent) throws IOException {
         Scene scen = listViewofC.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Main-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("Main-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
     }

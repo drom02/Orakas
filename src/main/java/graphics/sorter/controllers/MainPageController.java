@@ -26,7 +26,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class MainPageController {
 
@@ -80,19 +79,19 @@ public class MainPageController {
     //endregion
     //region variables
     private Month editedMonth;
-    private ArrayList<TextArea> nightList = new ArrayList<TextArea>();
-    private ArrayList<TextArea> dayList = new ArrayList<TextArea>();
-    private ArrayList<ArrayList<TextArea>>  dayNightSwitch = new ArrayList<ArrayList<TextArea>>(Arrays.asList(dayList,nightList));
-    private ArrayList<TextArea> areaList ;
+    private ArrayList<TextFlow> nightList = new ArrayList<TextFlow>();
+    private ArrayList<TextFlow> dayList = new ArrayList<TextFlow>();
+    private ArrayList<ArrayList<TextFlow>>  dayNightSwitch = new ArrayList<ArrayList<TextFlow>>(Arrays.asList(dayList,nightList));
+    private ArrayList<TextFlow> areaList ;
     private ArrayList<TextFlow> titleList = new ArrayList<TextFlow>();
     private ArrayList<StackPane> clientCardList= new ArrayList<StackPane>();
     private JsonManip jsom = new JsonManip();
     private Settings settings;
     private GridPane grid = new GridPane();
     private Boolean isMenuVisible = false;
-    private HashMap<TextArea,ClientDay> textClientIndex = new HashMap<>();
+    private HashMap<TextFlow,ClientDay> textClientIndex = new HashMap<>();
     private HashMap<AnchorPane,ServiceInterval> paneServiceIndex = new HashMap<>();
-    private TextArea selectedTextArea = null;
+    private TextFlow selectedTextArea = null;
     private ListOfClientMonths listOfClm = new ListOfClientMonths();
     private ArrayList<Integer> hoursList = new ArrayList<>();
     private ArrayList<Integer> minuteList = new ArrayList<>();
@@ -105,7 +104,7 @@ public class MainPageController {
         prepareHoursAndMinutes();
         dayInfoGrid.setVisible(false);
         isMenuVisible = false;
-        settings = jsom.loadSettings("E:\\JsonWriteTest\\");
+        settings = jsom.loadSettings();
         ListOfLocations listOfLocations = jsom.loadLocations(settings.getFilePath());
         selectedYearValue.setText(String.valueOf(settings.getCurrentYear()));
         selectedMonthValue.setText(String.valueOf(settings.getCurrentMonth()));
@@ -135,18 +134,16 @@ public class MainPageController {
                 }
             });
         }
-        for(TextArea tex: nightList){
+        for(TextFlow tex: nightList){
             tex.getStyleClass().add("night-area-pane");
-            tex.setContextMenu(new ContextMenu());
             tex.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
                 if (event.getButton() == MouseButton.SECONDARY) {
                     event.consume(); // This blocks the event from being processed further.
                 }
             });
         }
-        for(TextArea tex: dayList){
+        for(TextFlow tex: dayList){
             tex.getStyleClass().add("day-area-pane");
-            tex.setContextMenu(new ContextMenu());
             tex.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
                 if (event.getButton() == MouseButton.SECONDARY) {
                     event.consume(); // This blocks the event from being processed further.
@@ -168,7 +165,7 @@ public class MainPageController {
         }
         //vytahnout y klientu m2s9c2
         editedMonth = Month.of(settings.getCurrentMonth());
-         areaList = new ArrayList<TextArea>();
+         areaList = new ArrayList<TextFlow>();
          titleList.clear();
 
         int i = 0;
@@ -210,7 +207,7 @@ public class MainPageController {
             i = 0;
             for (int dayIter = -1; dayIter < clm.getClientDaysInMonth().size(); dayIter++){
                 String inputText;
-                TextArea dayTextAr = new TextArea();
+                TextFlow dayTextAr = new TextFlow();
                 if(i==0){
                     TextFlow dayTextArT = new TextFlow();
                     inputText = LiCcl.getClientList().get(clientIter).getName() + " " + LiCcl.getClientList().get(clientIter).getSurname();
@@ -222,9 +219,9 @@ public class MainPageController {
                 }else{
                     if(getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)) == null){
                         //inputText= "Day" + i/2 +"\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter));
-                        inputText= "Day" + i/2 +"\n" + "none" ;
+                        inputText= "Den " + i/2 +"\n" + "none" ;
                     }else{
-                        inputText= "Day" + i/2 + "\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getName() +" "+getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getSurname();
+                        inputText= "Den " + i/2 + "\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getName() +" "+getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getSurname();
                     }
                     setTextArea(dayTextAr,inputText,false,dayList,clm.getClientDaysInMonth().get(dayIter));
                     grid.setConstraints(dayTextAr,i,clienMothIter,1,1);
@@ -236,7 +233,7 @@ public class MainPageController {
             i=0;
             for (int dayIter = 0; dayIter < clm.getClientNightsInMonth().size(); dayIter++){
                 String inputText;
-                TextArea nightTextAr = new TextArea();
+                TextFlow nightTextAr = new TextFlow();
                 if(i==0){
                     TextFlow nightTextArT = new TextFlow();
                     inputText = LiCcl.getClientList().get(clientIter).getName() + " " + LiCcl.getClientList().get(clientIter).getSurname();
@@ -244,7 +241,7 @@ public class MainPageController {
                     nightTextArT.getStyleClass().add("night-title-card");
                     stack.getStyleClass().add("night-title-card-stack");
                     grid.setConstraints(stack,i,clienMothIter+1,2,1);
-                    TextArea ar2 = new TextArea();
+                    TextFlow ar2 = new TextFlow();
                     if(getAssistantOfDay(clm.getClientNightsInMonth().get(dayIter)) == null){
                         inputText= "Night" + 1 +"\n" + "none" ;
                     }else{
@@ -264,7 +261,12 @@ public class MainPageController {
                     }
                     //inputText= "Night" + i/2;
                     setTextArea(nightTextAr,inputText,false,nightList,clm.getClientNightsInMonth().get(dayIter));
-                    grid.setMargin(nightTextAr,new Insets(0, 126, 0, 125));
+                    if(i != clm.getClientNightsInMonth().size()){
+                        grid.setMargin(nightTextAr,new Insets(0, 125, 0, 125));
+                    }else{
+                        grid.setMargin(nightTextAr,new Insets(0, 125, 0, 125));
+                    }
+
                     grid.setConstraints(nightTextAr,i,clienMothIter+1,3,1);
                     i = i+2;
                 }
@@ -351,7 +353,7 @@ public class MainPageController {
 
     private void graphicSetup(){
        // grid.setStyle("-fx-background-color: " + GS.getColors().get("Night")+";");
-    for(TextArea tex: dayList){
+    for(TextFlow tex: dayList){
         tex.setStyle("-fx-control-inner-background: " + GS.getColors().get("Day")+";");
         tex.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
             if (event.getButton() == MouseButton.SECONDARY) {
@@ -359,7 +361,7 @@ public class MainPageController {
             }
         });
     }
-    for(TextArea tex: nightList){
+    for(TextFlow tex: nightList){
         tex.setStyle("-fx-control-inner-background: " + GS.getColors().get("Night")+";");
         tex.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
             if (event.getButton() == MouseButton.SECONDARY) {
@@ -381,14 +383,14 @@ public class MainPageController {
 
     public void switchPage(ActionEvent actionEvent) throws IOException {
        Scene scen = TestScrollPane.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("assistant-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("assistant-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
 
     }
     public void switchPageToShift(ActionEvent actionEvent) throws IOException {
         Scene scen = TestScrollPane.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("shiftPicker-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("shiftPicker-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
     }
@@ -541,11 +543,11 @@ public class MainPageController {
         settings.setCurrentYear(Integer.parseInt(parts[0]));
         settings.setCurrentMonth(Integer.parseInt(parts[1]));
         try {
-            jsom.saveSettings(settings, settings.getFilePath());
+            jsom.saveSettings(settings);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        settings = jsom.loadSettings("E:\\JsonWriteTest\\");
+        settings = jsom.loadSettings();
         populateView(getClientsOfMonth(settings));
         /*
         for( Node ce : grid.getChildren()){
@@ -568,19 +570,18 @@ public class MainPageController {
         }
     public void switchPageToLocation(ActionEvent actionEvent) throws IOException {
         Scene scen = TestScrollPane.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Location-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("Location-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
     }
     public void switchPageToClient(ActionEvent actionEvent) throws IOException {
         Scene scen = TestScrollPane.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Client-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("Client-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
     }
-    private void setTextArea(TextArea textArea, String inputText, Boolean isDescrip, ArrayList arList){
-        textArea.setEditable(false);
-        textArea.setText(inputText);
+    private void setTextArea(TextFlow textArea, String inputText, Boolean isDescrip, ArrayList arList){
+        textArea.getChildren().add(new Text(inputText));
         textArea.setPrefSize(250,100);
         arList.add(textArea);
         areaList.add(textArea);
@@ -610,7 +611,7 @@ public class MainPageController {
         //areaList.add(textArea);
     return stackPane;
     }
-    private void setTextArea(TextArea textArea, String inputText, Boolean isDescrip, ArrayList arList, ClientDay day){
+    private void setTextArea(TextFlow textArea, String inputText, Boolean isDescrip, ArrayList arList, ClientDay day){
         setTextArea(textArea,inputText,isDescrip,arList);
         textClientIndex.put(textArea,day);
     }
@@ -619,7 +620,7 @@ public class MainPageController {
             mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)-1);
             dayInfoGrid.setVisible(true);
             isMenuVisible=true;
-            selectedTextArea = (TextArea) mouseEvent.getSource();
+            selectedTextArea = (TextFlow) mouseEvent.getSource();
             loadDayData(selectedTextArea);
             selectedTextArea.setStyle("-fx-border-color: green");
         } else if (selectedTextArea==mouseEvent.getSource()) {
@@ -630,7 +631,7 @@ public class MainPageController {
                 selectedTextArea =null;
             }else{
             selectedTextArea.setStyle("-fx-border-color: null");
-            selectedTextArea =(TextArea) mouseEvent.getSource();
+            selectedTextArea =(TextFlow) mouseEvent.getSource();
             selectedTextArea.setStyle("-fx-border-color: green");
             loadDayData(selectedTextArea);
         }
@@ -638,7 +639,7 @@ public class MainPageController {
     public void isMergedSwitch(ActionEvent actionEvent) {
     }
 
-    private void loadDayData(TextArea sourceTex){
+    private void loadDayData(TextFlow sourceTex){
         TextArea outputText = new TextArea();
         ClientDay day = textClientIndex.get(sourceTex);
         //.getDisplayName(TextStyle.FULL, new Locale("cs", "CZ")
