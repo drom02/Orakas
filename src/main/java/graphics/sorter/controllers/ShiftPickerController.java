@@ -6,6 +6,7 @@ import com.opencsv.exceptions.CsvException;
 import graphics.sorter.*;
 import graphics.sorter.Structs.HumanCellFactory;
 import graphics.sorter.Structs.AvailableAssistants;
+import graphics.sorter.Structs.ListOfAssistants;
 import graphics.sorter.Structs.ShiftTextArea;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -105,6 +106,9 @@ public class ShiftPickerController {
                 for (String st : titles){
                     TextFlow rowTitleFlow = new TextFlow();
                     inputText = titles[row];
+                    if(row == 0){
+                        rowTitleFlow.getStyleClass().add("title-area-flow");
+                    }
                     rowTitleFlow.getStyleClass().add(styles[row]);
                     rowTitleFlow.getChildren().add(new Text(inputText));
                     rowTitles.add(rowTitleFlow);
@@ -156,13 +160,13 @@ public class ShiftPickerController {
     */
     public void initialize() throws IOException {
         writeXSLX();
-        JsonManip jsoMap= new JsonManip();
+        JsonManip jsoMap= JsonManip.getJsonManip();
         settings = jsoMap.loadSettings();
         assistantList.setCellFactory(new HumanCellFactory());
 
         ListOfAssistants listOfA = jsoMap.loadAssistantInfo();
         listOfAssist = listOfA .getAssistantList();
-        ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.assistantList);
+        ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getAssistantList());
         assistantList.setItems(observAssistantList);
         populateTable(Month.of(settings.getCurrentMonth()),settings.getCurrentYear());
         loadAvailableAssistants();
@@ -172,6 +176,7 @@ public class ShiftPickerController {
 
         });
     }
+
 
     /*
     Will switch window to main window.
@@ -227,7 +232,7 @@ public class ShiftPickerController {
     //Todo option to select save to load.
      */
     public void loadAvailableAssistants() throws IOException {
-        JsonManip jsom = new JsonManip();
+        JsonManip jsom = JsonManip.getJsonManip();
 
         int i =0;
         ArrayList<ShiftTextArea> tempListDay = listOfAssistantLists.get(0);
@@ -259,7 +264,7 @@ public class ShiftPickerController {
         }
     }
     public void generateNewMonthsAssistants() throws IOException {
-        JsonManip jsom = new JsonManip();
+        JsonManip jsom = JsonManip.getJsonManip();
         ListOfAssistants listOfA = jsom.loadAssistantInfo();
         AvailableAssistants availableAssistants = new AvailableAssistants();
         ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
@@ -291,7 +296,7 @@ public class ShiftPickerController {
     //TODO better save system
      */
     public void saveCurrentState() throws IOException {
-        JsonManip jsom = new JsonManip();
+        JsonManip jsom = JsonManip.getJsonManip();
         AvailableAssistants availableAssistants = new AvailableAssistants();
         ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
         ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
@@ -311,7 +316,7 @@ public class ShiftPickerController {
           jsom.saveAvailableAssistantInfo(availableAssistants,settings);
     }
     public void generateEmptyState() throws IOException {
-        JsonManip jsom = new JsonManip();
+        JsonManip jsom = JsonManip.getJsonManip();
         AvailableAssistants availableAssistants = new AvailableAssistants();
         ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
         ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
@@ -426,7 +431,7 @@ public class ShiftPickerController {
     }
     private ArrayList prepareAcceptableInputs() throws IOException {
         ArrayList<String> acceptable = new ArrayList<>();
-        JsonManip jsom = new JsonManip();
+        JsonManip jsom = JsonManip.getJsonManip();
         ListOfAssistants lisfa = jsom.loadAssistantInfo();
         for(Assistant a: lisfa.getAssistantList()){
             String nameSurname = a.getName() +" "+a.getSurname();

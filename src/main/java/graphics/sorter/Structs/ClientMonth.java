@@ -21,7 +21,7 @@ public class ClientMonth {
     private UUID clientId;
     private ArrayList<ClientDay> clientDaysInMonth = new ArrayList<ClientDay>();
     private ArrayList<ClientDay> clientNightsInMonth = new ArrayList<ClientDay>();
-    private JsonManip jsoM = new JsonManip();
+    private JsonManip jsoM = JsonManip.getJsonManip();
 
     public Month getMon() {
         return mon;

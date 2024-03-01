@@ -2,7 +2,6 @@ package graphics.sorter.Structs;
 
 import graphics.sorter.Assistant;
 import graphics.sorter.JsonManip;
-import graphics.sorter.ListOfAssistants;
 import graphics.sorter.Settings;
 
 import java.io.IOException;

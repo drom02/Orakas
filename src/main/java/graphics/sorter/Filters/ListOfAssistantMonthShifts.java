@@ -3,11 +3,10 @@ package graphics.sorter.Filters;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import graphics.sorter.Assistant;
-import graphics.sorter.ListOfAssistants;
+import graphics.sorter.Structs.ListOfAssistants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.UUID;
 
 public class ListOfAssistantMonthShifts {

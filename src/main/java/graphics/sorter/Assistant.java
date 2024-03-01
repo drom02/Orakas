@@ -20,7 +20,6 @@ public class Assistant extends Human{
     //Zda pracuje pouze noční směny
     private boolean worksOnlyNight;
     //Komentáře k danému assisentovi
-    private String comments;
     //Seznam klientů a vztahu s nimi
     private ArrayList<Client> clientList;
 
@@ -29,11 +28,12 @@ public class Assistant extends Human{
 
     private int[] workDays;
     @JsonCreator
-     public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("name")String name, @JsonProperty("surname")String surname,
+     public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("status")boolean status,@JsonProperty("name")String name, @JsonProperty("surname")String surname,
                       @JsonProperty("contract")String contract, @JsonProperty("work")double work, @JsonProperty("overtime")boolean overtime,
                       @JsonProperty("worksDay")boolean worksDay, @JsonProperty("worksNight")boolean worksNight, @JsonProperty("comments")String comments,
                       @JsonProperty("workDays")int[] workDays, @JsonProperty("clientPreference") ArrayList<ArrayList<UUID>> clientpreference){
         setID(ID);
+        setActivityStatus(status);
         setName(name);
         setSurname(surname);
         setContractType(contract);
@@ -41,7 +41,7 @@ public class Assistant extends Human{
         setLikesOvertime(overtime);
         setWorksOnlyDay(worksDay);
         setWorksOnlyNight(worksNight);
-        setComments(comments);
+        setComment(comments);
         setClientPreference(clientpreference);
 
 
@@ -91,15 +91,6 @@ public class Assistant extends Human{
     public void setWorksOnlyNight(Boolean worksOnlyNight) {
         this.worksOnlyNight = worksOnlyNight;
     }
-
-    public String getComments() {
-        return comments;
-    }
-
-    public void setComments(String comments) {
-        this.comments = comments;
-    }
-
     @JsonIgnore
        public ArrayList<Client> getClientList() {
         return clientList;

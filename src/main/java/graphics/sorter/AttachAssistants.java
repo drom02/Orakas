@@ -11,7 +11,7 @@ public class AttachAssistants {
 
      private AvailableAssistants availableAssistants;
      private ListOfClients listOfClients;
-     private JsonManip jsom = new JsonManip();
+     private JsonManip jsom = JsonManip.getJsonManip();
     //public void a(AvailableAssistants availableAssistants, ){
 
    // }

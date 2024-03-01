@@ -46,10 +46,14 @@ public class Start extends Application {
         lot = objectMapper.readValue(jsonData, Settings.class );
         } catch (IOException e) {
             System.out.println("error");
-            Settings def = new Settings(12, 2024, "E:\\JsonWriteTest\\", new int[]{8, 30}, new int[]{20, 30}, 16);
-           // def.setPathToSettings("E:\\JsonWriteTest\\Settings\\Settings.json");
             try {
-                objectMapper.writeValue(new File(".\\Settings.json"),def);
+                Settings.createNewSettingsFile();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            // def.setPathToSettings("E:\\JsonWriteTest\\Settings\\Settings.json");
+            try {
+                objectMapper.writeValue(new File(".\\Settings.json"),Settings.getSettings());
                 byte[]  jsonData = Files.readAllBytes(Paths.get(".\\Settings.json"));
                 lot = objectMapper.readValue(jsonData, Settings.class );
             } catch (IOException ex) {

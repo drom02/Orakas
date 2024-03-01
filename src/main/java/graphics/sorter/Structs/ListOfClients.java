@@ -19,7 +19,7 @@ public class ListOfClients {
         this.clientList = clientList;
     }
 
-    public ArrayList<Client> clientList;
+    private ArrayList<Client> clientList;
 
     @JsonCreator
     public ListOfClients() {
@@ -28,10 +28,10 @@ public class ListOfClients {
 
 
     public ListOfClientsProfiles convertToListOfClientProfiles(){
-       ListOfClientsProfiles output = new ListOfClientsProfiles();
+       ListOfClientsProfiles output = new ListOfClientsProfiles(new ArrayList<ClientProfile>());
        if(!clientList.isEmpty()){
            for (Client cl : clientList  ){
-                output.getClientList().add( cl.convertToClientProfile());
+                output.getFullClientList().add( cl.convertToClientProfile());
            }
        }
        return  output;

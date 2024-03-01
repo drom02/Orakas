@@ -1,7 +1,7 @@
 package graphics.sorter.Filters;
 
 import graphics.sorter.Assistant;
-import graphics.sorter.ListOfAssistants;
+import graphics.sorter.Structs.ListOfAssistants;
 import graphics.sorter.Structs.ClientDay;
 import graphics.sorter.Structs.ServiceInterval;
 

@@ -6,7 +6,7 @@ import graphics.sorter.Structs.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -14,9 +14,10 @@ import java.time.Month;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.UUID;
 
 public class JsonManip {
+    private static JsonManip jsonManip;
+
     private String path;
     public void initialize() throws IOException {
         Settings set = loadSettings();
@@ -26,11 +27,18 @@ public class JsonManip {
            Files.createDirectories(Paths.get(path + st));
         }
     }
-    public JsonManip(){
+    private JsonManip(){
         try {
             initialize();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+    public static JsonManip getJsonManip(){
+        if(jsonManip==null){
+            return new JsonManip();
+        }else{
+            return jsonManip;
         }
     }
      public void jsonTest() throws IOException {
@@ -59,7 +67,7 @@ public class JsonManip {
          Client client1 = new Client("Client2", "Clientov2", new ClientMonth(Month.DECEMBER,2024));
          Client client2 = new Client("Client3", "Clientov3", new ClientMonth(Month.DECEMBER,2024));
          Client client3 = new Client("Client4", "Clientov3", new ClientMonth(Month.DECEMBER,2024));
-         */
+
          ClientProfile client = new ClientProfile(UUID.randomUUID(),"Client", "Clientov", null);
          ClientProfile client1 = new ClientProfile(UUID.randomUUID(),"Client2", "Clientov2", null);
          ClientProfile client2 = new ClientProfile(UUID.randomUUID(),"Client3", "Clientov3", null);
@@ -77,6 +85,8 @@ public class JsonManip {
          }
          saveClientRequirementsForMonth(listOfClientMonths, loadSettings());
         //saveLocations(new ListOfLocations(), loadSettings(path + "").getFilePath());
+
+         */
     }
     public void saveAssistantInfo(ListOfAssistants lias) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -216,10 +226,10 @@ public class JsonManip {
         objectMapper.writeValue(new File(path+"Locations\\Locations"+".json"),lOL);
 
     }
-    public ListOfLocations loadLocations(String path) throws IOException {
+    public ListOfLocations loadLocations(Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        byte[]  jsonData = Files.readAllBytes(Paths.get(path+"Locations\\Locations"+ ".json"));
+        byte[]  jsonData = Files.readAllBytes(Paths.get(set.getFilePath()+"Locations\\Locations"+ ".json"));
         ListOfLocations lot = objectMapper.readValue(jsonData, ListOfLocations.class );
         return lot;
     }

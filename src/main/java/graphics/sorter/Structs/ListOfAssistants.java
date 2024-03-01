@@ -1,19 +1,26 @@
-package graphics.sorter;
+package graphics.sorter.Structs;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import graphics.sorter.Structs.Saveable;
+import graphics.sorter.Assistant;
+import graphics.sorter.ClientProfile;
+import graphics.sorter.JsonManip;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class ListOfAssistants implements Saveable {
 
 
-    public ArrayList<Assistant> assistantList;
+    private ArrayList<Assistant> assistantList;
     public ArrayList<Assistant> getAssistantList() {
+        return assistantList.stream().filter(f->f.getActivityStatus()==true).collect(Collectors.toCollection(ArrayList::new));
+    }
+    @JsonIgnore
+    public ArrayList<Assistant> getFullAssistantList() {
         return assistantList;
     }
 
@@ -21,7 +28,7 @@ public class ListOfAssistants implements Saveable {
         this.assistantList = assistantList;
     }
      @JsonCreator
-     ListOfAssistants(@JsonProperty("assistantList") ArrayList<Assistant> assistantList) {
+     public ListOfAssistants(@JsonProperty("assistantList") ArrayList<Assistant> assistantList) {
         this.assistantList = assistantList;
     }
     @JsonIgnore

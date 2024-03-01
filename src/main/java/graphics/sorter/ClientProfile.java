@@ -8,10 +8,6 @@ import java.util.UUID;
 
 public class ClientProfile extends Human {
 
-
-
-    private String ClientId;
-
     public Location getHomeLocation() {
         return homeLocation;
     }
@@ -23,18 +19,16 @@ public class ClientProfile extends Human {
     private Location homeLocation;
 
     @JsonCreator
-    public ClientProfile(@JsonProperty("ID") UUID ID, @JsonProperty("name")String name, @JsonProperty("surname")String surname, @JsonProperty("homeLocation")Location homeLocation){
+    public ClientProfile(@JsonProperty("ID") UUID ID,  @JsonProperty("status") boolean status,@JsonProperty("name")String name, @JsonProperty("surname")String surname, @JsonProperty("homeLocation")Location homeLocation, @JsonProperty("comment")String comment){
         setID(ID);
+        setActivityStatus(status);
         setName(name);
         setSurname(surname);
         setHomeLocation(homeLocation);
+        setComment(comment);
     }
-    public void setClientId(String clientId) {
-        ClientId = clientId;
-    }
-
     public Client convertToClient(ClientMonth assignedMonth){
-        Client output = new Client(getID(),getName(), getSurname(),assignedMonth, getHomeLocation());
+        Client output = new Client(getID(), getActivityStatus(), getName(), getSurname(),assignedMonth, getHomeLocation(),getComment());
         return output;
     }
 

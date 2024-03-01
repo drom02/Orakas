@@ -2,66 +2,106 @@
 .button {
     -fx-background-color: #0078D7;
     -fx-text-fill: white;
+    -fx-border-color:  #000000;
+    -fx-border-width: 0.5px;
+
+}
+.background-pane{
+    -fx-background-color: #dcecf7;
+    -fx-border-color:  #000000;
+    -fx-border-width: 2px;
 }
 .night-area-pane{
--fx-background-color: #454343;
--fx-border-color:  #000000;
--fx-border-width: 1px;
+    -fx-background-color: #454343;
+    -fx-border-color:  #000000;
+    -fx-border-width: 2px;
 }
 .day-area-pane{
--fx-background-color:  #e6e3e3;
--fx-border-color:  #000000;
--fx-border-width: 2px;
+    -fx-background-color:  #e6e3e3;
+    -fx-border-color:  #000000;
+    -fx-border-width: 2px;
+}
+.selected-pane{
+    -fx-border-color:  #75228c;
+    -fx-border-width: 7.5px;
 }
 .day-title-card{
--fx-font-size: 18px;
--fx-font-weight: bold;
--fx-background-color: #e6e3e3;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-background-color: #e6e3e3;
 }
 .day-title-card-stack{
--fx-font-size: 18px;
--fx-font-weight: bold;
--fx-background-color: #e6e3e3;
--fx-border-color:  #000000;
--fx-border-width: 2px;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-background-color: #e6e3e3;
+    -fx-border-color:  #000000;
+    -fx-border-width: 2px;
 }
 .night-title-card{
--fx-font-size: 18px;
--fx-font-weight: bold;
--fx-background-color:  #454343;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-background-color:  #454343;
 }
 .night-title-card-stack{
--fx-font-size: 18px;
--fx-font-weight: bold;
--fx-background-color:  #454343;
--fx-border-color:  #000000;
--fx-border-width: 2px;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-background-color:  #454343;
+    -fx-border-color:  #000000;
+    -fx-border-width: 2px;
 }
 .title-area-flow{
--fx-font-family: 'Arial';
--fx-font-size: 16px;
--fx-font-weight: bold;
--fx-font-style: italic;
--fx-border-color:  #000000;
--fx-border-width: 0 1.5px 3px 1.5px;
+    -fx-font-family: 'Arial';
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-font-style: italic;
+    -fx-border-color:  #000000;
+    -fx-border-width: 2px 1.5px 1.5px 1.5px;
+}
+#calendarScrollPane{
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 #TestScrollPane{
--fx-border-color:  #000000;
--fx-border-width: 3px 5px 5px 1.5px;
+    -fx-border-color:  #000000;
+    -fx-border-width: 3px 5px 5px 1.5px;
 }
 #sideGrid{
--fx-border-color:  #000000;
--fx-border-width: 3 1.5 3 3px;
+    -fx-border-color:  #000000;
+    -fx-border-width: 3 1.5 3 3px;
 }
 .day-Area{
--fx-font-size: 18px;
--fx-font-weight: bold;
--fx-control-inner-background: #e6e3e3;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-control-inner-background: #e6e3e3;
 }
 .night-Area{
--fx-font-size: 18px;
--fx-font-weight: bold;
--fx-control-inner-background:  #454343;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-control-inner-background:  #454343;
+}
+.list-cell:filled:odd {
+    -fx-background-color: lightgrey; /* Color for odd rows */
+    -fx-text-fill: black;
+}
+.default-text{
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+.list-cell:filled:even {
+    -fx-background-color: white; /* Color for even rows */
+    -fx-text-fill: black;
+}
+.list-view{
+    -fx-border-color:  #000000;
+    -fx-border-width: 2px;
+}
+.list-view .list-cell:selected {
+    -fx-background-color: #579bcf;  /* Change selected background color */
+    -fx-text-fill: white;        /* Change selected text color */
+}
+#daysInWeekGrid{
+    -fx-border-color:  #000000;
+    -fx-border-width: 3px;
 }
 /*
 .grid-pane{

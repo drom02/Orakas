@@ -19,6 +19,7 @@ public class StartViewController {
 
          */
         String[] str = new String[] {"Main-view","shiftPicker-view","client-view","assistant-view","Location-view"};
+        String[] title = new String[] {"Main-view","shiftPicker-view","client-view","assistant-view","Location-view"};
         mainTabPane.getTabs().clear();
         Platform.runLater(() -> {
             for(String stri : str){

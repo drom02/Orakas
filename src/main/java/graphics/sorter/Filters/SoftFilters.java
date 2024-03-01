@@ -1,7 +1,6 @@
 package graphics.sorter.Filters;
 
 import graphics.sorter.Assistant;
-import graphics.sorter.ListOfAssistants;
 
 import java.util.*;
 import java.util.stream.Collectors;

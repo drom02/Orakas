@@ -41,7 +41,7 @@ public class MainPageController {
     @FXML
     private Pane basePane;
     @FXML
-    private ChoiceBox locationChoiceBox;
+    private ChoiceBox<Location> locationChoiceBox;
     @FXML
     private CheckBox isMergedCheckBox;
     @FXML
@@ -55,13 +55,15 @@ public class MainPageController {
     @FXML
     private ChoiceBox<Integer> startHoursChoice;
     @FXML
+    private ChoiceBox mergedWithChoiceBox;
+    @FXML
     private ChoiceBox<Integer>  startMinutesChoice;
     @FXML
     private ChoiceBox<Integer>  endHoursChoice;
     @FXML
     private ChoiceBox<Integer>  endMinutesChoice;
     @FXML
-    private ScrollPane TestScrollPane;
+    private ScrollPane calendarScrollPane;
     @FXML
     private Label welcomeText;
     @FXML
@@ -85,12 +87,13 @@ public class MainPageController {
     private ArrayList<TextFlow> areaList ;
     private ArrayList<TextFlow> titleList = new ArrayList<TextFlow>();
     private ArrayList<StackPane> clientCardList= new ArrayList<StackPane>();
-    private JsonManip jsom = new JsonManip();
+    private JsonManip jsom = JsonManip.getJsonManip();
     private Settings settings;
-    private GridPane grid = new GridPane();
+    private GridPane dayGrid = new GridPane();
     private Boolean isMenuVisible = false;
     private HashMap<TextFlow,ClientDay> textClientIndex = new HashMap<>();
     private HashMap<AnchorPane,ServiceInterval> paneServiceIndex = new HashMap<>();
+    private HashMap<UUID,ClientProfile> clientIndex = new HashMap<>();
     private TextFlow selectedTextArea = null;
     private ListOfClientMonths listOfClm = new ListOfClientMonths();
     private ArrayList<Integer> hoursList = new ArrayList<>();
@@ -103,25 +106,44 @@ public class MainPageController {
 
         prepareHoursAndMinutes();
         dayInfoGrid.setVisible(false);
+        calendarScrollPane.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+            if (event.getButton() == MouseButton.SECONDARY) {
+                event.consume(); // This blocks the event from being processed further.
+            }
+        });
+        populateClientIndex();
         isMenuVisible = false;
         settings = jsom.loadSettings();
-        ListOfLocations listOfLocations = jsom.loadLocations(settings.getFilePath());
+        ListOfLocations listOfLocations = jsom.loadLocations(settings);
         selectedYearValue.setText(String.valueOf(settings.getCurrentYear()));
         selectedMonthValue.setText(String.valueOf(settings.getCurrentMonth()));
+        locationChoiceBox.setOnAction(this :: selectLocation);
+        try {
+            ArrayList<Location> lic = jsom.loadLocations(settings).getListOfLocations();
+            lic.add(null);
+            locationChoiceBox.getItems().setAll(lic);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         populateView(getClientsOfMonth(settings));
-        mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)+1);
+        mainGrid.setConstraints(calendarScrollPane,mainGrid.getColumnIndex(calendarScrollPane),mainGrid.getRowIndex(calendarScrollPane),mainGrid.getColumnSpan(calendarScrollPane),mainGrid.getRowSpan(calendarScrollPane)+1);
         attachObservers();
         Platform.runLater(() -> {
            //mainGrid.prefWidthProperty().bind(basePane.widthProperty());
            // mainGrid.prefHeightProperty().bind(basePane.heightProperty());
         GraphicalFunctions.screenResizing(basePane,mainGrid);
 
-        graphical();
-            mainGrid.getScene().getStylesheets().add(getClass().getResource("/main.css").toExternalForm());
+
+        mainGrid.getScene().getStylesheets().add(getClass().getResource("/main.css").toExternalForm());
         });
         // barGrid.maxWidthProperty().bind(dayInfoGrid.widthProperty());
     }
-
+    private void populateClientIndex() throws IOException {
+        ListOfClientsProfiles l = jsom.loadClientProfileInfo();
+        for(ClientProfile clip : l.getFullClientList()){
+            clientIndex.put(clip.getID(),clip);
+        }
+    }
     public void graphical(){
         for(TextFlow tex: titleList){
            // Text t = (Text) tex.getChildren().getFirst();
@@ -158,7 +180,7 @@ public class MainPageController {
 
     }
     public void populateView(ListOfClients LiCcl){
-        grid.getChildren().clear();
+        dayGrid.getChildren().clear();
         ListOfClientMonths LiClMo = new ListOfClientMonths();
         for(Client cl : LiCcl.getClientList()){
             LiClMo.getListOfClientMonths().add(cl.getClientsMonth());
@@ -168,10 +190,11 @@ public class MainPageController {
          areaList = new ArrayList<TextFlow>();
          titleList.clear();
 
-        int i = 0;
+
         /*
         Vytvoří nadpisy pro jednotlivé dny
          */
+        int i = 0;
         while (i <= editedMonth.length(false)){
             String inputText;
             if(i == 0){
@@ -181,8 +204,6 @@ public class MainPageController {
             }
             TextFlow newTextArea = new TextFlow();
             setTextArea(newTextArea,inputText,titleList);
-           // newTextArea.getChildren().add(new Text(inputText));
-          //  titleList.add(newTextArea);
             i++;
         }
         TextFlow newTextArea = new TextFlow();
@@ -193,11 +214,10 @@ public class MainPageController {
         i = 0;
 
         for (TextFlow ar : titleList){
-           // ar.setPrefSize(250,50);
-            grid.setConstraints(ar,i,0,2,1);
-            grid.getChildren().addAll(ar);
+            dayGrid.setConstraints(ar,i,0,2,1);
                 i = i+2;
         }
+        dayGrid.getChildren().addAll(titleList);
         /* Vytvoří text area pro jednotlivé měsíce klienta
         */
         int clienMothIter = 1;
@@ -214,7 +234,7 @@ public class MainPageController {
                     StackPane stack = setTextAreaCard(dayTextArT,inputText,clientCardList);
                     dayTextArT.getStyleClass().add("day-title-card");
                     stack.getStyleClass().add("day-title-card-stack");
-                    grid.setConstraints(stack,i,clienMothIter,2,1);
+                    dayGrid.setConstraints(stack,i,clienMothIter,2,1);
                     i = i+2;
                 }else{
                     if(getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)) == null){
@@ -224,7 +244,7 @@ public class MainPageController {
                         inputText= "Den " + i/2 + "\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getName() +" "+getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getSurname();
                     }
                     setTextArea(dayTextAr,inputText,false,dayList,clm.getClientDaysInMonth().get(dayIter));
-                    grid.setConstraints(dayTextAr,i,clienMothIter,1,1);
+                    dayGrid.setConstraints(dayTextAr,i,clienMothIter,1,1);
                     i = i+2;
                 }
 
@@ -240,7 +260,7 @@ public class MainPageController {
                     StackPane stack = setTextAreaCard(nightTextArT,inputText,clientCardList);
                     nightTextArT.getStyleClass().add("night-title-card");
                     stack.getStyleClass().add("night-title-card-stack");
-                    grid.setConstraints(stack,i,clienMothIter+1,2,1);
+                    dayGrid.setConstraints(stack,i,clienMothIter+1,2,1);
                     TextFlow ar2 = new TextFlow();
                     if(getAssistantOfDay(clm.getClientNightsInMonth().get(dayIter)) == null){
                         inputText= "Night" + 1 +"\n" + "none" ;
@@ -250,7 +270,7 @@ public class MainPageController {
                     setTextArea(ar2,inputText,false,nightList,clm.getClientNightsInMonth().get(dayIter));
                     ar2.setPrefSize(375,100);
                     //grid.setMargin(ar2,new Insets(0, 0, 0, 125));
-                    grid.setConstraints(ar2,i+2,clienMothIter+1,3,1);
+                    dayGrid.setConstraints(ar2,i+2,clienMothIter+1,3,1);
 
                     i = i+4;
                 }else{
@@ -262,12 +282,12 @@ public class MainPageController {
                     //inputText= "Night" + i/2;
                     setTextArea(nightTextAr,inputText,false,nightList,clm.getClientNightsInMonth().get(dayIter));
                     if(i != clm.getClientNightsInMonth().size()){
-                        grid.setMargin(nightTextAr,new Insets(0, 125, 0, 125));
+                        dayGrid.setMargin(nightTextAr,new Insets(0, 125, 0, 125));
                     }else{
-                        grid.setMargin(nightTextAr,new Insets(0, 125, 0, 125));
+                        dayGrid.setMargin(nightTextAr,new Insets(0, 125, 0, 125));
                     }
 
-                    grid.setConstraints(nightTextAr,i,clienMothIter+1,3,1);
+                    dayGrid.setConstraints(nightTextAr,i,clienMothIter+1,3,1);
                     i = i+2;
                 }
 
@@ -276,10 +296,11 @@ public class MainPageController {
             clienMothIter = clienMothIter+2;
             clientIter++;
         }
-        grid.getChildren().addAll(clientCardList);
-        grid.getChildren().addAll(areaList);
-        TestScrollPane.setContent(grid);
+        dayGrid.getChildren().addAll(clientCardList);
+        dayGrid.getChildren().addAll(areaList);
+        calendarScrollPane.setContent(dayGrid);
        // graphicSetup();
+        graphical();
     }
     public void generateObservers(ArrayList<ChoiceBox<Integer>> arr ){
         for(int i = 0;i<4;i++){
@@ -295,11 +316,7 @@ public class MainPageController {
                             if(start.isAfter(end) || start.isEqual(end)){
                                 arr.get(finalI).setValue(oldValue);
                               //  System.out.println(arr.get(finalI).getValue());
-
-
                         }
-
-
                    }
 
             };
@@ -382,14 +399,14 @@ public class MainPageController {
     }
 
     public void switchPage(ActionEvent actionEvent) throws IOException {
-       Scene scen = TestScrollPane.getScene();
+       Scene scen = calendarScrollPane.getScene();
         FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("assistant-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
 
     }
     public void switchPageToShift(ActionEvent actionEvent) throws IOException {
-        Scene scen = TestScrollPane.getScene();
+        Scene scen = calendarScrollPane.getScene();
         FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("shiftPicker-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
@@ -484,7 +501,6 @@ public class MainPageController {
     }
     public void findSolutionV2(ActionEvent actionEvent) throws IOException {
         Sorter sorter = new Sorter(jsom.loadAssistantInfo());
-
         int monthLength;
         AvailableAssistants avAs = null;
         avAs = jsom.loadAvailableAssistantInfo(settings);
@@ -569,13 +585,13 @@ public class MainPageController {
 
         }
     public void switchPageToLocation(ActionEvent actionEvent) throws IOException {
-        Scene scen = TestScrollPane.getScene();
+        Scene scen = calendarScrollPane.getScene();
         FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("Location-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
     }
     public void switchPageToClient(ActionEvent actionEvent) throws IOException {
-        Scene scen = TestScrollPane.getScene();
+        Scene scen = calendarScrollPane.getScene();
         FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("Client-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
@@ -595,8 +611,10 @@ public class MainPageController {
         textArea.getChildren().add(new Text(inputText));
         textArea.setPrefSize(250,50);
         arList.add(textArea);
-        //areaList.add(textArea);
-
+    }
+    private void setTextArea(TextFlow textArea, String inputText, Boolean isDescrip, ArrayList arList, ClientDay day){
+        setTextArea(textArea,inputText,isDescrip,arList);
+        textClientIndex.put(textArea,day);
     }
     private StackPane setTextAreaCard(TextFlow textArea, String inputText, ArrayList arList){
         textArea.setTextAlignment(TextAlignment.CENTER);
@@ -611,35 +629,33 @@ public class MainPageController {
         //areaList.add(textArea);
     return stackPane;
     }
-    private void setTextArea(TextFlow textArea, String inputText, Boolean isDescrip, ArrayList arList, ClientDay day){
-        setTextArea(textArea,inputText,isDescrip,arList);
-        textClientIndex.put(textArea,day);
-    }
-    public void displayDayInfoFull(MouseEvent mouseEvent){
+
+    public void displayDayInfoFull(MouseEvent mouseEvent) {
         if(selectedTextArea==null){
-            mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)-1);
+            mainGrid.setConstraints(calendarScrollPane,mainGrid.getColumnIndex(calendarScrollPane),mainGrid.getRowIndex(calendarScrollPane),mainGrid.getColumnSpan(calendarScrollPane),mainGrid.getRowSpan(calendarScrollPane)-1);
             dayInfoGrid.setVisible(true);
             isMenuVisible=true;
             selectedTextArea = (TextFlow) mouseEvent.getSource();
             loadDayData(selectedTextArea);
-            selectedTextArea.setStyle("-fx-border-color: green");
+            selectedTextArea.getStyleClass().add("selected-pane");
         } else if (selectedTextArea==mouseEvent.getSource()) {
-                mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)+1);
+                mainGrid.setConstraints(calendarScrollPane,mainGrid.getColumnIndex(calendarScrollPane),mainGrid.getRowIndex(calendarScrollPane),mainGrid.getColumnSpan(calendarScrollPane),mainGrid.getRowSpan(calendarScrollPane)+1);
                 dayInfoGrid.setVisible(false);
                 isMenuVisible=false;
-                selectedTextArea.setStyle("-fx-border-color: null");
+                selectedTextArea.getStyleClass().remove("selected-pane");
                 selectedTextArea =null;
             }else{
-            selectedTextArea.setStyle("-fx-border-color: null");
+            //selectedTextArea.setStyle("-fx-border-color: null");
+            selectedTextArea.getStyleClass().remove("selected-pane");
             selectedTextArea =(TextFlow) mouseEvent.getSource();
-            selectedTextArea.setStyle("-fx-border-color: green");
+            selectedTextArea.getStyleClass().add("selected-pane");
             loadDayData(selectedTextArea);
         }
         }
     public void isMergedSwitch(ActionEvent actionEvent) {
     }
 
-    private void loadDayData(TextFlow sourceTex){
+    private void loadDayData(TextFlow sourceTex)  {
         TextArea outputText = new TextArea();
         ClientDay day = textClientIndex.get(sourceTex);
         //.getDisplayName(TextStyle.FULL, new Locale("cs", "CZ")
@@ -653,6 +669,15 @@ public class MainPageController {
         dayInfoGrid.getChildren().add(outputText);
         displayIntervalInfoDef(day);
         isMergedCheckBox.setSelected(day.isMerged());
+        locationChoiceBox.setValue(day.getLocation());
+        List disp = prepareMergeable().stream().filter(c->!c.getClp().getID().equals(textClientIndex.get(selectedTextArea).getClient())).collect(Collectors.toList());
+        mergedWithChoiceBox.getItems().clear();
+        mergedWithChoiceBox.getItems().addAll(disp);
+
+
+    }
+    public void selectLocation(ActionEvent actionEvent){
+        textClientIndex.get(selectedTextArea).setLocation(locationChoiceBox.getValue());
     }
     private ArrayList<Double> calculateBarWidth(ClientDay day){
       LocalDateTime  start = day.getDayIntervalList().getFirst().getStart();
@@ -1114,39 +1139,53 @@ public class MainPageController {
 
     }
 
+    private ArrayList<LocationRepresentative> prepareMergeable()  {
+        ClientDay cl = textClientIndex.get(selectedTextArea);
+        ArrayList<LocationRepresentative> output = new ArrayList<>();
+            //ListOfClientMonths lic = jsom.loadClientRequirementsForMonth(settings);
+            for(ClientMonth c : listOfClm.getListOfClientMonths()){
+                ArrayList<ClientDay> visitedMonth;
+                if(dayList.contains(selectedTextArea)) {
+                    visitedMonth = c.getClientDaysInMonth();
+                }else{
+                    visitedMonth = c.getClientNightsInMonth();
+                }
+                for(ClientDay cld : visitedMonth){
+                    if(cld.getLocation()==cl.getLocation()){
+                        LocationRepresentative locp = new LocationRepresentative();
+                        locp.setClDay(cld);
+                        locp.setClp(clientIndex.get(cld.getClient()));
+                        output.add(locp);
+                    }
+                }
+            }
+            return output;
+    }
     public void findNewSolution(ActionEvent actionEvent) throws IOException {
         jsom.generateNewMonthsAssistants(settings);
-        Sorter sorter = new Sorter(jsom.loadAssistantInfo());
-
-        int monthLength;
-        AvailableAssistants avAs = null;
-        avAs = jsom.loadAvailableAssistantInfo(settings);
-
-        ListOfClients listOfClients = jsom.loadClientInfo(settings);
-
-        listOfClm = new ListOfClientMonths();
-        for(Client cl : listOfClients.getClientList()){
-            listOfClm .getListOfClientMonths().add(cl.getClientsMonth());
-        }
-
-
-        monthLength = listOfClm.getListOfClientMonths().get(0).getClientDaysInMonth().size();
-        for (int dayIter = 0; dayIter < monthLength; dayIter++) {
-            for( Client cl : listOfClients.getClientList()) {
-                ClientDay clDay = cl.getClientsMonth().getClientDaysInMonth().get(dayIter);
-                ClientDay clNight = cl.getClientsMonth().getClientNightsInMonth().get(dayIter);
-                ArrayList<Assistant> listOfAvailableAtDay = getAvailableAssistantForDay(avAs,dayIter,true);
-                ArrayList<Assistant> listOfAvailableAtNight = getAvailableAssistantForDay(avAs,dayIter,false);
-
-                UUID dayPicked = sorter.sort(listOfAvailableAtDay,dayIter,0,clDay);
-                //System.out.println(sorter.getIdFromList(listOfAvailableAtDay));
-                UUID nightPicked = sorter.sort(listOfAvailableAtNight,dayIter,1,clNight);
+        findSolutionV2(actionEvent);
+    }
+    public void clearTable() throws IOException {
+       ListOfClients cliList = jsom.loadClientInfo(settings);
+       ListOfClientMonths cliMoth = new ListOfClientMonths();
+       for(Client cl : cliList.getClientList()){
+           cliMoth.getListOfClientMonths().add(cl.getClientsMonth());
+           ArrayList<ClientDay> dayList = cl.getClientsMonth().getClientDaysInMonth();
+           for(ClientDay day: dayList) {
+            for(ServiceInterval serv : day.getDayIntervalList()){
+                serv.setOverseeingAssistant(null);
             }
+           }
+           ArrayList<ClientDay> nightList = cl.getClientsMonth().getClientNightsInMonth();
+           for(ClientDay day: nightList) {
+               for(ServiceInterval serv : day.getDayIntervalList()){
+                   serv.setOverseeingAssistant(null);
+               }
+           }
 
-        }
-        jsom.saveClientRequirementsForMonth(listOfClm,settings);
-        jsom.saveClientInfo(listOfClients.convertToListOfClientProfiles());
-        populateView(getClientsOfMonth(settings));
+       }
+        jsom.saveClientRequirementsForMonth(cliMoth,settings);
+       populateView(jsom.loadClientInfo(settings));
     }
 
 

@@ -5,13 +5,32 @@ import java.util.UUID;
 public class Human {
 
     private UUID ID;
+    private boolean activityStatus;
     private String name;
     private  String surname;
     private String middlename;
 
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    private String comment;
+
     public String getName() {
         return name;
     }
+    public boolean getActivityStatus() {
+        return activityStatus;
+    }
+
+    public void setActivityStatus(boolean activityStatus) {
+        this.activityStatus = activityStatus;
+    }
+
 
     public void setName(String name) {
         this.name = name;
