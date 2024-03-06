@@ -68,4 +68,12 @@ public class Location {
         // Compare the data members and return accordingly
         return this.ID.equals(((Location) o).getID());
     }
+    @Override
+    public int hashCode() {
+        return this.ID.hashCode();
+    }
+    @Override
+    public String toString(){
+        return getCasualName();
+    }
 }

@@ -5,12 +5,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import graphics.sorter.Location;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
+import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 public class ClientDay {
 
-    public boolean isMerged = false;
+    private boolean isMerged = false;
+    private UUID client;
     private Integer day;
     private Month month;
     private  Integer year;
@@ -20,6 +24,7 @@ public class ClientDay {
     private ServiceIntervalArrayList dayIntervalList = new ServiceIntervalArrayList();
 
     public void test(){
+        /*
         ServiceInterval test2 = new ServiceInterval(LocalTime.of(10,00,00), LocalTime.of(14,00,00), null, null,false);
         ServiceInterval test1 = new ServiceInterval(LocalTime.of(15,00,00), LocalTime.of(16,00,00), null, null,false);
         ServiceInterval test3 = new ServiceInterval(LocalTime.of(8,00,00), LocalTime.of(9,00,00), null, null,false);
@@ -29,23 +34,21 @@ public class ClientDay {
         dayIntervalList.add(test3);
         dayIntervalList.add(test4);
         System.out.println("test");
+         */
+
+
 
     }
     @JsonCreator
-     ClientDay(@JsonProperty("dayI")Integer dayI,@JsonProperty("monthI")Month monthI,@JsonProperty("year")Integer yearI, @JsonProperty("defStarTime")int[] defStarTime,@JsonProperty("defEndTime")int[] defEndTime,@JsonProperty("Location")Location location,@JsonProperty("isMerged")boolean ismerged ){
-        if(defStarTime == null){
-            defStarTime  = new int[]{8, 30};
-        }
-        if(defEndTime == null){
-            defEndTime  = new int[]{20,30};
-        }
-        ServiceInterval def = new ServiceInterval(LocalTime.of(defStarTime[0],defStarTime[1],00), LocalTime.of(defEndTime[0],defEndTime[1],00), null, null,false);
+     ClientDay(@JsonProperty("client")UUID client,@JsonProperty("dayI")Integer dayI, @JsonProperty("monthI")Month monthI, @JsonProperty("year")Integer yearI, @JsonProperty("defStarTime") LocalDateTime defStarTime, @JsonProperty("defEndTime")LocalDateTime defEndTime, @JsonProperty("Location")Location location, @JsonProperty("isMerged")boolean ismerged ){
+        ServiceInterval def = new ServiceInterval(defStarTime, defEndTime, null, null,false);
         this.dayIntervalList.add(def);
         this.day = dayI;
         this.month = monthI;
         this.year = yearI;
         this.location = location;
         this.isMerged = ismerged;
+        setClient(client);
     }
 
     public boolean isMerged() {
@@ -94,6 +97,9 @@ public class ClientDay {
     public void setYear(Integer year) {
         this.year = year;
     }
+    public long shiftLength(){
+        return ChronoUnit.HOURS.between(dayIntervalList.getFirst().getStart(),dayIntervalList.getLast().getEnd());
+    }
 
     @JsonIgnore
     public ServiceIntervalArrayList getDayIntervalListUsefull() {
@@ -121,5 +127,12 @@ public class ClientDay {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+    public UUID getClient() {
+        return client;
+    }
+
+    public void setClient(UUID client) {
+        this.client = client;
     }
 }

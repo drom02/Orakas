@@ -3,29 +3,46 @@ package graphics.sorter.controllers;
 import graphics.sorter.*;
 import graphics.sorter.Filters.Sorter;
 import graphics.sorter.Structs.*;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
-
+import javafx.scene.text.*;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.Month;
+import java.time.*;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-public class MainPageController {
+public class MainPageController implements ControllerInterface{
+    //region Graphical components
+    @FXML
+    private Text selectedYear;
+    @FXML
+    private Text selectedMonth;
+    @FXML
+    private  GridPane sideGrid;
+    @FXML
+    private Pane basePane;
+    @FXML
+    private ChoiceBox<Location> locationChoiceBox;
+    @FXML
+    private CheckBox isMergedCheckBox;
+    @FXML
+    private  GridPane intervalDetailsGrid;
+    @FXML
+    private Text isRequiredDescription;
     @FXML
     private CheckBox isRequiredCheckBox;
     @FXML
@@ -33,21 +50,19 @@ public class MainPageController {
     @FXML
     private ChoiceBox<Integer> startHoursChoice;
     @FXML
+    private ChoiceBox<LocationRepresentative> mergedWithChoiceBox;
+    @FXML
     private ChoiceBox<Integer>  startMinutesChoice;
     @FXML
     private ChoiceBox<Integer>  endHoursChoice;
     @FXML
     private ChoiceBox<Integer>  endMinutesChoice;
     @FXML
-    private ScrollPane TestScrollPane;
+    private ScrollPane calendarScrollPane;
     @FXML
     private Label welcomeText;
     @FXML
     private DatePicker datePick;
-    @FXML
-    private Text selectedYear;
-    @FXML
-    private Text selectedMonth;
     @FXML
     private Text selectedYearValue;
     @FXML
@@ -58,62 +73,148 @@ public class MainPageController {
     private GridPane dayInfoGrid;
     @FXML
     private GridPane barGrid;
+    //endregion
+    //region variables
     private Month editedMonth;
-    private ArrayList<TextArea> nightList = new ArrayList<TextArea>();
-    private ArrayList<TextArea> dayList = new ArrayList<TextArea>();
-    private ArrayList<ArrayList<TextArea>>  dayNightSwitch = new ArrayList<ArrayList<TextArea>>(Arrays.asList(dayList,nightList));
-    private ArrayList<TextArea> areaList;
-    private ArrayList<TextArea> titleList;
-    private JsonManip jsom = new JsonManip();
+    private ArrayList<TextFlow> nightList = new ArrayList<TextFlow>();
+    private ArrayList<TextFlow> dayList = new ArrayList<TextFlow>();
+    private ArrayList<ArrayList<TextFlow>>  dayNightSwitch = new ArrayList<ArrayList<TextFlow>>(Arrays.asList(dayList,nightList));
+    private ArrayList<TextFlow> areaList ;
+    private ArrayList<TextFlow> titleList = new ArrayList<TextFlow>();
+    private ArrayList<StackPane> clientCardList= new ArrayList<StackPane>();
+    private JsonManip jsom = JsonManip.getJsonManip();
     private Settings settings;
-    private GridPane grid = new GridPane();
-    private Boolean isMenuVisible;
-    private HashMap<TextArea,ClientDay> textClientIndex = new HashMap<>();
+    private GridPane dayGrid = new GridPane();
+    private Boolean isMenuVisible = false;
+    private HashMap<TextFlow,ClientDay> textClientIndex = new HashMap<>();
     private HashMap<AnchorPane,ServiceInterval> paneServiceIndex = new HashMap<>();
-    private TextArea selectedTextArea = null;
+    private HashMap<UUID,ClientProfile> clientIndex = new HashMap<>();
+    private TextFlow selectedTextArea = null;
     private ListOfClientMonths listOfClm = new ListOfClientMonths();
     private ArrayList<Integer> hoursList = new ArrayList<>();
     private ArrayList<Integer> minuteList = new ArrayList<>();
     private ArrayList<ChangeListener<Integer>> listOfObserv = new ArrayList<>();
     private ServiceInterval selectedInterval;
+    private GraphicalSettings GS= new GraphicalSettings(null,null);
+    //endregion
+    public void initialize() throws IOException {
+
+        prepareHoursAndMinutes();
+        dayInfoGrid.setVisible(false);
+        calendarScrollPane.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+            if (event.getButton() == MouseButton.SECONDARY) {
+                event.consume(); // This blocks the event from being processed further.
+            }
+        });
+        populateClientIndex();
+        isMenuVisible = false;
+        settings = jsom.loadSettings();
+        ListOfLocations listOfLocations = jsom.loadLocations(settings);
+        selectedYearValue.setText(String.valueOf(settings.getCurrentYear()));
+        selectedMonthValue.setText(String.valueOf(settings.getCurrentMonth()));
+        locationChoiceBox.setOnAction(this :: selectLocation);
+        try {
+            ArrayList<Location> lic = jsom.loadLocations(settings).getListOfLocations();
+            lic.add(null);
+            locationChoiceBox.getItems().setAll(lic);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        populateView(getClientsOfMonth(settings));
+        mainGrid.setConstraints(calendarScrollPane,mainGrid.getColumnIndex(calendarScrollPane),mainGrid.getRowIndex(calendarScrollPane),mainGrid.getColumnSpan(calendarScrollPane),mainGrid.getRowSpan(calendarScrollPane)+1);
+        attachObservers();
+        Platform.runLater(() -> {
+           //mainGrid.prefWidthProperty().bind(basePane.widthProperty());
+           // mainGrid.prefHeightProperty().bind(basePane.heightProperty());
+        GraphicalFunctions.screenResizing(basePane,mainGrid);
 
 
+        mainGrid.getScene().getStylesheets().add(getClass().getResource("/main.css").toExternalForm());
+        });
+        // barGrid.maxWidthProperty().bind(dayInfoGrid.widthProperty());
+    }
+    private void populateClientIndex() throws IOException {
+        ListOfClientsProfiles l = jsom.loadClientProfileInfo();
+        for(ClientProfile clip : l.getFullClientList()){
+            clientIndex.put(clip.getID(),clip);
+        }
+    }
+    public void graphical(){
+        for(TextFlow tex: titleList){
+           // Text t = (Text) tex.getChildren().getFirst();
+          //  tex.setStyle("-fx-border-color: " + GS.getColors().get("Night")+";");
+          //  t.setFont(Font.font("Arial", FontWeight.BOLD, 15));
+            tex.getStyleClass().add("title-area-flow");
+            tex.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+                if (event.getButton() == MouseButton.SECONDARY) {
+                    event.consume(); // This blocks the event from being processed further.
+                }
+            });
+        }
+        for(TextFlow tex: nightList){
+            tex.getStyleClass().add("night-area-pane");
+            tex.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+                if (event.getButton() == MouseButton.SECONDARY) {
+                    event.consume(); // This blocks the event from being processed further.
+                }
+            });
+        }
+        for(TextFlow tex: dayList){
+            tex.getStyleClass().add("day-area-pane");
+            tex.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+                if (event.getButton() == MouseButton.SECONDARY) {
+                    event.consume(); // This blocks the event from being processed further.
+                }
+            });
+        }
+        selectedYear.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-font-style: italic;");
+        selectedMonth.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-font-style: italic;");
+        selectedYearValue.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-font-style: italic;");
+        selectedMonthValue.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-font-style: italic;-fx-fill: #FF0000;");
+        sideGrid.setStyle("-fx-control-inner-background:" +GS.getColors().get("SecondaryColor") +";");
+
+    }
     public void populateView(ListOfClients LiCcl){
-        grid.getChildren().clear();
+        dayGrid.getChildren().clear();
         ListOfClientMonths LiClMo = new ListOfClientMonths();
         for(Client cl : LiCcl.getClientList()){
             LiClMo.getListOfClientMonths().add(cl.getClientsMonth());
         }
         //vytahnout y klientu m2s9c2
         editedMonth = Month.of(settings.getCurrentMonth());
-         areaList = new ArrayList<TextArea>();
-         titleList = new ArrayList<TextArea>();
+         areaList = new ArrayList<TextFlow>();
+         titleList.clear();
 
-        int i = 0;
+
         /*
         Vytvoří nadpisy pro jednotlivé dny
          */
+        int i = 0;
         while (i <= editedMonth.length(false)){
             String inputText;
             if(i == 0){
                 inputText = "Jméno Klienta";
             }else{
-                 inputText = i + "."+ settings.getCurrentMonth()+ "."+settings.getCurrentYear();
+                LocalDate date = LocalDate.of(settings.getCurrentYear(), settings.getCurrentMonth(), i);
+                 inputText = i + "."+ settings.getCurrentMonth()+ "."+settings.getCurrentYear() +
+                         "\n" + getNameOfDay(date);
             }
-            TextArea newTextArea = new TextArea(inputText);
-            titleList.add(newTextArea);
+            TextFlow newTextArea = new TextFlow();
+            setTextArea(newTextArea,inputText,titleList);
             i++;
         }
-        TextArea newTextArea = new TextArea("Další měsíc");
-        titleList.add(newTextArea);
+        TextFlow newTextArea = new TextFlow();
+        setTextArea(newTextArea,"Další měsíc",titleList);
+        //newTextArea.getChildren().add(new Text("Další měsíc"));
+       // TextArea newTextArea = new TextArea("Další měsíc");
+       // titleList.add(newTextArea);
         i = 0;
 
-        for (TextArea ar : titleList){
-            ar.setPrefSize(250,50);
-            grid.setConstraints(ar,i,0,2,1);
-            grid.getChildren().addAll(ar);
+        for (TextFlow ar : titleList){
+            dayGrid.setConstraints(ar,i,0,2,1);
                 i = i+2;
         }
+        dayGrid.getChildren().addAll(titleList);
         /* Vytvoří text area pro jednotlivé měsíce klienta
         */
         int clienMothIter = 1;
@@ -123,21 +224,24 @@ public class MainPageController {
             i = 0;
             for (int dayIter = -1; dayIter < clm.getClientDaysInMonth().size(); dayIter++){
                 String inputText;
-                TextArea dayTextAr = new TextArea();
+                TextFlow dayTextAr = new TextFlow();
                 if(i==0){
+                    TextFlow dayTextArT = new TextFlow();
                     inputText = LiCcl.getClientList().get(clientIter).getName() + " " + LiCcl.getClientList().get(clientIter).getSurname();
-                    setTextArea(dayTextAr,inputText,true,titleList);
-                    grid.setConstraints(dayTextAr,i,clienMothIter,2,1);
+                    StackPane stack = setTextAreaCard(dayTextArT,inputText,clientCardList);
+                    dayTextArT.getStyleClass().add("day-title-card");
+                    stack.getStyleClass().add("day-title-card-stack");
+                    dayGrid.setConstraints(stack,i,clienMothIter,2,1);
                     i = i+2;
                 }else{
                     if(getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)) == null){
                         //inputText= "Day" + i/2 +"\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter));
-                        inputText= "Day" + i/2 +"\n" + "none" ;
+                        inputText= "Den " + i/2 +"\n" + "none" ;
                     }else{
-                        inputText= "Day" + i/2 + "\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getName() +" "+getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getSurname();
+                        inputText= "Den " + i/2 + "\n" + getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getName() +" "+getAssistantOfDay(clm.getClientDaysInMonth().get(dayIter)).getSurname();
                     }
                     setTextArea(dayTextAr,inputText,false,dayList,clm.getClientDaysInMonth().get(dayIter));
-                    grid.setConstraints(dayTextAr,i,clienMothIter,1,1);
+                    dayGrid.setConstraints(dayTextAr,i,clienMothIter,1,1);
                     i = i+2;
                 }
 
@@ -146,20 +250,24 @@ public class MainPageController {
             i=0;
             for (int dayIter = 0; dayIter < clm.getClientNightsInMonth().size(); dayIter++){
                 String inputText;
-                TextArea nightTextAr = new TextArea();
+                TextFlow nightTextAr = new TextFlow();
                 if(i==0){
+                    TextFlow nightTextArT = new TextFlow();
                     inputText = LiCcl.getClientList().get(clientIter).getName() + " " + LiCcl.getClientList().get(clientIter).getSurname();
-                    setTextArea(nightTextAr,inputText,true,titleList);
-                    grid.setConstraints(nightTextAr,i,clienMothIter+1,2,1);
-                    TextArea ar2 = new TextArea();
+                    StackPane stack = setTextAreaCard(nightTextArT,inputText,clientCardList);
+                    nightTextArT.getStyleClass().add("night-title-card");
+                    stack.getStyleClass().add("night-title-card-stack");
+                    dayGrid.setConstraints(stack,i,clienMothIter+1,2,1);
+                    TextFlow ar2 = new TextFlow();
                     if(getAssistantOfDay(clm.getClientNightsInMonth().get(dayIter)) == null){
                         inputText= "Night" + 1 +"\n" + "none" ;
                     }else{
                         inputText= "Night" + 1 + "\n" + getAssistantOfDay(clm.getClientNightsInMonth().get(dayIter)).getName() +" "+getAssistantOfDay(clm.getClientNightsInMonth().get(dayIter)).getSurname();
                     }
                     setTextArea(ar2,inputText,false,nightList,clm.getClientNightsInMonth().get(dayIter));
-                    grid.setMargin(ar2,new Insets(0, 0, 0, 125));
-                    grid.setConstraints(ar2,i+2,clienMothIter+1,3,1);
+                    ar2.setPrefSize(375,100);
+                    //grid.setMargin(ar2,new Insets(0, 0, 0, 125));
+                    dayGrid.setConstraints(ar2,i+2,clienMothIter+1,3,1);
 
                     i = i+4;
                 }else{
@@ -170,8 +278,13 @@ public class MainPageController {
                     }
                     //inputText= "Night" + i/2;
                     setTextArea(nightTextAr,inputText,false,nightList,clm.getClientNightsInMonth().get(dayIter));
-                    grid.setMargin(nightTextAr,new Insets(0, 126, 0, 125));
-                    grid.setConstraints(nightTextAr,i,clienMothIter+1,3,1);
+                    if(i != clm.getClientNightsInMonth().size()){
+                        dayGrid.setMargin(nightTextAr,new Insets(0, 125, 0, 125));
+                    }else{
+                        dayGrid.setMargin(nightTextAr,new Insets(0, 125, 0, 125));
+                    }
+
+                    dayGrid.setConstraints(nightTextAr,i,clienMothIter+1,3,1);
                     i = i+2;
                 }
 
@@ -180,9 +293,19 @@ public class MainPageController {
             clienMothIter = clienMothIter+2;
             clientIter++;
         }
-
-        grid.getChildren().addAll(areaList);
-        TestScrollPane.setContent(grid);
+        dayGrid.getChildren().addAll(clientCardList);
+        dayGrid.getChildren().addAll(areaList);
+        calendarScrollPane.setContent(dayGrid);
+       // graphicSetup();
+        graphical();
+    }
+    private String getNameOfDay(LocalDate date){
+        DayOfWeek dayValue = date.getDayOfWeek();
+        String nameOfDay = dayValue.getDisplayName(TextStyle.FULL, new Locale("cs", "CZ"));
+        if(nameOfDay !=null){
+            return nameOfDay.substring(0,1).toUpperCase() +nameOfDay.substring(1);
+        }
+        return null;
     }
     public void generateObservers(ArrayList<ChoiceBox<Integer>> arr ){
         for(int i = 0;i<4;i++){
@@ -192,19 +315,14 @@ public class MainPageController {
              */
             ChangeListener<Integer> myListener = (observable, oldValue, newValue) -> {
                 if (startHoursChoice.getValue() != null & startMinutesChoice.getValue() != null&endHoursChoice.getValue() != null & endMinutesChoice.getValue() != null ){
-                    double start = startHoursChoice.getValue() + (double) startMinutesChoice.getValue() /100;
-                    double end = endHoursChoice.getValue() + (double) endMinutesChoice.getValue() /100;
-                    if(dayList.contains(selectedTextArea)){
-                        if(start>end){
-                            arr.get(finalI).setValue(oldValue);
-                            System.out.println(arr.get(finalI).getValue());
+                    LocalDateTime start = setLocalDateTime(startHoursChoice.getValue(),startMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay());
+                    LocalDateTime end = setLocalDateTime(endHoursChoice.getValue(),endMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay());
+                  //  System.out.println("t");
+                            if(start.isAfter(end) || start.isEqual(end)){
+                                arr.get(finalI).setValue(oldValue);
+                              //  System.out.println(arr.get(finalI).getValue());
                         }
-                    }else{
-                        if(start<end){
-                            arr.get(finalI).setValue(oldValue);
-                            System.out.println(arr.get(finalI).getValue());
-                        }
-                    }}
+                   }
 
             };
             listOfObserv.add(myListener);
@@ -254,37 +372,146 @@ public class MainPageController {
 
 
     }
-    public void initialize() throws IOException {
-
-        prepareHoursAndMinutes();
-        dayInfoGrid.setVisible(false);
-        isMenuVisible = false;
-        settings = jsom.loadSettings("E:\\JsonWriteTest\\");
-        selectedYearValue.setText(String.valueOf(settings.getCurrentMonth()));
-        selectedMonthValue.setText(String.valueOf(settings.getCurrentYear()));
-        populateView(getClientsOfMonth(settings));
-        mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)+1);
-        attachObservers();
-
-
+    private void graphicSetup(){
+       // grid.setStyle("-fx-background-color: " + GS.getColors().get("Night")+";");
+    for(TextFlow tex: dayList){
+        tex.setStyle("-fx-control-inner-background: " + GS.getColors().get("Day")+";");
+        tex.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+            if (event.getButton() == MouseButton.SECONDARY) {
+                event.consume(); // This blocks the event from being processed further.
+            }
+        });
+    }
+    for(TextFlow tex: nightList){
+        tex.setStyle("-fx-control-inner-background: " + GS.getColors().get("Night")+";");
+        tex.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+            if (event.getButton() == MouseButton.SECONDARY) {
+                event.consume(); // This blocks the event from being processed further.
+            }
+        });
+        }
+        for(TextFlow tex: titleList){
+            Text t = (Text) tex.getChildren().getFirst();
+            tex.setStyle("-fx-border-color: " + GS.getColors().get("Night")+";");
+            t.setFont(Font.font("Arial", FontWeight.BOLD, 15));
+            tex.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+                if (event.getButton() == MouseButton.SECONDARY) {
+                    event.consume(); // This blocks the event from being processed further.
+                }
+            });
+        }
     }
     public void switchPage(ActionEvent actionEvent) throws IOException {
-       Scene scen = TestScrollPane.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("assistant-view.fxml"));
+       Scene scen = calendarScrollPane.getScene();
+        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("assistant-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
 
     }
     public void switchPageToShift(ActionEvent actionEvent) throws IOException {
-        Scene scen = TestScrollPane.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("shiftPicker-view.fxml"));
+        Scene scen = calendarScrollPane.getScene();
+        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("shiftPicker-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
     }
+    public List<ArrayList<ArrayList<UUID>>>prepareMergedData(ListOfClients listOfClients,ListOfClientMonths listOfClm, int length) {
+        ArrayList<ArrayList<ClientDay>> mergedListDay = new ArrayList<>();
+        ArrayList<ArrayList<ClientDay>> mergedListNight = new ArrayList<>();
+        ArrayList<ArrayList<UUID>> outputDay = new ArrayList<>();
+        ArrayList<ArrayList<UUID>> outputNight = new ArrayList<>();
+        ArrayList<ArrayList<ArrayList<UUID>>> finalOutput = new ArrayList<>(Arrays.asList( outputDay,outputNight));
+        for (int dayIter = 0; dayIter < length; dayIter++) {
+            ArrayList<ClientDay> arD = new ArrayList<ClientDay>();
+            ArrayList<ClientDay> arN = new ArrayList<ClientDay>();
+            for(ClientMonth cl :listOfClm.getListOfClientMonths()) {
+                arD.add(cl.getClientDaysInMonth().get(dayIter));
+                arN.add(cl.getClientDaysInMonth().get(dayIter));
 
+            }
+            mergedListDay.add(arD);
+            mergedListNight.add(arN);
+        }
+
+        for(ArrayList<ClientDay> cl : mergedListDay){
+            List<ClientDay> mergedClientDays = cl.stream()
+                    .filter(ClientDay::isMerged)
+                    .collect(Collectors.toList());
+            if(!mergedClientDays.isEmpty()) {
+                Map<Location, List<ClientDay>> entitiesByLocation = mergedClientDays.stream()
+                        .collect(Collectors.groupingBy(ClientDay::getLocation));
+                ArrayList<ArrayList<ClientDay>> listOfLists = new ArrayList<>(
+                        entitiesByLocation.values().stream()
+                                .map(ArrayList::new) // Convert List<ClientDay> to ArrayList<ClientDay>
+                                .collect(Collectors.toList()));
+                for (ArrayList<ClientDay> ar : listOfLists) {
+                    Comparator<ClientDay> dayLengthComparator = Comparator.comparingLong(ClientDay::shiftLength);
+                    ar.sort(dayLengthComparator);
+                  //  ar.remove(ar.getFirst());
+                    if (!ar.isEmpty()) {
+                        ArrayList<UUID> out = ar.stream().map(ClientDay::getClient).collect(Collectors.toCollection(ArrayList::new));
+                        outputDay.add(out);
+                    } else {
+                        outputDay.add(new ArrayList<UUID>());
+                    }
+                }
+            }else{
+                outputDay.add(new ArrayList<UUID>());
+            }
+        }
+        for(ArrayList<ClientDay> cl : mergedListNight){
+            List<ClientDay> mergedClientDays = cl.stream()
+                    .filter(ClientDay::isMerged)
+                    .collect(Collectors.toList());
+            if(!mergedClientDays.isEmpty()) {
+                Map<Location, List<ClientDay>> entitiesByLocation = mergedClientDays.stream()
+                        .collect(Collectors.groupingBy(ClientDay::getLocation));
+                ArrayList<ArrayList<ClientDay>> listOfLists = new ArrayList<>(
+                        entitiesByLocation.values().stream()
+                                .map(ArrayList::new) // Convert List<ClientDay> to ArrayList<ClientDay>
+                                .collect(Collectors.toList()));
+                for (ArrayList<ClientDay> ar : listOfLists) {
+                    Comparator<ClientDay> dayLengthComparator = Comparator.comparingLong(ClientDay::shiftLength);
+                    ar.sort(dayLengthComparator);
+                    ar.remove(ar.getFirst());
+                    if (!ar.isEmpty()) {
+                        ArrayList<UUID> out = ar.stream().map(ClientDay::getClient).collect(Collectors.toCollection(ArrayList::new));
+                        outputNight.add(out);
+                    } else {
+                        outputNight.add(new ArrayList<UUID>());
+                    }
+                }
+            }else{
+                outputNight.add(new ArrayList<UUID>());
+            }
+        }
+
+        /*
+          for (int dayIter = 0; dayIter < length; dayIter++) {
+        for(ClientMonth cl :listOfClm.getListOfClientMonths()) {
+            ArrayList<Client> clL = new ArrayList<Client>();
+            if (cl.getClientDaysInMonth().get(dayIter).isMerged() == true) {
+                for (ClientMonth cl2 : listOfClm.getListOfClientMonths()) {
+
+                }
+
+            }
+        }
+
+        }
+         */
+
+    return  finalOutput;
+    }
+    private Assistant getAssistantFromID(ArrayList<Assistant> asList, UUID id){
+        for(Assistant as : asList){
+            if(as.getID().equals(id)){
+                return as;
+            }
+        }
+        return null;
+    }
     public void findSolutionV2(ActionEvent actionEvent) throws IOException {
         Sorter sorter = new Sorter(jsom.loadAssistantInfo());
-
         int monthLength;
         AvailableAssistants avAs = null;
         avAs = jsom.loadAvailableAssistantInfo(settings);
@@ -298,15 +525,41 @@ public class MainPageController {
 
 
         monthLength = listOfClm.getListOfClientMonths().get(0).getClientDaysInMonth().size();
+        List<ArrayList<ArrayList<UUID>>> iterList = prepareMergedData(listOfClients,listOfClm,monthLength);
         for (int dayIter = 0; dayIter < monthLength; dayIter++) {
-            for( Client cl : listOfClients.getClientList()) {
-                ClientDay clDay = cl.getClientsMonth().getClientDaysInMonth().get(dayIter);
-                ClientDay clNight = cl.getClientsMonth().getClientNightsInMonth().get(dayIter);
-                ArrayList<Assistant> listOfAvailableAtDay = getAvailableAssistantForDay(avAs,dayIter,true);
-                ArrayList<Assistant> listOfAvailableAtNight = getAvailableAssistantForDay(avAs,dayIter,false);
 
-                UUID dayPicked = sorter.sort(listOfAvailableAtDay,dayIter,0,clDay);
+            for( Client cl : listOfClients.getClientList()) {
+                if(iterList.getFirst().get(dayIter).contains(cl.getID())){
+                    if(iterList.getFirst().get(dayIter).getFirst().equals(cl.getID())){
+                        ClientDay clDay = cl.getClientsMonth().getClientDaysInMonth().get(dayIter);
+                        ArrayList<Assistant> listOfAvailableAtDay = getAvailableAssistantForDay(avAs,dayIter,true);
+                        UUID dayPicked = sorter.sort(listOfAvailableAtDay,dayIter,0,clDay);
+                        for(int i = 1;i<iterList.getFirst().get(dayIter).size();i++ ){
+                            ClientDay cld = listOfClm.getMonthOfSpecificClient(iterList.getFirst().get(dayIter).get(i)).getClientDaysInMonth().get(dayIter);
+                            for(ServiceInterval serv : cld.getDayIntervalListUsefull()){
+                                serv.setOverseeingAssistant(getAssistantFromID(listOfAvailableAtDay,dayPicked));
+                            }
+                        }
+                    }else{
+                        System.out.println("hi");
+                        continue;
+                    }
+
+                }else{
+                    ClientDay clDay = cl.getClientsMonth().getClientDaysInMonth().get(dayIter);
+                    ArrayList<Assistant> listOfAvailableAtDay = getAvailableAssistantForDay(avAs,dayIter,true);
+                    UUID dayPicked = sorter.sort(listOfAvailableAtDay,dayIter,0,clDay);
+                }
+
                 //System.out.println(sorter.getIdFromList(listOfAvailableAtDay));
+            }
+            for( Client cl : listOfClients.getClientList()) {
+                if(iterList.get(1).get(dayIter).contains(cl)){
+                    System.out.println("hi");
+                    continue;
+                }
+                ClientDay clNight = cl.getClientsMonth().getClientNightsInMonth().get(dayIter);
+                ArrayList<Assistant> listOfAvailableAtNight = getAvailableAssistantForDay(avAs,dayIter,false);
                 UUID nightPicked = sorter.sort(listOfAvailableAtNight,dayIter,1,clNight);
             }
 
@@ -332,11 +585,11 @@ public class MainPageController {
         settings.setCurrentYear(Integer.parseInt(parts[0]));
         settings.setCurrentMonth(Integer.parseInt(parts[1]));
         try {
-            jsom.saveSettings(settings, settings.getFilePath());
+            jsom.saveSettings(settings);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        settings = jsom.loadSettings("E:\\JsonWriteTest\\");
+        settings = jsom.loadSettings();
         populateView(getClientsOfMonth(settings));
         /*
         for( Node ce : grid.getChildren()){
@@ -357,23 +610,8 @@ public class MainPageController {
              */
 
         }
-
-    public void switchPageToLocation(ActionEvent actionEvent) throws IOException {
-        Scene scen = TestScrollPane.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Location-view.fxml"));
-        Parent rot = fxmlLoader.load();
-        scen.setRoot(rot);
-    }
-
-    public void switchPageToClient(ActionEvent actionEvent) throws IOException {
-        Scene scen = TestScrollPane.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Client-view.fxml"));
-        Parent rot = fxmlLoader.load();
-        scen.setRoot(rot);
-    }
-    private void setTextArea(TextArea textArea, String inputText, Boolean isDescrip, ArrayList arList){
-        textArea.setEditable(false);
-        textArea.setText(inputText);
+    private void setTextArea(TextFlow textArea, String inputText, Boolean isDescrip, ArrayList arList){
+        textArea.getChildren().add(new Text(inputText));
         textArea.setPrefSize(250,100);
         arList.add(textArea);
         areaList.add(textArea);
@@ -382,54 +620,119 @@ public class MainPageController {
 
         }
     }
-
-    private void setTextArea(TextArea textArea, String inputText, Boolean isDescrip, ArrayList arList, ClientDay day){
+    private void setTextArea(TextFlow textArea, String inputText, ArrayList arList){
+        textArea.setTextAlignment(TextAlignment.CENTER);
+        textArea.getChildren().add(new Text(inputText));
+        textArea.setPrefSize(250,50);
+        arList.add(textArea);
+    }
+    private void setTextArea(TextFlow textArea, String inputText, Boolean isDescrip, ArrayList arList, ClientDay day){
         setTextArea(textArea,inputText,isDescrip,arList);
         textClientIndex.put(textArea,day);
     }
-    public void displayDayInfoFull(MouseEvent mouseEvent){
+    private StackPane setTextAreaCard(TextFlow textArea, String inputText, ArrayList arList){
+        textArea.setTextAlignment(TextAlignment.CENTER);
+        textArea.getChildren().add(new Text(inputText));
+        textArea.setPrefSize(250,25);
+        textArea.setMaxSize(250,25);
+        StackPane stackPane = new StackPane();
+        arList.add(stackPane);
+        stackPane.setPrefSize(250,100);
+        stackPane.getChildren().add(textArea);
+        StackPane.setAlignment(textArea, Pos.CENTER_RIGHT);
+        //areaList.add(textArea);
+    return stackPane;
+    }
+    public void displayDayInfoFull(MouseEvent mouseEvent) {
         if(selectedTextArea==null){
-            mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)-1);
+            mainGrid.setConstraints(calendarScrollPane,mainGrid.getColumnIndex(calendarScrollPane),mainGrid.getRowIndex(calendarScrollPane),mainGrid.getColumnSpan(calendarScrollPane),mainGrid.getRowSpan(calendarScrollPane)-1);
             dayInfoGrid.setVisible(true);
             isMenuVisible=true;
-            selectedTextArea = (TextArea) mouseEvent.getSource();
+            selectedTextArea = (TextFlow) mouseEvent.getSource();
             loadDayData(selectedTextArea);
-            selectedTextArea.setStyle("-fx-border-color: green");
+            selectedTextArea.getStyleClass().add("selected-pane");
         } else if (selectedTextArea==mouseEvent.getSource()) {
-                mainGrid.setConstraints(TestScrollPane,mainGrid.getColumnIndex(TestScrollPane),mainGrid.getRowIndex(TestScrollPane),mainGrid.getColumnSpan(TestScrollPane),mainGrid.getRowSpan(TestScrollPane)+1);
+                mainGrid.setConstraints(calendarScrollPane,mainGrid.getColumnIndex(calendarScrollPane),mainGrid.getRowIndex(calendarScrollPane),mainGrid.getColumnSpan(calendarScrollPane),mainGrid.getRowSpan(calendarScrollPane)+1);
                 dayInfoGrid.setVisible(false);
                 isMenuVisible=false;
-                selectedTextArea.setStyle("-fx-border-color: null");
+                selectedTextArea.getStyleClass().remove("selected-pane");
                 selectedTextArea =null;
             }else{
-            selectedTextArea.setStyle("-fx-border-color: null");
-            selectedTextArea =(TextArea) mouseEvent.getSource();
-            selectedTextArea.setStyle("-fx-border-color: green");
+            //selectedTextArea.setStyle("-fx-border-color: null");
+            selectedTextArea.getStyleClass().remove("selected-pane");
+            selectedTextArea =(TextFlow) mouseEvent.getSource();
+            selectedTextArea.getStyleClass().add("selected-pane");
             loadDayData(selectedTextArea);
         }
         }
-    private void loadDayData(TextArea sourceTex){
+    public void isMergedSwitch(ActionEvent actionEvent) {
+        CheckBox check = (CheckBox) actionEvent.getSource();
+        check.isSelected();
+        if(!(mergedWithChoiceBox.getValue() == null)){
+            textClientIndex.get(selectedTextArea).setMerged(check.isSelected());
+                ClientMonth clim = listOfClm.getMonthOfSpecificClient(mergedWithChoiceBox.getValue().getClp().getID());
+                ArrayList<ClientDay> modified = new ArrayList<>();
+                if(dayList.contains(selectedTextArea)){
+                    modified = clim.getClientDaysInMonth();
+                }else{
+                    modified = clim.getClientNightsInMonth();
+                }
+            modified.get(mergedWithChoiceBox.getValue().getClDay().getDay()-1).setMerged(check.isSelected());
+        }
+    }
+    private void loadDayData(TextFlow sourceTex)  {
         TextArea outputText = new TextArea();
+        outputText.getStyleClass().add("day-info-text");
         ClientDay day = textClientIndex.get(sourceTex);
         //.getDisplayName(TextStyle.FULL, new Locale("cs", "CZ")
-        outputText.setText("Datum : " + day.getDay() +"."+ day.getMonth().getValue()+"."+day.getYear() + "\n");
-        String dayName =LocalDate.of(day.getYear(),day.getMonth().getValue(),day.getDay()).getDayOfWeek().getDisplayName(TextStyle.FULL, new Locale("cs", "CZ"));
-        dayName =  dayName.substring(0, 1).toUpperCase() + dayName.substring(1);
-        outputText.setText(outputText.getText() + dayName+ "\n");
-        outputText.setText(outputText.getText() + printAssistantsOfDay(day));
+        outputText.setText(prepareDayInfo(day));
         setIntervalBars(day);
-        dayInfoGrid.setConstraints(outputText,0,0,dayInfoGrid.getColumnCount()-2,dayInfoGrid.getRowCount()-2);
+        dayInfoGrid.setConstraints(outputText,0,0,dayInfoGrid.getColumnCount()-3,dayInfoGrid.getRowCount()-2);
         dayInfoGrid.getChildren().add(outputText);
         displayIntervalInfoDef(day);
+        isMergedCheckBox.setSelected(day.isMerged());
+        locationChoiceBox.setValue(day.getLocation());
+        prepareMergeable();
     }
+    private String prepareDayInfo(ClientDay day){
+        String outputString = new String();
+        outputString ="Datum : " + day.getDay() +"."+ day.getMonth().getValue()+"."+day.getYear() + "\n";
+        String dayName =LocalDate.of(day.getYear(),day.getMonth().getValue(),day.getDay()).getDayOfWeek()
+                .getDisplayName(TextStyle.FULL, new Locale("cs", "CZ"));
+        dayName =  dayName.substring(0, 1).toUpperCase() + dayName.substring(1);
+        outputString = outputString + "Den v týdnu : " + dayName+ "\n";
+        outputString = outputString + "Odpovídající asistent : "+printAssistantsOfDay(day)+ "\n";
+        return outputString;
+    }
+    public void selectLocation(ActionEvent actionEvent){
+        textClientIndex.get(selectedTextArea).setLocation(locationChoiceBox.getValue());
+        prepareMergeable();
+    }
+    private ArrayList<Double> calculateBarWidth(ClientDay day){
+      LocalDateTime  start = day.getDayIntervalList().getFirst().getStart();
+        LocalDateTime  end = day.getDayIntervalList().getLast().getEnd();
+        double multiplier = 100 - ((day.getDayIntervalList().size()-1)*0.5);
+        double minutes = ChronoUnit.MINUTES.between(start,end);
+        ArrayList<Double> sizes = new ArrayList<>();
+        for(ServiceInterval serv : day.getDayIntervalList()){
+            double minutesT = ChronoUnit.MINUTES.between(serv.getStart(),serv.getEnd());
+            sizes.add((minutesT/(minutes/100))*multiplier/100);
 
+        }
+        return sizes;
+    }
     private void setIntervalBars(ClientDay day){
         int c = 0;
+       ArrayList<Double> percentSizes = calculateBarWidth(day);
         ArrayList<Pane> listToAdd = new ArrayList<>();
         barGrid.getColumnConstraints().clear();
         barGrid.getRowConstraints().clear();
+        barGrid.getChildren().clear();
         barGrid.getRowConstraints().add(new RowConstraints() {{ setPercentHeight(100); }});
         //barGrid.getRowConstraints().add(new RowConstraints() {{ setPercentHeight(30); }});
+        int i = day.getDayIntervalList().size();
+        int curInt = 1;
+        int sizesIndex = 0;
         for(ServiceInterval serv : day.getDayIntervalList()){
             AnchorPane bar = new AnchorPane();
             paneServiceIndex.put(bar,serv);
@@ -444,14 +747,30 @@ public class MainPageController {
             listToAdd.add(bar);
             bar.setMinSize(10, 10);
             ColumnConstraints colC = new ColumnConstraints();
-            colC .setPercentWidth(100/day.getDayIntervalList().size());
+            colC .setPercentWidth(percentSizes.get(sizesIndex));
+            sizesIndex++;
             barGrid.getColumnConstraints().add(colC );
             barGrid.setConstraints(bar,c,0,1,1);
             c++;
+            if(curInt!= i){
+                AnchorPane bar2 = new AnchorPane();
+               // bar2.setMinSize(10, 10);
+                listToAdd.add(bar2);
+                bar2.setStyle("-fx-background-color: #000000;");
+                ColumnConstraints colC2 = new ColumnConstraints();
+                colC2 .setPercentWidth(0.5);
+                barGrid.getColumnConstraints().add(colC2 );
+                barGrid.setConstraints(bar2,c,0,1,1);
+                c++;
+            }
+            curInt++;
         }
+        dayInfoGrid.getColumnConstraints();
         barGrid.getChildren().addAll(listToAdd);
-    }
+       // System.out.println("done");
 
+
+    }
     private void displayIntervalInfo(MouseEvent mouseEvent) {
 
        ServiceInterval serv = paneServiceIndex.get(mouseEvent.getSource());
@@ -495,8 +814,8 @@ public class MainPageController {
                 startMinutesChoice.getItems().setAll(minuteList.subList(0,60));
                 endMinutesChoice.getItems().setAll(minuteList.subList(0,60));
             }else{
-                startHoursChoice.getItems().setAll(hoursList.subList(0,24));
-                endHoursChoice.getItems().setAll(hoursList.subList(0,24));
+                startHoursChoice.getItems().setAll(hoursList.subList(12,24));
+                endHoursChoice.getItems().setAll(hoursList.subList(0,12));
                 startMinutesChoice.getItems().setAll(minuteList.subList(0,60));
                 endMinutesChoice.getItems().setAll(minuteList.subList(0,60));
             }
@@ -510,11 +829,13 @@ public class MainPageController {
 
     }
     private void setIntervalDescription(AnchorPane anch, ServiceInterval serv){
+      //  Text start = new Text(serv.getStart().getHour() +":" + serv.getStart().getMinute());
+       // Text end = new Text(serv.getEnd().getHour() +":" + serv.getEnd().getMinute());
         Text start = new Text(serv.getStart().toString());
         Text end = new Text(serv.getEnd().toString());
-        anch.setTopAnchor(start,7.0);
+        anch.setTopAnchor(start,1.0);
         anch.setLeftAnchor(start,1.0);
-        anch.setTopAnchor(end,7.0);
+        anch.setTopAnchor(end,1.0);
         anch.setRightAnchor(end,1.0);
         anch.getChildren().add(start);
         anch.getChildren().add(end);
@@ -526,8 +847,8 @@ public class MainPageController {
                 assistants.add(sein.getOverseeingAssistant());
             }
         }
-
-        return assistants.stream()
+       List<Assistant> out = assistants.stream().distinct().toList();
+        return out.stream()
                 .map(as -> as.getName() + " " + as.getSurname())
                 .collect(Collectors.joining(", "));
     }
@@ -537,110 +858,398 @@ public class MainPageController {
                 (int) (color.getGreen() * 255),
                 (int) (color.getBlue() * 255));
     }
-
     public void removeInterval(ActionEvent actionEvent) throws IOException {
-        ClientDay day = textClientIndex.get(selectedTextArea);
-        selectedInterval.setNotRequired(true);
-        //selectedInterval.setOverseeingAssistant(null);
-        selectedInterval.setLocation(null);
-        selectedInterval.setComment("Klient v tomto období nevyžaduje asistenta.");
-        intervalCommentArea.setText("Klient v tomto období nevyžaduje asistenta.");
-        setIntervalBars(day);
+        ClientDay editedDay = textClientIndex.get(selectedTextArea);
+        if(editedDay.getDayIntervalList().size()>1){
+            if(selectedInterval.equals(editedDay.getDayIntervalList().getFirst())){
+                editedDay.getDayIntervalList().remove(selectedInterval);
+                editedDay.getDayIntervalList().getFirst().setStart(selectedInterval.getStart());
+                selectedInterval = editedDay.getDayIntervalList().getFirst();
+            } else if (selectedInterval.equals(editedDay.getDayIntervalList().getLast())) {
+                editedDay.getDayIntervalList().remove(selectedInterval);
+                editedDay.getDayIntervalList().getLast().setEnd(selectedInterval.getEnd());
+                selectedInterval = editedDay.getDayIntervalList().getLast();
+            }else{
+                editedDay.getDayIntervalList().remove(selectedInterval);
+                correctInterval(editedDay.getDayIntervalList());
+            }
+        }else{
+            selectedInterval.setNotRequired(true);
+            //selectedInterval.setOverseeingAssistant(null);
+            selectedInterval.setLocation(null);
+            selectedInterval.setComment("Klient v tomto období nevyžaduje asistenta.");
+            intervalCommentArea.setText("Klient v tomto období nevyžaduje asistenta.");
+        }
+        setIntervalBars(editedDay);
         jsom.saveClientRequirementsForMonth(listOfClm,settings);
     }
     public void prepareHoursAndMinutes(){
         hoursList = (ArrayList<Integer>) IntStream.rangeClosed(0, 24).boxed().collect(Collectors.toList());
         minuteList = (ArrayList<Integer>) IntStream.rangeClosed(0, 60).boxed().collect(Collectors.toList());
-       // hoursList.addAll();
-       // minuteList.addAll();
-
     }
-
-    public void createNewInterval(ActionEvent actionEvent) throws IOException {
+    public void createNewInterval3(ActionEvent actionEvent) throws IOException {
+       // System.out.println("toBeReady");
         ClientDay day = textClientIndex.get(selectedTextArea);
         ArrayList<ServiceInterval> toBeResized = new ArrayList<>();
-        double startNew = startHoursChoice.getValue() + (double) startMinutesChoice.getValue() /100;
-        double endNew = endHoursChoice.getValue() + (double) endMinutesChoice.getValue() /100;
+        LocalDateTime startNew = setLocalDateTime(startHoursChoice.getValue(),startMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay());
+        LocalDateTime endNew = setLocalDateTime(endHoursChoice.getValue(), + endMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay());
+        ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
+        boolean alreadyExists = false;
         for(ServiceInterval s : day.getDayIntervalList()){
-            double start = s.getStart().getHour() + (double) s.getStart().getMinute() /100;
-            double end = s.getEnd().getHour() + (double) s.getEnd().getMinute() /100;
-            if(startNew >= start && startNew <= end || endNew >= start && endNew <= end ){
+            LocalDateTime start = s.getStart();
+            LocalDateTime end = s.getEnd();
+            if((startNew.isAfter(start) ||startNew.isEqual(start)) && (startNew.isBefore(end) ||startNew.isEqual(end)) ||
+                    (endNew.isAfter(start)||endNew.isEqual(start)) && (endNew.isBefore(end)||endNew.isEqual(end)) ){
                 toBeResized.add(s);
+              //  System.out.println("toBeResized");
+            }
+            if(start.isAfter(startNew)&& end.isBefore(endNew) ){
+             //   System.out.println("toBeRemoved");
+                toBeRemoved.add(s);
+            }
+            if(start.isEqual(startNew)&&end.isEqual(endNew)){
+                alreadyExists=true;
+             //   System.out.println("Already exists");
             }
         }
-        for(ServiceInterval s : toBeResized) {
-            double start = s.getStart().getHour() + (double) s.getStart().getMinute() / 100;
-            double end = s.getEnd().getHour() + (double) s.getEnd().getMinute() / 100;
-            if (startNew != start ||  endNew != end) {
-                if ((startNew > start && startNew < end) & (endNew >= end)) {
-                    s.setEnd(LocalTime.of(startHoursChoice.getValue(), startMinutesChoice.getValue()));
-                    System.out.println("Type 1");
-                } else if ((startNew <= start) & (endNew >= start && endNew <= end)) {
-                    s.setStart(LocalTime.of(endHoursChoice.getValue(), endMinutesChoice.getValue()));
-                    System.out.println("Type 2");
-                } else {
-                    LocalTime temp = s.getEnd();
-                    s.setEnd(LocalTime.of(startHoursChoice.getValue(), startMinutesChoice.getValue()));
-                    day.getDayIntervalList().add(new ServiceInterval(LocalTime.of(endHoursChoice.getValue(), endMinutesChoice.getValue())
-                            , temp, s.getOverseeingAssistant(), null, false));
-                    System.out.println("Type 3");
+        for(ServiceInterval serv : toBeRemoved){
+            Assistant as = serv.getOverseeingAssistant();
+            day.getDayIntervalList().remove(serv);
 
+            if(day.getDayIntervalList().isEmpty()){
+                day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
+                        , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), as, null, false));
+                if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
+                    intervalOverreach(startNew, endNew);
+                    System.out.println("Is empty");
+                }
+                jsom.saveClientRequirementsForMonth(listOfClm, settings);
+                setIntervalBars(day);
+                return;
+            }
+        }
+        if(!alreadyExists) {
+            for (ServiceInterval s : toBeResized) {
+                LocalDateTime start = s.getStart();
+                LocalDateTime end = s.getEnd();
+                if (!startNew.equals(start) || !endNew.equals(end)) {
+                    if ((startNew.isAfter(start) && startNew.isBefore(end)) & (endNew.isAfter(end) || endNew.isEqual(end))) {
+                        s.setEnd(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
+                        System.out.println("Type 1");
+                    } else if ((startNew.isBefore(start) || startNew.isEqual(start)) & (endNew.isAfter(start) || endNew.isEqual(start) && endNew.isBefore(end) || endNew.isEqual(end))) {
+                        s.setStart(setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
+                        System.out.println("Type 2");
+                    } else {
+                        LocalDateTime temp = s.getEnd();
+                        s.setEnd(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
+                        day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
+                                , temp, s.getOverseeingAssistant(), null, true));
+                        System.out.println("Type 3");
+                        break;
+                    }
+
+                } else {
+                    System.out.println("nothing");
+                    break;// paneServiceIndex.get(selectedTextArea).getDayIntervalList().add(new ServiceInterval());
                 }
 
-                day.getDayIntervalList().add(new ServiceInterval(LocalTime.of(startHoursChoice.getValue(), startMinutesChoice.getValue())
-                        , LocalTime.of(endHoursChoice.getValue(), endMinutesChoice.getValue()), day.getDayIntervalList().get(0).getOverseeingAssistant(), null, false));
 
-            }else{
-                break;// paneServiceIndex.get(selectedTextArea).getDayIntervalList().add(new ServiceInterval());
             }
-            intervalOverreach(startNew,endNew);
+            day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
+                    , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), day.getDayIntervalList().get(0).getOverseeingAssistant(), null, false));
+            if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
+                intervalOverreach(startNew, endNew);
+            }
             jsom.saveClientRequirementsForMonth(listOfClm, settings);
             day.getDayIntervalListUsefull().get(0).setComment("Testing save logic");
             setIntervalBars(day);
+            System.out.println("done");
         }
     }
-    public void intervalOverreach(double newStart, double newEnd){
-        double defStart = settings.getDeftStart()[0] + ((double) settings.getDeftStart()[1] /100);
-        double defEnd = settings.getDefEnd()[0] + ((double) settings.getDefEnd()[1] /100);
+    public void createNewInterval(ActionEvent actionEvent) throws IOException {
+        ClientDay day = textClientIndex.get(selectedTextArea);
+        LocalDateTime startNew = setLocalDateTime(startHoursChoice.getValue(),startMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay());
+        LocalDateTime endNew = setLocalDateTime(endHoursChoice.getValue(), + endMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay());
+        ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
+        ArrayList<ServiceInterval> toBeResized = new ArrayList<>();
+
+        boolean alreadyExists = false;
+
+        for(ServiceInterval s : day.getDayIntervalList()){
+            LocalDateTime start = s.getStart();
+            LocalDateTime end = s.getEnd();
+            if(start.isEqual(startNew)&&end.isEqual(endNew)){
+                return;
+            }
+
+            if((startNew.isAfter(start) ||startNew.isEqual(start)) && (startNew.isBefore(end) ||startNew.isEqual(end)) ||
+                    (endNew.isAfter(start)||endNew.isEqual(start)) && (endNew.isBefore(end)||endNew.isEqual(end)) ){
+                toBeResized.add(s);
+                //  System.out.println("toBeResized");
+            }
+
+            if((start.isAfter(startNew)&& end.isBefore(endNew)) || start.isEqual(startNew) && end.isBefore(endNew) || start.isAfter(startNew ) && end.isEqual(endNew) ){
+                //   System.out.println("toBeRemoved");
+                toBeRemoved.add(s);
+            }
+        }
+        for(ServiceInterval serv : toBeRemoved){
+            Assistant as = serv.getOverseeingAssistant();
+            day.getDayIntervalList().remove(serv);
+            if(day.getDayIntervalList().isEmpty()){
+                day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
+                        , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), as, null, false));
+                if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
+                    intervalOverreach(startNew, endNew);
+                    System.out.println("Is empty");
+                }
+                jsom.saveClientRequirementsForMonth(listOfClm, settings);
+                setIntervalBars(day);
+               return;
+            }
+        }
+            for (ServiceInterval s : toBeResized) {
+                LocalDateTime start = s.getStart();
+                LocalDateTime end = s.getEnd();
+                    if ((startNew.isAfter(start) && startNew.isBefore(end)) & (endNew.isAfter(end) || endNew.isEqual(end))) {
+                        s.setEnd(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
+                        System.out.println("Type 1");
+                    } else if ((startNew.isBefore(start) || startNew.isEqual(start)) & (endNew.isAfter(start) || endNew.isEqual(start) && endNew.isBefore(end) || endNew.isEqual(end))) {
+                        s.setStart(setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
+                        System.out.println("Type 2");
+                    } else if(start.isBefore(startNew) && end.isAfter(endNew)) {
+                        LocalDateTime temp = s.getEnd();
+                        s.setEnd(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
+                        day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
+                                , temp, s.getOverseeingAssistant(), null, true));
+                        System.out.println("Type 3");
+                        break;
+                    }else{
+                        System.out.println("Type Error");
+                        System.out.println("start " + start);
+                        System.out.println("end " + end);
+                        System.out.println("newStart " + startNew);
+                        System.out.println("newEnd " + endNew);
+                    }
+            }
+            day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
+                    , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), day.getDayIntervalList().get(0).getOverseeingAssistant(), null, true));
+            if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
+                intervalOverreach(startNew, endNew);
+            }
+            jsom.saveClientRequirementsForMonth(listOfClm, settings);
+            day.getDayIntervalListUsefull().get(0).setComment("Testing save logic");
+            setIntervalBars(day);
+            System.out.println("done");
+
+    }
+    public void intervalOverreach( LocalDateTime newStart, LocalDateTime newEnd){
+       // LocalDateTime defStart = LocalDateTime.of(settings.getDeftStart()[0],settings.getDeftStart()[1]);
+       // LocalDateTime defEnd = settings.getDefEnd();
+        if(newStart.getDayOfMonth() == 1||
+
+                newEnd.getDayOfMonth() == newEnd.getMonth().length(Year.isLeap(newStart.getYear()))+1){
+            //TODO case for edge days
+            return;
+        }
         boolean isDay;
         int[] switchCode;
-        if(dayList.contains(textClientIndex.get(selectedTextArea))){
+        if(dayList.contains(selectedTextArea)){
             isDay = true;
             switchCode = new int[]{-1,0};
         }else{
             isDay = false;
             switchCode = new int[]{0,1};
         }
-            if(newStart < defStart){
-            ClientDay past = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[0]));
-            ServiceIntervalArrayList servList= past.getDayIntervalList();
-            int i = servList.size()-1;
-            ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
-            for(ServiceInterval serv: servList.reversed()){
-                double startTemp = serv.getStart().getHour() + ((double) serv.getStart().getMinute()  /100);
-               // double defEnd = settings.getDefEnd()[0] + ((double) settings.getDefEnd()[1] /100);
-                if(startTemp>newStart){
-                    toBeRemoved.add(serv);
+            if(isDay==true){
+                ClientDay past = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[0]));
+                if((textClientIndex.get(selectedTextArea).getDayIntervalList().getFirst().getStart().isEqual(newStart) )){
+                    ServiceIntervalArrayList servListPast= past.getDayIntervalList();
+                    //  int i = servListPast.size()-1;
+                    ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
+                    for(ServiceInterval serv: servListPast.reversed()){
+                        LocalDateTime startTemp = serv.getStart();
+                        LocalDateTime defEnd= serv.getEnd();
+                        if(startTemp.isAfter(newStart)){
+                            toBeRemoved.add(serv);
+                        }
+                    }
+                    servListPast.removeAll(toBeRemoved);
+                    servListPast.getLast().setEnd(newStart);
                 }
-                servList.removeAll(toBeRemoved);
-                servList.get(servList.size()-1).setEnd(LocalTime.of((int )newStart, (int )Math.round(((newStart- (int )newStart)*100))));
+                ClientDay future = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[1]));
+                if((textClientIndex.get(selectedTextArea).getDayIntervalList().getLast().getEnd().isEqual(newEnd))){
+                    ServiceIntervalArrayList servListFuture= future.getDayIntervalList();
+                    //int iFuture = servListFuture.size()-1;
+                    ArrayList<ServiceInterval> toBeRemovedFuture = new ArrayList<>();
+                    for(ServiceInterval serv: servListFuture){
+                        LocalDateTime startTemp = serv.getStart();
+                        LocalDateTime endTemp= serv.getEnd();
+                        if(endTemp.isBefore(newEnd)){
+                            toBeRemovedFuture.add(serv);
+                        }
+                    }
+                    servListFuture.removeAll(toBeRemovedFuture);
+                    servListFuture.getFirst().setStart(newEnd);
 
-            }
+                }
 
+            }else {
+                ClientDay past = textClientIndex.get(dayList.get(nightList.indexOf(selectedTextArea) + switchCode[0]));
+                if ((textClientIndex.get(selectedTextArea).getDayIntervalList().getFirst().getStart().isEqual(newStart)))
+                {
+                    ServiceIntervalArrayList servListPast = past.getDayIntervalList();
+                    //  int i = servListPast.size()-1;
+                    ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
+                    for (ServiceInterval serv : servListPast.reversed()) {
+                        LocalDateTime startTemp = serv.getStart();
+                        LocalDateTime defEnd = serv.getEnd();
+                        if (startTemp.isAfter(newStart)) {
+                            toBeRemoved.add(serv);
+                        }
+                    }
+                    servListPast.removeAll(toBeRemoved);
+                    servListPast.getLast().setEnd(newStart);
+                }
+                ClientDay future = textClientIndex.get(dayList.get(nightList.indexOf(selectedTextArea) + switchCode[1]));
+                if ((textClientIndex.get(selectedTextArea).getDayIntervalList().getLast().getEnd().isEqual(newEnd))) {
+                    ServiceIntervalArrayList servListFuture = future.getDayIntervalList();
+                    //int iFuture = servListFuture.size()-1;
+                    ArrayList<ServiceInterval> toBeRemovedFuture = new ArrayList<>();
+                    for (ServiceInterval serv : servListFuture) {
+                        LocalDateTime startTemp = serv.getStart();
+                        LocalDateTime endTemp = serv.getEnd();
+                        if (endTemp.isBefore(newEnd)) {
+                            toBeRemovedFuture.add(serv);
+                        }
+                    }
+                    servListFuture.removeAll(toBeRemovedFuture);
+                    servListFuture.getFirst().setStart(newEnd);
+                }
             }
+            /*
             if (newEnd> defEnd) {
                 ClientDay future = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[1]));
             }
+            */
+
+    }
+    public void saveIntervalChanges(ActionEvent actionEvent) throws IOException {
+        ClientDay editedDay = textClientIndex.get(selectedTextArea);
+        if(selectedInterval.equals(editedDay.getDayIntervalList().getFirst()) || selectedInterval.equals(editedDay.getDayIntervalList().getLast())){
+            System.out.println(startHoursChoice.getValue() + startMinutesChoice.getValue());
+            selectedInterval.setComment(intervalCommentArea.getText());
+            selectedInterval.setStart(setLocalDateTime(startHoursChoice.getValue(),startMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay()));
+            selectedInterval.setEnd(setLocalDateTime(endHoursChoice.getValue(),endMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay()));
+            intervalOverreach(setLocalDateTime(startHoursChoice.getValue(),startMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay())
+                    ,setLocalDateTime(endHoursChoice.getValue(),endMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay()));
+        }else{
+            selectedInterval.setComment(intervalCommentArea.getText());
+            selectedInterval.setStart(setLocalDateTime(startHoursChoice.getValue(),startMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay()));
+            selectedInterval.setEnd(setLocalDateTime(endHoursChoice.getValue(),endMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay()));
+            correctInterval(editedDay.getDayIntervalList());
+        }
+        selectedInterval.setNotRequired(isRequiredCheckBox.isSelected());
+        setIntervalBars(editedDay);
+        jsom.saveClientRequirementsForMonth(listOfClm,settings);
+        System.out.println("Saved");
+
+    }
+    private void correctInterval(ServiceIntervalArrayList serviceIntervals){
+        if(serviceIntervals.size()>1){
+            for(int i =0;i<serviceIntervals.size()-1;i++){
+                serviceIntervals.get(i).setEnd(serviceIntervals.get(i+1).getStart());
+            }
+        }
+    }
+    public LocalDateTime setLocalDateTime(int hours, int minutes, int day){
+        if(dayList.contains(selectedTextArea)){
+            return LocalDateTime.of(Integer.parseInt(selectedYearValue.getText()),
+                    Month.of(Integer.parseInt(selectedMonthValue.getText())), day, hours, minutes);
+        }else{
+            int year = Integer.parseInt(selectedYearValue.getText());
+            int month = Integer.parseInt(selectedMonthValue.getText());
+            Integer newYear = year;
+            Integer newMonth = month;
+            Integer newDay = day;
+
+            if(day == Month.of(month).length(Year.isLeap(year))) {
+                if(month == 12){
+                    newYear = year+1;
+                    newMonth = 1;
+                }else{
+                    newMonth = month +1;
+                }
+                System.out.println("triggered");
+            }else{
+                newDay++;
+            }
+            if(hours> 12){
+                return LocalDateTime.of(Integer.valueOf(selectedYearValue.getText()),
+                        Month.of(Integer.valueOf(selectedMonthValue.getText())), day, hours, minutes);
+            }else{
+                return LocalDateTime.of(newYear,
+                        Month.of(newMonth), newDay, hours, minutes);
+            }
+        }
 
 
 
     }
+    private ArrayList<LocationRepresentative> prepareMergeable()  {
+        ClientDay cl = textClientIndex.get(selectedTextArea);
+        ArrayList<LocationRepresentative> output = new ArrayList<>();
+            //ListOfClientMonths lic = jsom.loadClientRequirementsForMonth(settings);
+            for(ClientMonth c : listOfClm.getListOfClientMonths()){
+                ArrayList<ClientDay> visitedMonth;
+                if(dayList.contains(selectedTextArea)) {
+                    visitedMonth = c.getClientDaysInMonth();
+                }else{
+                    visitedMonth = c.getClientNightsInMonth();
+                }
+                ClientDay cld = visitedMonth.get(cl.getDay()-1);
+                    if(!(cld.getLocation() ==null) &&cld.getLocation().equals(cl.getLocation() )){
+                        LocationRepresentative locp = new LocationRepresentative();
+                        locp.setClp(clientIndex.get(cld.getClient()));
+                        locp.setClDay(cld);
+                        output.add(locp);
+                }
+            }
+        List disp = output.stream().filter(c->(!c.getClp().getID().equals(textClientIndex.get(selectedTextArea).getClient()))).toList();
+        mergedWithChoiceBox.getItems().clear();
+        mergedWithChoiceBox.getItems().addAll(disp);
+            return output;
+    }
+    public void findNewSolution(ActionEvent actionEvent) throws IOException {
+        jsom.generateNewMonthsAssistants(settings);
+        findSolutionV2(actionEvent);
+    }
+    public void clearTable() throws IOException {
+       ListOfClients cliList = jsom.loadClientInfo(settings);
+       ListOfClientMonths cliMoth = new ListOfClientMonths();
+       for(Client cl : cliList.getClientList()){
+           cliMoth.getListOfClientMonths().add(cl.getClientsMonth());
+           ArrayList<ClientDay> dayList = cl.getClientsMonth().getClientDaysInMonth();
+           for(ClientDay day: dayList) {
+            for(ServiceInterval serv : day.getDayIntervalList()){
+                serv.setOverseeingAssistant(null);
+            }
+           }
+           ArrayList<ClientDay> nightList = cl.getClientsMonth().getClientNightsInMonth();
+           for(ClientDay day: nightList) {
+               for(ServiceInterval serv : day.getDayIntervalList()){
+                   serv.setOverseeingAssistant(null);
+               }
+           }
 
-    public void saveIntervalChanges(ActionEvent actionEvent) throws IOException {
-        selectedInterval.setNotRequired(isRequiredCheckBox.isSelected());
-        selectedInterval.setComment(intervalCommentArea.getText());
-        selectedInterval.setStart(LocalTime.of(startHoursChoice.getValue(),startMinutesChoice.getValue()));
-        selectedInterval.setEnd(LocalTime.of(endHoursChoice.getValue(),endMinutesChoice.getValue()));
-        jsom.saveClientRequirementsForMonth(listOfClm,settings);
+       }
+        jsom.saveClientRequirementsForMonth(cliMoth,settings);
+       populateView(jsom.loadClientInfo(settings));
+    }
+
+
+    @Override
+    public void updateScreen() {
+
     }
 }

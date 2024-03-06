@@ -6,16 +6,41 @@ import graphics.sorter.Structs.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
 import java.util.ArrayList;
-import java.util.UUID;
+import java.util.Arrays;
 
 public class JsonManip {
+    private static JsonManip jsonManip;
 
+    private String path;
+    public void initialize() throws IOException {
+        Settings set = loadSettings();
+        path = set.getFilePath();
+        ArrayList<String> directories = new ArrayList<>(Arrays.asList("Assistants","Clients","Settings","Locations","ClientRequirements","AvailableAssistants"));
+        for(String st : directories){
+           Files.createDirectories(Paths.get(path + st));
+        }
+    }
+    private JsonManip(){
+        try {
+            initialize();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static JsonManip getJsonManip(){
+        if(jsonManip==null){
+            return new JsonManip();
+        }else{
+            return jsonManip;
+        }
+    }
      public void jsonTest() throws IOException {
        // byte[] jsonData = Files.readAllBytes(Paths.get("employee.txt"));
          /*
@@ -42,7 +67,7 @@ public class JsonManip {
          Client client1 = new Client("Client2", "Clientov2", new ClientMonth(Month.DECEMBER,2024));
          Client client2 = new Client("Client3", "Clientov3", new ClientMonth(Month.DECEMBER,2024));
          Client client3 = new Client("Client4", "Clientov3", new ClientMonth(Month.DECEMBER,2024));
-         */
+
          ClientProfile client = new ClientProfile(UUID.randomUUID(),"Client", "Clientov", null);
          ClientProfile client1 = new ClientProfile(UUID.randomUUID(),"Client2", "Clientov2", null);
          ClientProfile client2 = new ClientProfile(UUID.randomUUID(),"Client3", "Clientov3", null);
@@ -55,30 +80,32 @@ public class JsonManip {
          saveClientInfo(clLs);
          ListOfClientMonths listOfClientMonths = new ListOfClientMonths();
          for (ClientProfile cl : clLs.getClientList()){
-             listOfClientMonths.getListOfClientMonths().add(new ClientMonth(Month.of(loadSettings("E:\\JsonWriteTest\\").getCurrentMonth()),loadSettings("E:\\JsonWriteTest\\").getCurrentYear(),cl.getID(), null));
+             listOfClientMonths.getListOfClientMonths().add(new ClientMonth(Month.of(loadSettings().getCurrentMonth()),loadSettings().getCurrentYear(),cl.getID(), null));
 
          }
-         saveClientRequirementsForMonth(listOfClientMonths, loadSettings("E:\\JsonWriteTest\\"));
-        //saveLocations(new ListOfLocations(), loadSettings("E:\\JsonWriteTest\\").getFilePath());
+         saveClientRequirementsForMonth(listOfClientMonths, loadSettings());
+        //saveLocations(new ListOfLocations(), loadSettings(path + "").getFilePath());
+
+         */
     }
     public void saveAssistantInfo(ListOfAssistants lias) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.writeValue(new File("E:\\JsonWriteTest\\Assistants.json"),lias);
+        objectMapper.writeValue(new File(path +"Assistants\\Assistants.json"),lias);
     }
     public ListOfAssistants loadAssistantInfo() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\Assistants.json"));
+        byte[]  jsonData = Files.readAllBytes(Paths.get(path+"Assistants\\Assistants.json"));
         ListOfAssistants listOfA = objectMapper.readValue(jsonData, ListOfAssistants.class );
         return listOfA;
     }
     public ListOfClients loadClientInfo(Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\Clients.json"));
+        byte[]  jsonData = Files.readAllBytes(Paths.get(path+"Clients\\Clients.json"));
         ListOfClientsProfiles listOfA = objectMapper.readValue(jsonData, ListOfClientsProfiles.class );
-        byte[]  jsonDataMonth = Files.readAllBytes(Paths.get(set.getFilePath()+ "ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"));
+        byte[]  jsonDataMonth = Files.readAllBytes(Paths.get(set.getFilePath()+  "ClientRequirements\\ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"));
         ListOfClientMonths listOfClm = objectMapper.readValue(jsonDataMonth, ListOfClientMonths.class );
         ListOfClients listOfClients = new ListOfClients();
         for(ClientProfile clP: listOfA.getClientList()){
@@ -96,29 +123,29 @@ public class JsonManip {
     public ListOfClientsProfiles loadClientProfileInfo() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\Clients.json"));
+        byte[]  jsonData = Files.readAllBytes(Paths.get(path +"Clients\\Clients.json"));
         ListOfClientsProfiles listOfA = objectMapper.readValue(jsonData, ListOfClientsProfiles.class );
         return listOfA;
     }
     public void saveClientInfo(ListOfClientsProfiles lias) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.writeValue(new File("E:\\JsonWriteTest\\Clients.json"),lias);
+        objectMapper.writeValue(new File(path +"Clients\\Clients.json"),lias);
     }
     public void saveAvailableAssistantInfo(AvailableAssistants lias, Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.writeValue(new File("E:\\JsonWriteTest\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"),lias);
+        objectMapper.writeValue(new File(path +  "AvailableAssistants\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"),lias);
     }
     public AvailableAssistants loadAvailableAssistantInfo(Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         byte[]  jsonData = new byte[0];
         try {
-            jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
+            jsonData = Files.readAllBytes(Paths.get(path +  "AvailableAssistants\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
         } catch (IOException e) {
-            generateNewMonthsAssistants(loadSettings("E:\\JsonWriteTest\\"));
-            jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
+            generateNewMonthsAssistants(loadSettings());
+            jsonData = Files.readAllBytes(Paths.get(path +  "AvailableAssistants\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
         }
         AvailableAssistants listOfA = objectMapper.readValue(jsonData, AvailableAssistants.class );
 
@@ -127,26 +154,26 @@ public class JsonManip {
     public void saveClientRequirementsForMonth(ListOfClientMonths lias, Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.writeValue(new File(set.getFilePath()+ "ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"),lias);
+        objectMapper.writeValue(new File(set.getFilePath()+  "ClientRequirements\\ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"),lias);
     }
     public ListOfClientMonths loadClientRequirementsForMonth( Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        byte[]  jsonData = Files.readAllBytes(Paths.get(set.getFilePath()+ "ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"));
+        byte[]  jsonData = Files.readAllBytes(Paths.get(set.getFilePath()+  "ClientRequirements\\ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"));
         ListOfClientMonths listOfClm = objectMapper.readValue(jsonData, ListOfClientMonths.class );
         return listOfClm;
     }
-    public Settings loadSettings(String path) throws IOException {
+    public static Settings loadSettings() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        byte[]  jsonData = Files.readAllBytes(Paths.get(path+"Settings"+ ".json"));
+        byte[]  jsonData = Files.readAllBytes(Paths.get(".\\Settings.json"));
         Settings set = objectMapper.readValue(jsonData, Settings.class );
         return set;
     }
-    public void saveSettings(Settings lias, String path) throws IOException {
+    public void saveSettings(Settings lias) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.writeValue(new File(path+"Settings"+".json"),lias);
+        objectMapper.writeValue(new File(".\\Settings.json"),lias);
     }
     public void generateEmptyState(Settings settings) throws IOException {
         JsonManip jsom = new JsonManip();
@@ -193,16 +220,16 @@ public class JsonManip {
         availableAssistants.setAvailableAssistantsAtNights(nightList);
         jsom.saveAvailableAssistantInfo(availableAssistants,settings);
     }
-    public void  saveLocations(ListOfLocations lOL, String path) throws IOException {
+    public void  saveLocations(ListOfLocations lOL) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.writeValue(new File(path+"Locations"+".json"),lOL);
+        objectMapper.writeValue(new File(path+"Locations\\Locations"+".json"),lOL);
 
     }
-    public ListOfLocations loadLocations(String path) throws IOException {
+    public ListOfLocations loadLocations(Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        byte[]  jsonData = Files.readAllBytes(Paths.get(path+"Locations"+ ".json"));
+        byte[]  jsonData = Files.readAllBytes(Paths.get(set.getFilePath()+"Locations\\Locations"+ ".json"));
         ListOfLocations lot = objectMapper.readValue(jsonData, ListOfLocations.class );
         return lot;
     }

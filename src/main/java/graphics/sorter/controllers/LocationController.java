@@ -2,6 +2,8 @@ package graphics.sorter.controllers;
 
 import graphics.sorter.*;
 import graphics.sorter.Structs.ListOfLocations;
+import graphics.sorter.Structs.LocationCellFactory;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -13,12 +15,18 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class LocationController {
+public class LocationController implements ControllerInterface{
+    @FXML
+    private GridPane mainGrid;
+    @FXML
+    private Pane basePane;
     @FXML
     private TextField addressField;
     @FXML
@@ -35,17 +43,21 @@ public class LocationController {
     JsonManip jsoMap;
     Settings set;
     public void initialize() throws IOException {
-        jsoMap= new JsonManip();
-        set = jsoMap.loadSettings("E:\\JsonWriteTest\\");
-        listOfL = jsoMap.loadLocations(set.getFilePath());
+        jsoMap= JsonManip.getJsonManip();
+        set = jsoMap.loadSettings();
+        listOfL = jsoMap.loadLocations(set);
         listOfLoc = listOfL .getListOfLocations();
         ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
         listViewofL.setItems(observLocationList);
+        listViewofL.setCellFactory(new LocationCellFactory());
+        Platform.runLater(() -> {
+            GraphicalFunctions.screenResizing(basePane,mainGrid);
+        });
 
     }
     public void switchPage(ActionEvent actionEvent) throws IOException {
         Scene scen = listViewofL.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Main-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("Main-view.fxml"));
         Parent rot = fxmlLoader.load();
         scen.setRoot(rot);
     }
@@ -55,7 +67,7 @@ public class LocationController {
         if(!(selectedID==null)){
             listOfLoc.remove(selectedLocationGlobal);
             selectedLocationGlobal = null;
-            jsoMap.saveLocations(listOfL,set.getFilePath());
+            jsoMap.saveLocations(listOfL);
             addressField.clear();
             nameField.clear();
             comments.clear();
@@ -84,7 +96,7 @@ public class LocationController {
         if(!(addressField.getText().isEmpty()) & !(nameField.getText().isEmpty())){
             if(listOfL.getListOfLocations().isEmpty()){
                 listOfLoc.add(new Location(UUID.randomUUID(), addressField.getText(),nameField.getText()));
-                jsoMap.saveLocations(listOfL,set.getFilePath());
+                jsoMap.saveLocations(listOfL);
                 ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
                 listViewofL.setItems(observLocationList);
                 return;
@@ -95,7 +107,7 @@ public class LocationController {
             }
                 if(!(name.contains(nameField.getText()))){
                     listOfLoc.add(new Location(UUID.randomUUID(), addressField.getText(),nameField.getText()));
-                    jsoMap.saveLocations(listOfL,set.getFilePath());
+                    jsoMap.saveLocations(listOfL);
                     ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
                     listViewofL.setItems(observLocationList);
                 }else{
@@ -104,5 +116,10 @@ public class LocationController {
         }else{
             System.out.println("Vyplntě povinné údaje");
         }
+    }
+
+    @Override
+    public void updateScreen() {
+        
     }
 }

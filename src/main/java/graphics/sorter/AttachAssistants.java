@@ -11,7 +11,7 @@ public class AttachAssistants {
 
      private AvailableAssistants availableAssistants;
      private ListOfClients listOfClients;
-     private JsonManip jsom = new JsonManip();
+     private JsonManip jsom = JsonManip.getJsonManip();
     //public void a(AvailableAssistants availableAssistants, ){
 
    // }
@@ -22,7 +22,7 @@ public class AttachAssistants {
 
     }
     public void initialize() throws IOException {
-        Settings set = jsom.loadSettings("E:\\JsonWriteTest\\");
+        Settings set = jsom.loadSettings();
         try {
             availableAssistants = jsom.loadAvailableAssistantInfo(set);
         }catch(Exception e){

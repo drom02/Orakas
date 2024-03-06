@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 public class Settings {
+    private static Settings settings;
     public int getCurrentYear() {
         return currentYear;
     }
@@ -54,6 +57,17 @@ public class Settings {
     public String getFilePath() {
         return filePath;
     }
+    public static Settings getSettings(){
+        if (settings == null) {
+            // if instance is null, initialize
+            try {
+                settings = JsonManip.loadSettings();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return settings;
+    }
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
@@ -61,16 +75,15 @@ public class Settings {
 
     private String filePath;
 
-    public void createNewSettingsFile() throws IOException {
-        JsonManip jsom = new JsonManip();
-        deftStart = new int[]{8,30};
-        defEnd = new int[]{20,30};
-        Settings defset = new Settings(12,2024, "E:\\JsonWriteTest\\",deftStart,defEnd,16);
-        jsom.saveSettings(defset, defset.getFilePath());
+    public static void createNewSettingsFile() throws IOException {
+        JsonManip jsom = JsonManip.getJsonManip();
+        Settings defset = new Settings(12,2024, "E:\\JsonWriteTest\\",new int[]{8,30},new int[]{20,30},16);
+        jsom.saveSettings(defset);
 
     }
+
     @JsonCreator
-    public Settings(@JsonProperty("currentMonth")int currentMonth,@JsonProperty("currentYear")int currentYear,@JsonProperty("filePath")String filePath,@JsonProperty("defStart")int[] defstart,@JsonProperty("defend")int[] defend,@JsonProperty("maxShiftLength")int maxShiftLength){
+    private Settings(@JsonProperty("currentMonth")int currentMonth,@JsonProperty("currentYear")int currentYear,@JsonProperty("filePath")String filePath,@JsonProperty("defStart")int[] defstart,@JsonProperty("defend")int[] defend,@JsonProperty("maxShiftLength")int maxShiftLength){
             setCurrentMonth(currentMonth);
             setCurrentYear(currentYear);
             setFilePath(filePath);

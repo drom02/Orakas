@@ -1,9 +1,11 @@
 package graphics.sorter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class Assistant extends Human{
@@ -18,18 +20,17 @@ public class Assistant extends Human{
     //Zda pracuje pouze noční směny
     private boolean worksOnlyNight;
     //Komentáře k danému assisentovi
-    private String comments;
     //Seznam klientů a vztahu s nimi
     private ArrayList<Client> clientList;
-
-
-
-
+    private ArrayList<ArrayList<UUID>> clientPreference;
     private int[] workDays;
     @JsonCreator
-     public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("name")String name, @JsonProperty("surname")String surname,
-                      @JsonProperty("contract")String contract, @JsonProperty("work")double work, @JsonProperty("overtime")boolean overtime, @JsonProperty("worksDay")boolean worksDay, @JsonProperty("worksNight")boolean worksNight, @JsonProperty("comments")String comments, @JsonProperty("workDays")int[] workDays){
+     public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("status")boolean status,@JsonProperty("name")String name, @JsonProperty("surname")String surname,
+                      @JsonProperty("contract")String contract, @JsonProperty("work")double work, @JsonProperty("overtime")boolean overtime,
+                      @JsonProperty("worksDay")boolean worksDay, @JsonProperty("worksNight")boolean worksNight, @JsonProperty("comments")String comments,
+                      @JsonProperty("workDays")int[] workDays, @JsonProperty("clientPreference") ArrayList<ArrayList<UUID>> clientpreference){
         setID(ID);
+        setActivityStatus(status);
         setName(name);
         setSurname(surname);
         setContractType(contract);
@@ -37,14 +38,13 @@ public class Assistant extends Human{
         setLikesOvertime(overtime);
         setWorksOnlyDay(worksDay);
         setWorksOnlyNight(worksNight);
-        setComments(comments);
+        setComment(comments);
+        setClientPreference(clientpreference);
         if( (workDays == null)){
             setWorkDays(new int[]{1,1,1,1,1,0,0,1,1,1,1,1,0,0});
         }else{
             setWorkDays(workDays);
         }
-
-
     }
     public String getContractType() {
         return ContractType;
@@ -84,22 +84,16 @@ public class Assistant extends Human{
     public void setWorksOnlyNight(Boolean worksOnlyNight) {
         this.worksOnlyNight = worksOnlyNight;
     }
-
-    public String getComments() {
-        return comments;
-    }
-
-    public void setComments(String comments) {
-        this.comments = comments;
-    }
-
-    public ArrayList<Client> getClientList() {
+    @JsonIgnore
+       public ArrayList<Client> getClientList() {
         return clientList;
     }
 
     public void setClientList(ArrayList<Client> clientList) {
         this.clientList = clientList;
     }
+
+
     public boolean isLikesOvertime() {
         return likesOvertime;
     }
@@ -131,6 +125,15 @@ public class Assistant extends Human{
     public void setWorkDays(int[] workDays) {
         this.workDays = workDays;
     }
+
+    public ArrayList<ArrayList<UUID>> getClientPreference() {
+        return clientPreference;
+    }
+
+    public void setClientPreference(ArrayList<ArrayList<UUID>> clientPreference) {
+        this.clientPreference = clientPreference;
+    }
+
     @Override
     public boolean equals(Object o){
         if (o == this) {
@@ -140,10 +143,14 @@ public class Assistant extends Human{
             return false;
         }
         Assistant a = (Assistant) o;
-        if(this.getName().equals(a.getName()) && this.getSurname().equals(a.getSurname())){
+        if(this.getID().equals(a.getID())){
             return true;
         }else{
             return false;
         }
+    }
+    @Override
+    public int hashCode() {
+        return getID().hashCode();
     }
 }
