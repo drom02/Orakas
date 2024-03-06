@@ -26,7 +26,21 @@ public class Client extends ClientProfile{
     public ClientMonth getClientsMonth() {
         return clientsMonth;
     }
-
+    @Override
+    public boolean equals(Object o){
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof Client)) {
+            return false;
+        }
+        Client a = (Client) o;
+        if(this.getID().equals(a.getID())){
+            return true;
+        }else{
+            return false;
+        }
+    }
     public void setClientsMonth(ClientMonth clientsMonth) {
         this.clientsMonth = clientsMonth;
     }

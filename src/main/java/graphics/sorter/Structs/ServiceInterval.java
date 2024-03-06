@@ -10,15 +10,11 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 public class ServiceInterval {
-
-
-
     private Assistant overseeingAssistant;
     private LocalDateTime start;
     private LocalDateTime end;
     private Location location;
     private boolean isNotRequired;
-
     private String comment;
 //Přidat truncate form
     /*
@@ -91,5 +87,20 @@ public class ServiceInterval {
     public long getIntervalLength(){
         long hoursBetween = ChronoUnit.HOURS.between(start, end);
         return  Math.abs(hoursBetween);
+    }
+    @Override
+    public boolean equals(Object o){
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof ServiceInterval)) {
+            return false;
+        }
+        ServiceInterval a = (ServiceInterval) o;
+        if(this.getStart().equals(a.getStart()) && this.getEnd().equals(a.getEnd())){
+            return true;
+        }else{
+            return false;
+        }
     }
 }

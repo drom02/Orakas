@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class LocationController {
+public class LocationController implements ControllerInterface{
     @FXML
     private GridPane mainGrid;
     @FXML
@@ -116,5 +116,10 @@ public class LocationController {
         }else{
             System.out.println("Vyplntě povinné údaje");
         }
+    }
+
+    @Override
+    public void updateScreen() {
+        
     }
 }

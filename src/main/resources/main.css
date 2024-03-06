@@ -103,6 +103,14 @@
     -fx-border-color:  #000000;
     -fx-border-width: 3px;
 }
+.selected-interval {
+    -fx-background-color: #579bcf;  /* Change selected background color */
+    -fx-text-fill: white;        /* Change selected text color */
+}
+.day-info-text{
+    -fx-font-size: 16px;
+
+}
 /*
 .grid-pane{
        -fx-background-color: #cf0000;

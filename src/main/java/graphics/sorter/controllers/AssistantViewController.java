@@ -28,7 +28,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class AssistantViewController {
+public class AssistantViewController implements ControllerInterface{
     //region graphical components
     @FXML
     private  Pane mainPane;
@@ -376,5 +376,10 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                 setDayState(loadedArea,0);
             }
         }
+    }
+
+    @Override
+    public void updateScreen() {
+
     }
 }

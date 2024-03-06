@@ -31,6 +31,7 @@ import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import com.opencsv.CSVReader;
+import org.apache.poi.util.StringUtil;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -53,7 +54,7 @@ import static com.opencsv.ICSVWriter.*;
 Controller for shift picker window. It is used to select when are assistants available. Select name from the list and
 left click to field to add the assistant for specific shift. Right click to remove.
  */
-public class ShiftPickerController {
+public class ShiftPickerController implements ControllerInterface{
     //region graphical components
     @FXML
     private Pane mainPane;
@@ -77,6 +78,7 @@ public class ShiftPickerController {
     private ArrayList<ArrayList> listOfAssistantLists = new ArrayList<>();
    private  ArrayList<ShiftTextArea> assistantsDayList = new ArrayList<ShiftTextArea>();
    private  ArrayList<ShiftTextArea> assistantsNightList = new ArrayList<ShiftTextArea>();
+   private JsonManip jsoMap= JsonManip.getJsonManip();
    private Settings settings;
    //endregion
 
@@ -121,8 +123,8 @@ public class ShiftPickerController {
                 int row = 0;
                 TextFlow rowTitleFlow = new TextFlow();
                 LocalDate date = LocalDate.of(year, editedMonth.getValue(), i);
-                DayOfWeek dayValue = date.getDayOfWeek();
-                inputText = i + "."+ moth.getValue()+ "."+year +"\n" + dayValue.getDisplayName(TextStyle.FULL, new Locale("cs", "CZ"));
+
+                inputText = i + "."+ moth.getValue()+ "."+year +"\n" + getNameOfDay(date);
                 rowTitleFlow .getChildren().add(new Text(inputText));
                 titleList.add(rowTitleFlow );
                 rowTitleFlow.getStyleClass().add("title-area-flow");
@@ -158,9 +160,21 @@ public class ShiftPickerController {
     /*
     Method initialize
     */
+    @Override
+    public void updateScreen()  {
+        ListOfAssistants listOfA = null;
+        try {
+            listOfA = jsoMap.loadAssistantInfo();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        listOfAssist = listOfA .getAssistantList();
+        ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getAssistantList());
+        assistantList.setItems(observAssistantList);
+    }
     public void initialize() throws IOException {
         writeXSLX();
-        JsonManip jsoMap= JsonManip.getJsonManip();
+
         settings = jsoMap.loadSettings();
         assistantList.setCellFactory(new HumanCellFactory());
 
@@ -177,7 +191,14 @@ public class ShiftPickerController {
         });
     }
 
-
+    private String getNameOfDay(LocalDate date){
+        DayOfWeek dayValue = date.getDayOfWeek();
+        String nameOfDay = dayValue.getDisplayName(TextStyle.FULL, new Locale("cs", "CZ"));
+        if(nameOfDay !=null){
+            return nameOfDay.substring(0,1).toUpperCase() +nameOfDay.substring(1);
+        }
+        return null;
+    }
     /*
     Will switch window to main window.
      */
@@ -206,7 +227,7 @@ public class ShiftPickerController {
                 loadedArea.getAvailableAssistants().add(selectedAssistant);
                 String output = new String();
                 for(Assistant a : loadedArea.getAvailableAssistants()){
-                    output = output + "," +a.getName() +" "+ a.getSurname();
+                    output = output +a.getName() +" "+ a.getSurname()+"\n";
                 }
                // output = output + "," +selectedAssistant.getName() +" "+ selectedAssistant.getSurname();
                 loadedArea.setText(output);
@@ -218,7 +239,7 @@ public class ShiftPickerController {
                 loadedArea.getAvailableAssistants().remove(selectedAssistant);
                 String output = new String();
                 for(Assistant a : loadedArea.getAvailableAssistants()){
-                    output = output + "," +a.getName() +" "+ a.getSurname();
+                    output = output  +a.getName() +" "+ a.getSurname()+"\n";
                 }
                 loadedArea.setText(output);
                // loadedArea.setText(oldText.replace("," +selectedAssistant.getName() +" "+ selectedAssistant.getSurname(),""));

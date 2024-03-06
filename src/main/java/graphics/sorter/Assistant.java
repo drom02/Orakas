@@ -22,10 +22,7 @@ public class Assistant extends Human{
     //Komentáře k danému assisentovi
     //Seznam klientů a vztahu s nimi
     private ArrayList<Client> clientList;
-
-
     private ArrayList<ArrayList<UUID>> clientPreference;
-
     private int[] workDays;
     @JsonCreator
      public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("status")boolean status,@JsonProperty("name")String name, @JsonProperty("surname")String surname,
@@ -43,15 +40,11 @@ public class Assistant extends Human{
         setWorksOnlyNight(worksNight);
         setComment(comments);
         setClientPreference(clientpreference);
-
-
         if( (workDays == null)){
             setWorkDays(new int[]{1,1,1,1,1,0,0,1,1,1,1,1,0,0});
         }else{
             setWorkDays(workDays);
         }
-
-
     }
     public String getContractType() {
         return ContractType;
@@ -150,10 +143,14 @@ public class Assistant extends Human{
             return false;
         }
         Assistant a = (Assistant) o;
-        if(this.getName().equals(a.getName()) && this.getSurname().equals(a.getSurname())){
+        if(this.getID().equals(a.getID())){
             return true;
         }else{
             return false;
         }
+    }
+    @Override
+    public int hashCode() {
+        return getID().hashCode();
     }
 }

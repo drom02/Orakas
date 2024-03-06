@@ -25,5 +25,11 @@ public class LocationRepresentative {
     private ClientDay clDay;
 @Override
 public String toString(){
-    return clp.getName() +" "+ clp.getSurname();
+    if(clp==null){
+        return null;
+    }else{
+        return clp.getName() +" "+ clp.getSurname();
+    }
+
+
 }}

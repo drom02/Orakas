@@ -19,7 +19,7 @@ import javafx.scene.layout.Pane;
 import java.io.IOException;
 import java.util.UUID;
 
-public class ClientViewController {
+public class ClientViewController implements ControllerInterface{
     //region graphical components
     @FXML
     private  Pane mainPane;
@@ -118,5 +118,10 @@ public class ClientViewController {
         ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
        // ListOfClientsProfiles asdasd = jsoMap.loadClientProfileInfo();
         listViewofC.setItems(observClientList);
+    }
+
+    @Override
+    public void updateScreen() {
+
     }
 }

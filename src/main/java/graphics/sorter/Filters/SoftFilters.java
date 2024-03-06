@@ -76,12 +76,12 @@ public class SoftFilters {
     }
     private int getCategory(Assistant as, UUID client){
         int i = 0;
-        System.out.println(as.getName() +" "+ as.getSurname());
+      //  System.out.println(as.getName() +" "+ as.getSurname());
         for(ArrayList<UUID> idList :as.getClientPreference()){
-            System.out.println(client);
+         //   System.out.println(client);
             if(idList.contains(client)){
-                System.out.println("Check");
-                System.out.println(i);
+             //   System.out.println("Check");
+            //    System.out.println(i);
                 return i;
             }
             i++;
