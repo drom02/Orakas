@@ -103,13 +103,12 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         selectedAssistant.setActivityStatus(statusCheckBox.isSelected());
         selectedAssistant.setContractType((String) contractField.getValue());
         selectedAssistant.setLikesOvertime(overtimeCheck.isSelected());
-        selectedAssistant.setWorksOnlyDay(dayCheck.isSelected());
-        selectedAssistant.setWorksOnlyNight(nightCheck.isSelected());
-        selectedAssistant.setWorkTime(Double.parseDouble(workField.getText()));
+        selectedAssistant.setContractTime(Double.parseDouble(workField.getText()));
         selectedAssistant.setComment(comments.getText());
         selectedAssistant.setWorkDays(stateOfDays);
         selectedAssistant.setClientPreference(savePreferred());
         jsoMap.saveAssistantInfo(listOfA);
+        Database.saveAssistant(selectedAssistant);
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getFullAssistantList());
         listViewofA.setItems(observAssistantList);
 
@@ -125,7 +124,8 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         jsoMap= JsonManip.getJsonManip();
         set = jsoMap.loadSettings();
         listOfA = jsoMap.loadAssistantInfo();
-        listOfAssist = listOfA .getFullAssistantList();
+       // listOfAssist = listOfA .getFullAssistantList();
+        listOfAssist = Database.loadAssistants().getAssistantList();
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getFullAssistantList());
         listViewofA.setItems(observAssistantList);
         populateClientOpinion();
@@ -161,10 +161,8 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         statusCheckBox.setSelected(selectedAssistant.getActivityStatus());
         contractField.setValue(selectedAssistant.getContractType());
         overtimeCheck.setSelected(selectedAssistant.getLikesOvertime());
-        dayCheck.setSelected(selectedAssistant.getWorksOnlyDay());
-        nightCheck.setSelected(selectedAssistant.getWorksOnlyNight());
         loadContract();
-        workField.setText(String.valueOf(selectedAssistant.getWorkTime()));
+        workField.setText(String.valueOf(selectedAssistant.getContractTime()));
         comments.setText(selectedAssistant.getComment());
         stateOfDays = selectedAssistant.getWorkDays();
         populateDaysInWeekTable();
@@ -198,7 +196,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
     public void saveNewAssistant(ActionEvent actionEvent) throws IOException {
         if(!(nameField.getText().isEmpty()) & !(surnameField.getText().isEmpty())){
             if(listOfA.getFullAssistantList().isEmpty()){
-                listOfAssist.add(new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), dayCheck.isSelected(), nightCheck.isSelected(), comments.getText(),stateOfDays, savePreferred()));
+                listOfAssist.add(new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), comments.getText(),stateOfDays, savePreferred()));
                 jsoMap.saveAssistantInfo(listOfA);
                 ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getFullAssistantList());
                 listViewofA.setItems(observLocationList);
@@ -211,7 +209,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                 nameAndSurname.add(loc.getName() +" "+ loc.getSurname());
             }
                 if(!( nameAndSurname.contains(nameField.getText() +" "+ surnameField.getText()))){
-                    listOfAssist.add(new Assistant(UUID.randomUUID(),statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), dayCheck.isSelected(), nightCheck.isSelected(), comments.getText(),stateOfDays, savePreferred()));
+                    listOfAssist.add(new Assistant(UUID.randomUUID(),statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), comments.getText(),stateOfDays, savePreferred()));
                     jsoMap.saveAssistantInfo(listOfA);
                     ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getFullAssistantList());
                     listViewofA.setItems(observLocationList);

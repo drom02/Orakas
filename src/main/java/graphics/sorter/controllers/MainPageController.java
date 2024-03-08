@@ -184,8 +184,11 @@ public class MainPageController implements ControllerInterface{
         editedMonth = Month.of(settings.getCurrentMonth());
          areaList = new ArrayList<TextFlow>();
          titleList.clear();
-
-
+         //Database.saveClientDay(LiClMo.getListOfClientMonths().get(0).getClientDaysInMonth().get(0));
+       // Database.saveClientDay(LiClMo.getListOfClientMonths().get(0).getClientNightsInMonth().get(0));
+       //ServiceIntervalArrayList test = Database.loadServiceInterval(LiClMo.getListOfClientMonths().get(0).getClientDaysInMonth().get(0));
+        ClientMonth selectedMonth = listOfClm.getListOfClientMonths().get(0);
+        Database.saveClientMonth(selectedMonth);
         /*
         Vytvoří nadpisy pro jednotlivé dny
          */
@@ -360,6 +363,7 @@ public class MainPageController implements ControllerInterface{
                 listOfClients.getClientList().add(out);
             }
             jsom.saveClientRequirementsForMonth(listOfClm,settings);
+            System.out.println("LoadError");
             return listOfClients;
         }
     }
@@ -966,28 +970,23 @@ public class MainPageController implements ControllerInterface{
             System.out.println("done");
         }
     }
-    public void createNewInterval(ActionEvent actionEvent) throws IOException {
+    public void createNewIntervalAlg() throws IOException {
         ClientDay day = textClientIndex.get(selectedTextArea);
         LocalDateTime startNew = setLocalDateTime(startHoursChoice.getValue(),startMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay());
         LocalDateTime endNew = setLocalDateTime(endHoursChoice.getValue(), + endMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay());
         ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
         ArrayList<ServiceInterval> toBeResized = new ArrayList<>();
-
         boolean alreadyExists = false;
-
         for(ServiceInterval s : day.getDayIntervalList()){
             LocalDateTime start = s.getStart();
             LocalDateTime end = s.getEnd();
             if(start.isEqual(startNew)&&end.isEqual(endNew)){
                 return;
             }
-
             if((startNew.isAfter(start) ||startNew.isEqual(start)) && (startNew.isBefore(end) ||startNew.isEqual(end)) ||
                     (endNew.isAfter(start)||endNew.isEqual(start)) && (endNew.isBefore(end)||endNew.isEqual(end)) ){
                 toBeResized.add(s);
-                //  System.out.println("toBeResized");
             }
-
             if((start.isAfter(startNew)&& end.isBefore(endNew)) || start.isEqual(startNew) && end.isBefore(endNew) || start.isAfter(startNew ) && end.isEqual(endNew) ){
                 //   System.out.println("toBeRemoved");
                 toBeRemoved.add(s);
@@ -1005,49 +1004,114 @@ public class MainPageController implements ControllerInterface{
                 }
                 jsom.saveClientRequirementsForMonth(listOfClm, settings);
                 setIntervalBars(day);
-               return;
+                return;
             }
         }
-            for (ServiceInterval s : toBeResized) {
-                LocalDateTime start = s.getStart();
-                LocalDateTime end = s.getEnd();
-                    if ((startNew.isAfter(start) && startNew.isBefore(end)) & (endNew.isAfter(end) || endNew.isEqual(end))) {
-                        s.setEnd(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
-                        System.out.println("Type 1");
-                    } else if ((startNew.isBefore(start) || startNew.isEqual(start)) & (endNew.isAfter(start) || endNew.isEqual(start) && endNew.isBefore(end) || endNew.isEqual(end))) {
-                        s.setStart(setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
-                        System.out.println("Type 2");
-                    } else if(start.isBefore(startNew) && end.isAfter(endNew)) {
-                        LocalDateTime temp = s.getEnd();
-                        s.setEnd(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
-                        day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
-                                , temp, s.getOverseeingAssistant(), null, true));
-                        System.out.println("Type 3");
-                        break;
-                    }else{
-                        System.out.println("Type Error");
-                        System.out.println("start " + start);
-                        System.out.println("end " + end);
-                        System.out.println("newStart " + startNew);
-                        System.out.println("newEnd " + endNew);
-                    }
+        for (ServiceInterval s : toBeResized) {
+            LocalDateTime start = s.getStart();
+            LocalDateTime end = s.getEnd();
+            if ((startNew.isAfter(start) && startNew.isBefore(end)) & (endNew.isAfter(end) || endNew.isEqual(end))) {
+                s.setEnd(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
+                System.out.println("Type 1");
+            } else if ((startNew.isBefore(start) || startNew.isEqual(start)) & (endNew.isAfter(start) || endNew.isEqual(start) && endNew.isBefore(end) || endNew.isEqual(end))) {
+                s.setStart(setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
+                System.out.println("Type 2");
+            } else if(start.isBefore(startNew) && end.isAfter(endNew)) {
+                LocalDateTime temp = s.getEnd();
+                s.setEnd(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
+                day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
+                        , temp, s.getOverseeingAssistant(), null, false));
+                System.out.println("Type 3");
+                break;
+            }else{
+                System.out.println("Type Error");
+                System.out.println("start " + start);
+                System.out.println("end " + end);
+                System.out.println("newStart " + startNew);
+                System.out.println("newEnd " + endNew);
             }
-            day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
-                    , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), day.getDayIntervalList().get(0).getOverseeingAssistant(), null, true));
-            if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
-                intervalOverreach(startNew, endNew);
+        }
+        day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
+                , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), day.getDayIntervalList().get(0).getOverseeingAssistant(), null, false));
+        if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
+            intervalOverreach(startNew, endNew);
+        }
+        jsom.saveClientRequirementsForMonth(listOfClm, settings);
+        day.getDayIntervalListUsefull().get(0).setComment("Testing save logic");
+        setIntervalBars(day);
+        System.out.println("done");
+    }
+    public void saveIntervalAlg() throws IOException {
+        ClientDay day = textClientIndex.get(selectedTextArea);
+        day.getDayIntervalList().remove(selectedInterval);
+        LocalDateTime startNew = setLocalDateTime(startHoursChoice.getValue(),startMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay());
+        LocalDateTime endNew = setLocalDateTime(endHoursChoice.getValue(), + endMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay());
+        selectedInterval.setStart(startNew);
+        selectedInterval.setEnd(endNew);
+        ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
+        ArrayList<ServiceInterval> toBeResized = new ArrayList<>();
+        for(ServiceInterval s : day.getDayIntervalList()){
+            LocalDateTime start = s.getStart();
+            LocalDateTime end = s.getEnd();
+            if(start.isEqual(startNew)&&end.isEqual(endNew)){
+                return;
             }
-            jsom.saveClientRequirementsForMonth(listOfClm, settings);
-            day.getDayIntervalListUsefull().get(0).setComment("Testing save logic");
-            setIntervalBars(day);
-            System.out.println("done");
+            if((startNew.isAfter(start) ||startNew.isEqual(start)) && (startNew.isBefore(end) ||startNew.isEqual(end)) ||
+                    (endNew.isAfter(start)||endNew.isEqual(start)) && (endNew.isBefore(end)||endNew.isEqual(end)) ){
+                toBeResized.add(s);
+            }
+            if((start.isAfter(startNew)&& end.isBefore(endNew)) || start.isEqual(startNew) && end.isBefore(endNew) || start.isAfter(startNew ) && end.isEqual(endNew) ){
+                //   System.out.println("toBeRemoved");
+                toBeRemoved.add(s);
+            }
+        }
+        for(ServiceInterval serv : toBeRemoved){
+            Assistant as = serv.getOverseeingAssistant();
+            day.getDayIntervalList().remove(serv);
+            if(day.getDayIntervalList().isEmpty()){
+
+                day.getDayIntervalList().add(selectedInterval);
+                if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
+                    intervalOverreach(startNew, endNew);
+                }
+                jsom.saveClientRequirementsForMonth(listOfClm, settings);
+                setIntervalBars(day);
+                return;
+            }
+        }
+        for (ServiceInterval s : toBeResized) {
+            LocalDateTime start = s.getStart();
+            LocalDateTime end = s.getEnd();
+            if ((startNew.isAfter(start) && startNew.isBefore(end)) & (endNew.isAfter(end) || endNew.isEqual(end))) {
+                s.setEnd(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
+                System.out.println("Type 1");
+            } else if ((startNew.isBefore(start) || startNew.isEqual(start)) & (endNew.isAfter(start) || endNew.isEqual(start) && endNew.isBefore(end) || endNew.isEqual(end))) {
+                s.setStart(setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
+                System.out.println("Type 2");
+            }else{
+                System.out.println("Type Error");
+                System.out.println("start " + start);
+                System.out.println("end " + end);
+                System.out.println("newStart " + startNew);
+                System.out.println("newEnd " + endNew);
+            }
+        }
+        day.getDayIntervalList().add(selectedInterval);
+        if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
+            intervalOverreach(startNew, endNew);
+        }
+        jsom.saveClientRequirementsForMonth(listOfClm, settings);
+        //day.getDayIntervalListUsefull().get(0).setComment("Testing save logic");
+        setIntervalBars(day);
+    }
+    public void createNewInterval(ActionEvent actionEvent) throws IOException {
+       createNewIntervalAlg();
 
     }
     public void intervalOverreach( LocalDateTime newStart, LocalDateTime newEnd){
        // LocalDateTime defStart = LocalDateTime.of(settings.getDeftStart()[0],settings.getDeftStart()[1]);
        // LocalDateTime defEnd = settings.getDefEnd();
         if(newStart.getDayOfMonth() == 1||
-
                 newEnd.getDayOfMonth() == newEnd.getMonth().length(Year.isLeap(newStart.getYear()))+1){
             //TODO case for edge days
             return;
@@ -1135,7 +1199,8 @@ public class MainPageController implements ControllerInterface{
 
     }
     public void saveIntervalChanges(ActionEvent actionEvent) throws IOException {
-        ClientDay editedDay = textClientIndex.get(selectedTextArea);
+        /*
+         ClientDay editedDay = textClientIndex.get(selectedTextArea);
         if(selectedInterval.equals(editedDay.getDayIntervalList().getFirst()) || selectedInterval.equals(editedDay.getDayIntervalList().getLast())){
             System.out.println(startHoursChoice.getValue() + startMinutesChoice.getValue());
             selectedInterval.setComment(intervalCommentArea.getText());
@@ -1152,6 +1217,8 @@ public class MainPageController implements ControllerInterface{
         selectedInterval.setNotRequired(isRequiredCheckBox.isSelected());
         setIntervalBars(editedDay);
         jsom.saveClientRequirementsForMonth(listOfClm,settings);
+         */
+       saveIntervalAlg();
         System.out.println("Saved");
 
     }

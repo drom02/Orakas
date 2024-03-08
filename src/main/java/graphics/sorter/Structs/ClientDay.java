@@ -6,21 +6,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import graphics.sorter.Location;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 public class ClientDay {
 
-    private boolean isMerged = false;
+
     private UUID client;
+    private boolean isMerged = false;
+    private boolean isDay = false;
     private Integer day;
     private Month month;
     private  Integer year;
     private Location location;
-    private int[] defStarTime;
-    private int[] defEndTime;
+    private LocalDateTime defStarTime;
+    private LocalDateTime defEndTime;
     private ServiceIntervalArrayList dayIntervalList = new ServiceIntervalArrayList();
 
     public void test(){
@@ -40,14 +41,19 @@ public class ClientDay {
 
     }
     @JsonCreator
-     ClientDay(@JsonProperty("client")UUID client,@JsonProperty("dayI")Integer dayI, @JsonProperty("monthI")Month monthI, @JsonProperty("year")Integer yearI, @JsonProperty("defStarTime") LocalDateTime defStarTime, @JsonProperty("defEndTime")LocalDateTime defEndTime, @JsonProperty("Location")Location location, @JsonProperty("isMerged")boolean ismerged ){
+     public ClientDay(@JsonProperty("client")UUID client,@JsonProperty("dayI")Integer dayI,
+               @JsonProperty("monthI")Month monthI, @JsonProperty("year")Integer yearI,
+               @JsonProperty("defStarTime") LocalDateTime defStarTime, @JsonProperty("defEndTime")LocalDateTime defEndTime,
+               @JsonProperty("Location")Location location, @JsonProperty("isMerged")boolean ismerged, @JsonProperty("isDay")boolean isDay){
+        
         ServiceInterval def = new ServiceInterval(defStarTime, defEndTime, null, null,false);
         this.dayIntervalList.add(def);
-        this.day = dayI;
+        setDay(dayI);
         this.month = monthI;
         this.year = yearI;
         this.location = location;
         this.isMerged = ismerged;
+        setDayStatus(isDay);
         setClient(client);
     }
 
@@ -59,20 +65,27 @@ public class ClientDay {
         isMerged = merged;
     }
 
-    public int[] getDefStarTime() {
+    public LocalDateTime getDefStarTime() {
         return defStarTime;
     }
 
-    public void setDefStarTime(int[] defStarTime) {
+    public void setDefStarTime(LocalDateTime defStarTime) {
         this.defStarTime = defStarTime;
     }
 
-    public int[] getDefEndTime() {
+    public LocalDateTime getDefEndTime() {
         return defEndTime;
     }
 
-    public void setDefEndTime(int[] defEndTime) {
+    public void setDefEndTime(LocalDateTime defEndTime) {
         this.defEndTime = defEndTime;
+    }
+    public boolean getDayStatus() {
+        return isDay;
+    }
+
+    public void setDayStatus(boolean day) {
+        isDay = day;
     }
     public Integer getDay() {
         return day;

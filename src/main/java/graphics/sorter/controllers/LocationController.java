@@ -45,7 +45,8 @@ public class LocationController implements ControllerInterface{
     public void initialize() throws IOException {
         jsoMap= JsonManip.getJsonManip();
         set = jsoMap.loadSettings();
-        listOfL = jsoMap.loadLocations(set);
+       // listOfL = jsoMap.loadLocations(set);
+        listOfL = Database.loadLocations();
         listOfLoc = listOfL .getListOfLocations();
         ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
         listViewofL.setItems(observLocationList);
@@ -80,6 +81,11 @@ public class LocationController implements ControllerInterface{
     }
 
     public void saveLocation(MouseEvent mouseEvent) {
+      //  Database.dataTest();
+       // Database.testUser();
+       // Database.testLoad();
+      //  Database.saveLocation(selectedLocationGlobal);
+       // Database.loadLocation(selectedLocationGlobal.getID());
     }
 
     public void loadLocation(MouseEvent mouseEvent) {

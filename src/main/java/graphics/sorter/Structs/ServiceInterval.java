@@ -8,12 +8,13 @@ import graphics.sorter.Location;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 public class ServiceInterval {
     private Assistant overseeingAssistant;
     private LocalDateTime start;
     private LocalDateTime end;
-    private Location location;
+    private UUID location;
     private boolean isNotRequired;
     private String comment;
 //Přidat truncate form
@@ -26,7 +27,11 @@ public class ServiceInterval {
 
      */
     @JsonCreator
-    public ServiceInterval(@JsonProperty("start") LocalDateTime start, @JsonProperty("end") LocalDateTime end, @JsonProperty("overseeingAssistant") Assistant overseeingAssistant, @JsonProperty("comment") String comment, @JsonProperty("isNotRequired") boolean isNotRequired){
+    public ServiceInterval(@JsonProperty("start") LocalDateTime start,
+                           @JsonProperty("end") LocalDateTime end,
+                           @JsonProperty("overseeingAssistant") Assistant overseeingAssistant,
+                           @JsonProperty("comment") String comment,
+                           @JsonProperty("isNotRequired") boolean isNotRequired){
         this.start = start;
         this.end = end;
         this.overseeingAssistant = overseeingAssistant != null ? overseeingAssistant : null;
@@ -69,11 +74,11 @@ public class ServiceInterval {
             }
     }
 
-    public Location getLocation() {
+    public UUID getLocation() {
         return location;
     }
 
-    public void setLocation(Location location) {
+    public void setLocation(UUID location) {
         this.location = location;
     }
     public boolean getIsNotRequired() {

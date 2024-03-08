@@ -7,12 +7,14 @@ import graphics.sorter.Structs.ListOfLocations;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.chart.PieChart;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 public class Start extends Application {
     @Override
@@ -25,13 +27,12 @@ public class Start extends Application {
        // jsoM.jsonTest();
         FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("start-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 640, 480);
-
         stage.setTitle("Sorter");
         stage.setScene(scene);
         stage.show();
-
         ValidateFiles valid = new ValidateFiles();
         valid.run();
+        Database.prepareTables();
     }
 
     public static void main(String[] args) {
@@ -45,7 +46,7 @@ public class Start extends Application {
         byte[]  jsonData = Files.readAllBytes(Paths.get(".\\Settings.json"));
         lot = objectMapper.readValue(jsonData, Settings.class );
         } catch (IOException e) {
-            System.out.println("error");
+          //  System.out.println("error");
             try {
                 Settings.createNewSettingsFile();
             } catch (IOException ex) {

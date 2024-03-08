@@ -55,7 +55,7 @@ public class StartViewController  {
        Platform.runLater(() -> {Stage stag = (Stage)tab.getContent().getScene().getWindow();
            ControllerInterface cont = map.get(tab).getController();
            cont.updateScreen();
-           System.out.println("Error");});
+           });
 
    }
 }

@@ -11,6 +11,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
@@ -52,6 +53,7 @@ public class ClientViewController implements ControllerInterface{
             selectedClient.setActivityStatus(statusChoiceBox.isSelected());
             selectedClient.setHomeLocation((Location) homeLocationBox.getValue());
             jsoMap.saveClientInfo(listOfc);
+            Database.saveClientProfile(selectedClient);
             ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
             listViewofC.setItems(observClientList);
         }
@@ -79,6 +81,7 @@ public class ClientViewController implements ControllerInterface{
         jsoMap= JsonManip.getJsonManip();
         settings = jsoMap.loadSettings();
         listOfc = jsoMap.loadClientProfileInfo();
+        //listOfc = Database.loadClientProfiles();
         ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
         listViewofC.setItems(observClientList);
         Platform.runLater(() -> {

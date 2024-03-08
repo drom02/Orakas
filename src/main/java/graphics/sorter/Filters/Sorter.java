@@ -42,7 +42,7 @@ public class Sorter {
         Soft filters have to be applied after all hard filters.
          */
         HashMap<UUID,Integer> soft;
-       soft = softFilters.prepare(availableAssistantsID);
+        soft = softFilters.prepare(availableAssistantsID);
          softFilters.penalizeRecent(soft,getAssistantMonthShifts().generateHashMapLatestShift(availableAssistantsID),day,1);
          softFilters.clientPreference(soft,cl.getClient(),availableAssistants);
          softFilters.output(availableAssistantsID,soft);

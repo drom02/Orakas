@@ -100,25 +100,29 @@ public class JsonManip {
         ListOfAssistants listOfA = objectMapper.readValue(jsonData, ListOfAssistants.class );
         return listOfA;
     }
-    public ListOfClients loadClientInfo(Settings set) throws IOException {
+    public ListOfClients loadClientInfo(Settings set)  {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
+        try {
         byte[]  jsonData = Files.readAllBytes(Paths.get(path+"Clients\\Clients.json"));
         ListOfClientsProfiles listOfA = objectMapper.readValue(jsonData, ListOfClientsProfiles.class );
-        byte[]  jsonDataMonth = Files.readAllBytes(Paths.get(set.getFilePath()+  "ClientRequirements\\ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"));
-        ListOfClientMonths listOfClm = objectMapper.readValue(jsonDataMonth, ListOfClientMonths.class );
-        ListOfClients listOfClients = new ListOfClients();
-        for(ClientProfile clP: listOfA.getClientList()){
-            Client out;
-            if(!(listOfClm.getMonthOfSpecificClient(clP.getID()) == null)){
-                out = clP.convertToClient(listOfClm.getMonthOfSpecificClient(clP.getID()));
-            }else{
-                out = clP.convertToClient(new ClientMonth(Month.of(set.getCurrentMonth()), set.getCurrentYear(), clP.getID(), clP.getHomeLocation()));
+        byte[]  jsonDataMonth = new byte[0];
+        jsonDataMonth = Files.readAllBytes(Paths.get(set.getFilePath()+  "ClientRequirements\\ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"));
+            ListOfClientMonths listOfClm = objectMapper.readValue(jsonDataMonth, ListOfClientMonths.class );
+            ListOfClients listOfClients = new ListOfClients();
+            for(ClientProfile clP: listOfA.getClientList()){
+                Client out;
+                if(!(listOfClm.getMonthOfSpecificClient(clP.getID()) == null)){
+                    out = clP.convertToClient(listOfClm.getMonthOfSpecificClient(clP.getID()));
+                }else{
+                    out = clP.convertToClient(new ClientMonth(Month.of(set.getCurrentMonth()), set.getCurrentYear(), clP.getID(), clP.getHomeLocation()));
+                }
+                listOfClients.getClientList().add(out);
             }
-            listOfClients.getClientList().add(out);
+            return listOfClients;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        return listOfClients;
     }
     public ListOfClientsProfiles loadClientProfileInfo() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -155,6 +159,7 @@ public class JsonManip {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.writeValue(new File(set.getFilePath()+  "ClientRequirements\\ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"),lias);
+
     }
     public ListOfClientMonths loadClientRequirementsForMonth( Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();

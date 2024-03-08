@@ -13,6 +13,7 @@ module graphics.sorter {
     requires com.fasterxml.jackson.datatype.jsr310;
     requires com.opencsv;
     requires org.apache.poi.ooxml;
+    requires java.sql;
 
     opens graphics.sorter to javafx.fxml, com.fasterxml.jackson.databind;
     exports graphics.sorter;

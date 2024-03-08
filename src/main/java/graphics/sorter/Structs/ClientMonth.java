@@ -19,6 +19,8 @@ public class ClientMonth {
 
 
     private UUID clientId;
+    private Month mon;
+    private int year;
     private ArrayList<ClientDay> clientDaysInMonth = new ArrayList<ClientDay>();
     private ArrayList<ClientDay> clientNightsInMonth = new ArrayList<ClientDay>();
     private JsonManip jsoM = JsonManip.getJsonManip();
@@ -39,8 +41,7 @@ public class ClientMonth {
         this.year = year;
     }
 
-    private Month mon;
-    private int year;
+
 
     @JsonCreator
    public  ClientMonth(@JsonProperty("mon")Month mon,@JsonProperty("year") int year,@JsonProperty("clientId") UUID clientId,@JsonProperty("location") Location location ){
@@ -54,29 +55,29 @@ public class ClientMonth {
         int dayDefMin = 30;
         int nightDefHour = 20;
         int nightDefMin = 30;
-        ClientDay  newDay0 = new ClientDay(clientId,1,mon, year, LocalDateTime.of(year,mon.getValue(),1,dayDefHour,dayDefMin),LocalDateTime.of(year,mon.getValue(),1,nightDefHour,nightDefMin), location,false);
+        ClientDay  newDay0 = new ClientDay(clientId,1,mon, year, LocalDateTime.of(year,mon.getValue(),1,dayDefHour,dayDefMin),LocalDateTime.of(year,mon.getValue(),1,nightDefHour,nightDefMin), location,false, true);
         ClientDay  newNight0;
         if(mon.getValue()>1){
-              newNight0 = new ClientDay(clientId,1,mon, year, LocalDateTime.of(year,mon.getValue()-1,Month.of(mon.getValue()-1).length(Year.isLeap(year)),nightDefHour,nightDefMin),LocalDateTime.of(year,mon.getValue(),1,dayDefHour,dayDefMin), location,false);
+              newNight0 = new ClientDay(clientId,1,mon, year, LocalDateTime.of(year,mon.getValue()-1,Month.of(mon.getValue()-1).length(Year.isLeap(year)),nightDefHour,nightDefMin),LocalDateTime.of(year,mon.getValue(),1,dayDefHour,dayDefMin), location,false,false);
         }else{
-              newNight0 = new ClientDay(clientId,1,mon, year, LocalDateTime.of(year-1,12,Month.of(mon.getValue()-1).length(Year.isLeap(year)),nightDefHour,nightDefMin),LocalDateTime.of(year,mon.getValue(),1,dayDefHour,dayDefMin), location,false);
+              newNight0 = new ClientDay(clientId,1,mon, year, LocalDateTime.of(year-1,12,Month.of(mon.getValue()-1).length(Year.isLeap(year)),nightDefHour,nightDefMin),LocalDateTime.of(year,mon.getValue(),1,dayDefHour,dayDefMin), location,false,false);
         }
        // clientDaysInMonth.add(newDay0);
         //clientNightsInMonth.add(newNight0);
         int i = 1;
         while(i <= mon.length(cal.isLeapYear(year))-1){
-            ClientDay newDay = new ClientDay(clientId,i,mon, year,LocalDateTime.of(year,mon.getValue(),i,dayDefHour,dayDefMin),LocalDateTime.of(year,mon.getValue(),i,nightDefHour,nightDefMin), location,false);
-            ClientDay newNight = new ClientDay(clientId,i,mon, year,LocalDateTime.of(year,mon.getValue(),i,nightDefHour,nightDefMin),LocalDateTime.of(year,mon.getValue(),i+1,dayDefHour,dayDefMin), location,false);
+            ClientDay newDay = new ClientDay(clientId,i,mon, year,LocalDateTime.of(year,mon.getValue(),i,dayDefHour,dayDefMin),LocalDateTime.of(year,mon.getValue(),i,nightDefHour,nightDefMin), location,false,true);
+            ClientDay newNight = new ClientDay(clientId,i,mon, year,LocalDateTime.of(year,mon.getValue(),i,nightDefHour,nightDefMin),LocalDateTime.of(year,mon.getValue(),i+1,dayDefHour,dayDefMin), location,false,false);
             clientDaysInMonth.add(newDay);
             clientNightsInMonth.add(newNight);
             i++;
         }
-        ClientDay  newDayLast = new ClientDay(clientId,mon.length(cal.isLeapYear(year)),mon, year, LocalDateTime.of(year,mon.getValue(),mon.length(cal.isLeapYear(year)),dayDefHour,dayDefMin),LocalDateTime.of(year,mon.getValue(),mon.length(cal.isLeapYear(year)),nightDefHour,nightDefMin), location,false);
+        ClientDay  newDayLast = new ClientDay(clientId,mon.length(cal.isLeapYear(year)),mon, year, LocalDateTime.of(year,mon.getValue(),mon.length(cal.isLeapYear(year)),dayDefHour,dayDefMin),LocalDateTime.of(year,mon.getValue(),mon.length(cal.isLeapYear(year)),nightDefHour,nightDefMin), location,false,true);
         ClientDay  newNightLast;
         if(mon.getValue() != 12){
-            newNightLast = new ClientDay(clientId,mon.length(cal.isLeapYear(year)),mon, year, LocalDateTime.of(year,mon.getValue(),mon.length(cal.isLeapYear(year)),nightDefHour,nightDefMin),LocalDateTime.of(year,mon.getValue()+1,1,dayDefHour,dayDefMin), location,false);
+            newNightLast = new ClientDay(clientId,mon.length(cal.isLeapYear(year)),mon, year, LocalDateTime.of(year,mon.getValue(),mon.length(cal.isLeapYear(year)),nightDefHour,nightDefMin),LocalDateTime.of(year,mon.getValue()+1,1,dayDefHour,dayDefMin), location,false,false);
         }else{
-            newNightLast = new ClientDay(clientId,mon.length(cal.isLeapYear(year)),mon, year, LocalDateTime.of(year,mon,mon.length(cal.isLeapYear(year)),nightDefHour,nightDefMin),LocalDateTime.of(year+1,1,1,dayDefHour,dayDefMin), location,false);
+            newNightLast = new ClientDay(clientId,mon.length(cal.isLeapYear(year)),mon, year, LocalDateTime.of(year,mon,mon.length(cal.isLeapYear(year)),nightDefHour,nightDefMin),LocalDateTime.of(year+1,1,1,dayDefHour,dayDefMin), location,false,false);
         }
         clientDaysInMonth.add(newDayLast);
         clientNightsInMonth.add(newNightLast);

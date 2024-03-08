@@ -5,39 +5,30 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.UUID;
 
 public class Assistant extends Human{
     //Typ pracovní smlouvy
     private String ContractType;
     //Hodnota pro contract type
-    private double workTime;
+    private double contractTime;
     //Zda preferuje pracovat přesčasy
     private boolean likesOvertime;
-    //Zda pracuje pouze denní směny
-    private boolean worksOnlyDay;
-    //Zda pracuje pouze noční směny
-    private boolean worksOnlyNight;
-    //Komentáře k danému assisentovi
     //Seznam klientů a vztahu s nimi
-    private ArrayList<Client> clientList;
     private ArrayList<ArrayList<UUID>> clientPreference;
     private int[] workDays;
     @JsonCreator
      public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("status")boolean status,@JsonProperty("name")String name, @JsonProperty("surname")String surname,
                       @JsonProperty("contract")String contract, @JsonProperty("work")double work, @JsonProperty("overtime")boolean overtime,
-                      @JsonProperty("worksDay")boolean worksDay, @JsonProperty("worksNight")boolean worksNight, @JsonProperty("comments")String comments,
-                      @JsonProperty("workDays")int[] workDays, @JsonProperty("clientPreference") ArrayList<ArrayList<UUID>> clientpreference){
+                      @JsonProperty("comments")String comments, @JsonProperty("workDays")int[] workDays,
+                      @JsonProperty("clientPreference") ArrayList<ArrayList<UUID>> clientpreference){
         setID(ID);
         setActivityStatus(status);
         setName(name);
         setSurname(surname);
         setContractType(contract);
-        setWorkTime(work);
+        setContractTime(work);
         setLikesOvertime(overtime);
-        setWorksOnlyDay(worksDay);
-        setWorksOnlyNight(worksNight);
         setComment(comments);
         setClientPreference(clientpreference);
         if( (workDays == null)){
@@ -53,12 +44,12 @@ public class Assistant extends Human{
     public void setContractType(String contractType) {
         ContractType = contractType;
     }
-    public double getWorkTime() {
-        return workTime;
+    public double getContractTime() {
+        return contractTime;
     }
 
-    public void setWorkTime(double workTime) {
-        this.workTime = workTime;
+    public void setContractTime(double contractTime) {
+        this.contractTime = contractTime;
     }
 
     public Boolean getLikesOvertime() {
@@ -69,53 +60,12 @@ public class Assistant extends Human{
         this.likesOvertime = likesOvertime;
     }
 
-    public Boolean getWorksOnlyDay() {
-        return worksOnlyDay;
-    }
-
-    public void setWorksOnlyDay(Boolean worksOnlyDay) {
-        this.worksOnlyDay = worksOnlyDay;
-    }
-
-    public Boolean getWorksOnlyNight() {
-        return worksOnlyNight;
-    }
-
-    public void setWorksOnlyNight(Boolean worksOnlyNight) {
-        this.worksOnlyNight = worksOnlyNight;
-    }
-    @JsonIgnore
-       public ArrayList<Client> getClientList() {
-        return clientList;
-    }
-
-    public void setClientList(ArrayList<Client> clientList) {
-        this.clientList = clientList;
-    }
-
-
     public boolean isLikesOvertime() {
         return likesOvertime;
     }
 
     public void setLikesOvertime(boolean likesOvertime) {
         this.likesOvertime = likesOvertime;
-    }
-
-    public boolean isWorksOnlyDay() {
-        return worksOnlyDay;
-    }
-
-    public void setWorksOnlyDay(boolean worksOnlyDay) {
-        this.worksOnlyDay = worksOnlyDay;
-    }
-
-    public boolean isWorksOnlyNight() {
-        return worksOnlyNight;
-    }
-
-    public void setWorksOnlyNight(boolean worksOnlyNight) {
-        this.worksOnlyNight = worksOnlyNight;
     }
 
     public int[] getWorkDays() {
