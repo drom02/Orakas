@@ -1,6 +1,7 @@
 package graphics.sorter.controllers;
 
 import graphics.sorter.*;
+import graphics.sorter.Structs.ClientProfileCellFactory;
 import graphics.sorter.Structs.HumanCellFactory;
 import graphics.sorter.Structs.ListOfClientsProfiles;
 import javafx.application.Platform;
@@ -27,13 +28,13 @@ public class ClientViewController implements ControllerInterface{
     @FXML
     private  GridPane mainGrid;
     @FXML
-    private ChoiceBox homeLocationBox;
+    private ChoiceBox<Location> homeLocationBox;
     @FXML
     private TextField nameField;
     @FXML
     private CheckBox statusChoiceBox;
     @FXML
-    private ListView listViewofC;
+    private ListView<ClientProfile> listViewofC;
     @FXML
     private TextArea comments;
     @FXML
@@ -43,7 +44,6 @@ public class ClientViewController implements ControllerInterface{
     private Settings settings;
     private ListOfClientsProfiles listOfc;
     private ClientProfile selectedClient;
-    private JsonManip jsoMap;
     //endregion
     public void saveClient(MouseEvent mouseEvent) throws IOException {
         if(selectedClient != null){
@@ -52,7 +52,7 @@ public class ClientViewController implements ControllerInterface{
             selectedClient.setComment(comments.getText());
             selectedClient.setActivityStatus(statusChoiceBox.isSelected());
             selectedClient.setHomeLocation((Location) homeLocationBox.getValue());
-            jsoMap.saveClientInfo(listOfc);
+            //jsoMap.saveClientInfo(listOfc);
             Database.saveClientProfile(selectedClient);
             ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
             listViewofC.setItems(observClientList);
@@ -65,42 +65,30 @@ public class ClientViewController implements ControllerInterface{
             surnameField.setText(selectedClient.getSurname());
             comments.setText(selectedClient.getComment());
             statusChoiceBox.setSelected(selectedClient.getActivityStatus());
-            homeLocationBox.getItems().setAll(jsoMap.loadLocations(settings).getListOfLocations());
+            homeLocationBox.getItems().setAll(Database.loadLocations().getListOfLocations());
             homeLocationBox.setValue(selectedClient.getHomeLocation());
         }
-
-
-    }
-    public void newClient() throws IOException {
-        ClientProfile clip = new ClientProfile(UUID.randomUUID(),selectedClient.getActivityStatus(),selectedClient.getName(),selectedClient.getSurname(), selectedClient.getHomeLocation(),selectedClient.getComment());
-        listOfc.getFullClientList().add(clip);
-        jsoMap.saveClientInfo(listOfc);
     }
     public void initialize() throws IOException {
-        listViewofC.setCellFactory(new HumanCellFactory());
-        jsoMap= JsonManip.getJsonManip();
-        settings = jsoMap.loadSettings();
-        listOfc = jsoMap.loadClientProfileInfo();
+        listViewofC.setCellFactory(new ClientProfileCellFactory());
+        settings = JsonManip.loadSettings();
+        listOfc = Database.loadClientProfiles();
         //listOfc = Database.loadClientProfiles();
+        homeLocationBox.getItems().setAll(Database.loadLocations().getListOfLocations());
         ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
         listViewofC.setItems(observClientList);
         Platform.runLater(() -> {
             GraphicalFunctions.screenResizing(mainPane,mainGrid);
-
         });
     }
-
-
-    public void switchPage(ActionEvent actionEvent) throws IOException {
-        Scene scen = listViewofC.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("Main-view.fxml"));
-        Parent rot = fxmlLoader.load();
-        scen.setRoot(rot);
-    }
-
     public void deleteClient(MouseEvent mouseEvent) throws IOException {
         listOfc.getFullClientList().remove(selectedClient);
-        jsoMap.saveClientInfo(listOfc);
+        Database.softDeleteClient(selectedClient);
+        if(listOfc.getFullClientList().isEmpty()){
+            selectedClient = null;
+        }else{
+            selectedClient = listOfc.getFullClientList().getFirst();
+        }
         nameField.clear();
         homeLocationBox.getItems().clear();
         surnameField.clear();
@@ -109,15 +97,10 @@ public class ClientViewController implements ControllerInterface{
         listViewofC.setItems(observClientList);
 
     }
-
-    public void saveNewClient(ActionEvent actionEvent) throws IOException {
-        ClientProfile clip = new ClientProfile(UUID.randomUUID(),statusChoiceBox.isSelected(), nameField.getText(),surnameField.getText(), null ,comments.getText());
+    public void saveNewClient(ActionEvent actionEvent) {
+        ClientProfile clip = new ClientProfile(UUID.randomUUID(),statusChoiceBox.isSelected(), nameField.getText(),surnameField.getText(), homeLocationBox.getValue() ,comments.getText());
         listOfc.getFullClientList().add(clip);
-        try {
-            jsoMap.saveClientInfo(listOfc);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Database.saveClientProfile(clip);
         ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
        // ListOfClientsProfiles asdasd = jsoMap.loadClientProfileInfo();
         listViewofC.setItems(observClientList);

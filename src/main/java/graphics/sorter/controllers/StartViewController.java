@@ -12,8 +12,10 @@ import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class StartViewController  {
     @FXML
@@ -22,23 +24,21 @@ public class StartViewController  {
     public void  initialize()  {
         String[] str = new String[] {"Main-view","shiftPicker-view","client-view","assistant-view","Location-view"};
         String[] title = new String[] {"Main-view","shiftPicker-view","client-view","assistant-view","Location-view"};
+        ArrayList<CompletableFuture> futures = new ArrayList<>();
         mainTabPane.getTabs().clear();
         Platform.runLater(() -> {
             for(String stri : str){
-                FXMLLoader loader = new FXMLLoader(Start.class.getResource(stri+".fxml"));
-
-                Parent root = null;
-                try {
-                    root = loader.load();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-                Tab tab = new Tab(stri);
-                map.put(tab,loader);
-                tab.setContent(root);
-                mainTabPane.getTabs().add(tab);
-
+                    FXMLLoader loader = new FXMLLoader(Start.class.getResource(stri+".fxml"));
+                    Parent root = null;
+                    try {
+                        root = loader.load();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    Tab tab = new Tab(stri);
+                    map.put(tab,loader);
+                    tab.setContent(root);
+                    mainTabPane.getTabs().add(tab);
             }
             });
         mainTabPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {

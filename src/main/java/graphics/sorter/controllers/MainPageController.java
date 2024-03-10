@@ -23,6 +23,7 @@ import java.time.*;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 public class MainPageController implements ControllerInterface{
@@ -64,9 +65,9 @@ public class MainPageController implements ControllerInterface{
     @FXML
     private DatePicker datePick;
     @FXML
-    private Text selectedYearValue;
+    private Text selectedYearValueVisual;
     @FXML
-    private Text selectedMonthValue;
+    private Text selectedMonthValueVisual;
     @FXML
     private GridPane mainGrid;
     @FXML
@@ -82,7 +83,7 @@ public class MainPageController implements ControllerInterface{
     private ArrayList<TextFlow> areaList ;
     private ArrayList<TextFlow> titleList = new ArrayList<TextFlow>();
     private ArrayList<StackPane> clientCardList= new ArrayList<StackPane>();
-    private JsonManip jsom = JsonManip.getJsonManip();
+    //private JsonManip jsom = JsonManip.getJsonManip();
     private Settings settings;
     private GridPane dayGrid = new GridPane();
     private Boolean isMenuVisible = false;
@@ -96,6 +97,8 @@ public class MainPageController implements ControllerInterface{
     private ArrayList<ChangeListener<Integer>> listOfObserv = new ArrayList<>();
     private ServiceInterval selectedInterval;
     private GraphicalSettings GS= new GraphicalSettings(null,null);
+    private int selectedYearValue;
+    private int selectedMonthValue;
     //endregion
     public void initialize() throws IOException {
 
@@ -108,18 +111,17 @@ public class MainPageController implements ControllerInterface{
         });
         populateClientIndex();
         isMenuVisible = false;
-        settings = jsom.loadSettings();
-        ListOfLocations listOfLocations = jsom.loadLocations(settings);
-        selectedYearValue.setText(String.valueOf(settings.getCurrentYear()));
-        selectedMonthValue.setText(String.valueOf(settings.getCurrentMonth()));
+        settings = JsonManip.loadSettings();
+      //  ListOfLocations listOfLocations = jsom.loadLocations(settings);
+        selectedYearValueVisual.setText(String.valueOf(settings.getCurrentYear()));
+        selectedMonthValueVisual.setText(String.valueOf(settings.getCurrentMonth()));
+        selectedYearValue = settings.getCurrentYear();
+        selectedMonthValue = settings.getCurrentMonth();
         locationChoiceBox.setOnAction(this :: selectLocation);
-        try {
-            ArrayList<Location> lic = jsom.loadLocations(settings).getListOfLocations();
-            lic.add(null);
-            locationChoiceBox.getItems().setAll(lic);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        ArrayList<Location> lic = Objects.requireNonNull(Database.loadLocations()).getListOfLocations();
+        lic.add(null);
+        locationChoiceBox.getItems().setAll(lic);
+        System.out.println("lol");
         populateView(getClientsOfMonth(settings));
         mainGrid.setConstraints(calendarScrollPane,mainGrid.getColumnIndex(calendarScrollPane),mainGrid.getRowIndex(calendarScrollPane),mainGrid.getColumnSpan(calendarScrollPane),mainGrid.getRowSpan(calendarScrollPane)+1);
         attachObservers();
@@ -134,8 +136,8 @@ public class MainPageController implements ControllerInterface{
         // barGrid.maxWidthProperty().bind(dayInfoGrid.widthProperty());
     }
     private void populateClientIndex() throws IOException {
-        ListOfClientsProfiles l = jsom.loadClientProfileInfo();
-        for(ClientProfile clip : l.getFullClientList()){
+        ListOfClientsProfiles l = Database.loadClientProfiles();
+        for(ClientProfile clip : Objects.requireNonNull(l).getFullClientList()){
             clientIndex.put(clip.getID(),clip);
         }
     }
@@ -169,26 +171,21 @@ public class MainPageController implements ControllerInterface{
         }
         selectedYear.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-font-style: italic;");
         selectedMonth.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-font-style: italic;");
-        selectedYearValue.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-font-style: italic;");
-        selectedMonthValue.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-font-style: italic;-fx-fill: #FF0000;");
+        selectedYearValueVisual.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-font-style: italic;");
+        selectedMonthValueVisual.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-font-style: italic;-fx-fill: #FF0000;");
         sideGrid.setStyle("-fx-control-inner-background:" +GS.getColors().get("SecondaryColor") +";");
 
     }
     public void populateView(ListOfClients LiCcl){
         dayGrid.getChildren().clear();
-        ListOfClientMonths LiClMo = new ListOfClientMonths();
+        listOfClm = new ListOfClientMonths();
         for(Client cl : LiCcl.getClientList()){
-            LiClMo.getListOfClientMonths().add(cl.getClientsMonth());
+            listOfClm.getListOfClientMonths().add(Database.loadClientMonth(settings.getCurrentYear(),settings.getCurrentMonth(),cl.getID()));
         }
         //vytahnout y klientu m2s9c2
         editedMonth = Month.of(settings.getCurrentMonth());
          areaList = new ArrayList<TextFlow>();
          titleList.clear();
-         //Database.saveClientDay(LiClMo.getListOfClientMonths().get(0).getClientDaysInMonth().get(0));
-       // Database.saveClientDay(LiClMo.getListOfClientMonths().get(0).getClientNightsInMonth().get(0));
-       //ServiceIntervalArrayList test = Database.loadServiceInterval(LiClMo.getListOfClientMonths().get(0).getClientDaysInMonth().get(0));
-        ClientMonth selectedMonth = listOfClm.getListOfClientMonths().get(0);
-        Database.saveClientMonth(selectedMonth);
         /*
         Vytvoří nadpisy pro jednotlivé dny
          */
@@ -222,8 +219,8 @@ public class MainPageController implements ControllerInterface{
         */
         int clienMothIter = 1;
         int clientIter = 0;
-        for(ClientMonth clm : LiClMo.getListOfClientMonths()){
-            LiClMo.getListOfClientMonths().get(0);
+        for(ClientMonth clm : listOfClm.getListOfClientMonths()){
+            listOfClm.getListOfClientMonths().get(0);
             i = 0;
             for (int dayIter = -1; dayIter < clm.getClientDaysInMonth().size(); dayIter++){
                 String inputText;
@@ -301,6 +298,7 @@ public class MainPageController implements ControllerInterface{
         calendarScrollPane.setContent(dayGrid);
        // graphicSetup();
         graphical();
+
     }
     private String getNameOfDay(LocalDate date){
         DayOfWeek dayValue = date.getDayOfWeek();
@@ -342,13 +340,13 @@ public class MainPageController implements ControllerInterface{
     }
     public ListOfClients getClientsOfMonth(Settings settings) throws IOException {
         try{
-            ListOfClients out =   jsom.loadClientInfo(settings);
+            ListOfClients out =   Database.loadFullClients(selectedYearValue,selectedMonthValue);
             for(Client cl: out.getClientList()){
-                listOfClm.getListOfClientMonths().add(cl.getClientsMonth());
+                listOfClm.getListOfClientMonths().add(Database.loadClientMonth(settings.getCurrentYear(),settings.getCurrentMonth(),cl.getID()));
             }
             return  out;
         }catch(Exception e){
-            ListOfClientsProfiles lOCP = jsom.loadClientProfileInfo();
+            ListOfClientsProfiles lOCP = Database.loadClientProfiles();
             listOfClm = new ListOfClientMonths();
             ListOfClients listOfClients = new ListOfClients();
             for(ClientProfile clP: lOCP.getClientList()){
@@ -362,7 +360,7 @@ public class MainPageController implements ControllerInterface{
                 }
                 listOfClients.getClientList().add(out);
             }
-            jsom.saveClientRequirementsForMonth(listOfClm,settings);
+            Database.saveAllClientMonths(listOfClm);
             System.out.println("LoadError");
             return listOfClients;
         }
@@ -515,12 +513,14 @@ public class MainPageController implements ControllerInterface{
         return null;
     }
     public void findSolutionV2(ActionEvent actionEvent) throws IOException {
-        Sorter sorter = new Sorter(jsom.loadAssistantInfo());
+        ListOfAssistants asL = Database.loadAssistants();
+        Sorter sorter = new Sorter(asL);
         int monthLength;
         AvailableAssistants avAs = null;
-        avAs = jsom.loadAvailableAssistantInfo(settings);
+        JsonManip toBeDeleted = JsonManip.getJsonManip();
+        avAs = toBeDeleted.loadAvailableAssistantInfo(settings);
 
-        ListOfClients listOfClients = jsom.loadClientInfo(settings);
+        ListOfClients listOfClients = Database.loadFullClients(selectedYearValue,selectedMonthValue);
 
         listOfClm = new ListOfClientMonths();
         for(Client cl : listOfClients.getClientList()){
@@ -568,9 +568,14 @@ public class MainPageController implements ControllerInterface{
             }
 
         }
-        jsom.saveClientRequirementsForMonth(listOfClm,settings);
-        jsom.saveClientInfo(listOfClients.convertToListOfClientProfiles());
+        Database.saveAllClientMonths(listOfClm);
+        //jsom.saveClientInfo();
         populateView(getClientsOfMonth(settings));
+        CompletableFuture<Void> future = CompletableFuture.runAsync(()-> { for(ClientProfile clip :listOfClients.convertToListOfClientProfiles().getFullClientList()){
+            Database.saveClientProfile(clip);
+        }});
+
+
     }
     private ArrayList<Assistant> getAvailableAssistantForDay(AvailableAssistants lisA, int date, boolean day ){
         ArrayList<Assistant> output;
@@ -584,16 +589,18 @@ public class MainPageController implements ControllerInterface{
     }
     public void saveChangedDate() throws IOException {
         String[] parts = datePick.getValue().toString().split("-");
-        selectedYearValue.setText(parts[0]);
-        selectedMonthValue.setText(parts[1]);
+        selectedYearValueVisual.setText(parts[0]);
+        selectedMonthValueVisual.setText(parts[1]);
+        selectedYearValue = Integer.valueOf(parts[0]);
+        selectedMonthValue= Integer.valueOf(parts[1]);
         settings.setCurrentYear(Integer.parseInt(parts[0]));
         settings.setCurrentMonth(Integer.parseInt(parts[1]));
         try {
-            jsom.saveSettings(settings);
+            JsonManip.saveSettings(settings);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        settings = jsom.loadSettings();
+        settings = JsonManip.loadSettings();
         populateView(getClientsOfMonth(settings));
         /*
         for( Node ce : grid.getChildren()){
@@ -885,7 +892,7 @@ public class MainPageController implements ControllerInterface{
             intervalCommentArea.setText("Klient v tomto období nevyžaduje asistenta.");
         }
         setIntervalBars(editedDay);
-        jsom.saveClientRequirementsForMonth(listOfClm,settings);
+        Database.saveAllClientMonths(listOfClm);
     }
     public void prepareHoursAndMinutes(){
         hoursList = (ArrayList<Integer>) IntStream.rangeClosed(0, 24).boxed().collect(Collectors.toList());
@@ -927,7 +934,7 @@ public class MainPageController implements ControllerInterface{
                     intervalOverreach(startNew, endNew);
                     System.out.println("Is empty");
                 }
-                jsom.saveClientRequirementsForMonth(listOfClm, settings);
+                Database.saveAllClientMonths(listOfClm);
                 setIntervalBars(day);
                 return;
             }
@@ -964,7 +971,7 @@ public class MainPageController implements ControllerInterface{
             if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
                 intervalOverreach(startNew, endNew);
             }
-            jsom.saveClientRequirementsForMonth(listOfClm, settings);
+            Database.saveAllClientMonths(listOfClm);
             day.getDayIntervalListUsefull().get(0).setComment("Testing save logic");
             setIntervalBars(day);
             System.out.println("done");
@@ -1002,8 +1009,9 @@ public class MainPageController implements ControllerInterface{
                     intervalOverreach(startNew, endNew);
                     System.out.println("Is empty");
                 }
-                jsom.saveClientRequirementsForMonth(listOfClm, settings);
+                Database.saveAllClientMonths(listOfClm);
                 setIntervalBars(day);
+
                 return;
             }
         }
@@ -1036,10 +1044,9 @@ public class MainPageController implements ControllerInterface{
         if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
             intervalOverreach(startNew, endNew);
         }
-        jsom.saveClientRequirementsForMonth(listOfClm, settings);
+        Database.saveAllClientMonths(listOfClm);
         day.getDayIntervalListUsefull().get(0).setComment("Testing save logic");
         setIntervalBars(day);
-        System.out.println("done");
     }
     public void saveIntervalAlg() throws IOException {
         ClientDay day = textClientIndex.get(selectedTextArea);
@@ -1074,7 +1081,7 @@ public class MainPageController implements ControllerInterface{
                 if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
                     intervalOverreach(startNew, endNew);
                 }
-                jsom.saveClientRequirementsForMonth(listOfClm, settings);
+                Database.saveAllClientMonths(listOfClm);
                 setIntervalBars(day);
                 return;
             }
@@ -1100,7 +1107,7 @@ public class MainPageController implements ControllerInterface{
         if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
             intervalOverreach(startNew, endNew);
         }
-        jsom.saveClientRequirementsForMonth(listOfClm, settings);
+        Database.saveAllClientMonths(listOfClm);
         //day.getDayIntervalListUsefull().get(0).setComment("Testing save logic");
         setIntervalBars(day);
     }
@@ -1231,11 +1238,11 @@ public class MainPageController implements ControllerInterface{
     }
     public LocalDateTime setLocalDateTime(int hours, int minutes, int day){
         if(dayList.contains(selectedTextArea)){
-            return LocalDateTime.of(Integer.parseInt(selectedYearValue.getText()),
-                    Month.of(Integer.parseInt(selectedMonthValue.getText())), day, hours, minutes);
+            return LocalDateTime.of(Integer.parseInt(selectedYearValueVisual.getText()),
+                    Month.of(Integer.parseInt(selectedMonthValueVisual.getText())), day, hours, minutes);
         }else{
-            int year = Integer.parseInt(selectedYearValue.getText());
-            int month = Integer.parseInt(selectedMonthValue.getText());
+            int year = Integer.parseInt(selectedYearValueVisual.getText());
+            int month = Integer.parseInt(selectedMonthValueVisual.getText());
             Integer newYear = year;
             Integer newMonth = month;
             Integer newDay = day;
@@ -1252,8 +1259,8 @@ public class MainPageController implements ControllerInterface{
                 newDay++;
             }
             if(hours> 12){
-                return LocalDateTime.of(Integer.valueOf(selectedYearValue.getText()),
-                        Month.of(Integer.valueOf(selectedMonthValue.getText())), day, hours, minutes);
+                return LocalDateTime.of(Integer.valueOf(selectedYearValueVisual.getText()),
+                        Month.of(Integer.valueOf(selectedMonthValueVisual.getText())), day, hours, minutes);
             }else{
                 return LocalDateTime.of(newYear,
                         Month.of(newMonth), newDay, hours, minutes);
@@ -1288,11 +1295,12 @@ public class MainPageController implements ControllerInterface{
             return output;
     }
     public void findNewSolution(ActionEvent actionEvent) throws IOException {
-        jsom.generateNewMonthsAssistants(settings);
+        JsonManip toBeDeleted = JsonManip.getJsonManip();
+        toBeDeleted.generateNewMonthsAssistants(settings);
         findSolutionV2(actionEvent);
     }
     public void clearTable() throws IOException {
-       ListOfClients cliList = jsom.loadClientInfo(settings);
+       ListOfClients cliList = Database.loadFullClients(selectedYearValue,selectedMonthValue);
        ListOfClientMonths cliMoth = new ListOfClientMonths();
        for(Client cl : cliList.getClientList()){
            cliMoth.getListOfClientMonths().add(cl.getClientsMonth());
@@ -1310,8 +1318,8 @@ public class MainPageController implements ControllerInterface{
            }
 
        }
-        jsom.saveClientRequirementsForMonth(cliMoth,settings);
-       populateView(jsom.loadClientInfo(settings));
+        Database.saveAllClientMonths(cliMoth);
+       populateView(Database.loadFullClients(selectedYearValue,selectedMonthValue));
     }
 
 

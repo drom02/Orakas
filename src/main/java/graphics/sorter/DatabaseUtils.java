@@ -8,6 +8,7 @@ import graphics.sorter.Structs.ServiceIntervalArrayList;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.UUID;
 
 public class DatabaseUtils {
     public static int[] stringToIntArray(String st){
@@ -30,6 +31,8 @@ public class DatabaseUtils {
         output.append("-");
         output.append(input.getDay());
         output.append("-");
+        output.append(input.getClient());
+        output.append("-");
         output.append(input.getDayStatus());
         return  output.toString();
     }
@@ -38,6 +41,17 @@ public class DatabaseUtils {
         output.append(mon.getYear());
         output.append("-");
         output.append(mon.getMon().getValue());
+        output.append("-");
+        output.append(mon.getClientId().toString());
+        return  output.toString();
+    }
+    public static String prepMID(int year, int month, UUID clientID){
+        StringBuilder output = new StringBuilder();
+        output.append(year);
+        output.append("-");
+        output.append(month);
+        output.append("-");
+        output.append(clientID.toString());
         return  output.toString();
     }
     /*

@@ -1,6 +1,8 @@
 package graphics.sorter.Structs;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import graphics.sorter.Client;
 import graphics.sorter.JsonManip;
@@ -81,6 +83,14 @@ public class ClientMonth {
         }
         clientDaysInMonth.add(newDayLast);
         clientNightsInMonth.add(newNightLast);
+    }
+    @JsonIgnore
+    public ClientMonth(Month mon,int year, UUID clientId,ArrayList<ClientDay> days, ArrayList<ClientDay> nights){
+        this.clientId = clientId;
+        this.mon = mon;
+        this.year = year;
+        setClientDaysInMonth(days);
+        setClientNightsInMonth(nights);
     }
 
     public UUID getClientId() {

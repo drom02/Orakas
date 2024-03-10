@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.Year;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 
 public class Database {
     public static  String databaseName = "jdbc:sqlite:"+ Settings.getSettings().getFilePath()+ "mainSorter.db";
+    private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     public static void prepareTables(){
 
         String clientTable = "CREATE TABLE IF NOT EXISTS clientTable (\n"
@@ -50,7 +53,9 @@ public class Database {
                 + " clientID text NOT NULL,\n"
                 + " year text NOT NULL,\n"
                 + " month integer NOT NULL,\n"
-                + " FOREIGN KEY (clientID) REFERENCES clientTable(clientID) ON DELETE CASCADE \n"
+                + " locationID text NOT NULL,\n"
+                + " FOREIGN KEY (clientID) REFERENCES clientTable(clientID) ON DELETE CASCADE, \n"
+                + " FOREIGN KEY (locationID) REFERENCES locationTable(locationID )\n"
                 + ");";
         String clientDayTable = "CREATE TABLE IF NOT EXISTS clientDayTable (\n"
                 + " clientDayID text PRIMARY KEY,\n"
@@ -89,6 +94,12 @@ public class Database {
                 + " compatibility integer NOT NULL, \n"
                 + " FOREIGN KEY (clientID) REFERENCES clientTable(clientID) ON DELETE CASCADE, \n"
                 + " FOREIGN KEY (assistantID) REFERENCES assistantTable(assistantID) ON DELETE CASCADE \n"
+                + ");";
+        String assistantAvailabilityTable = "CREATE TABLE IF NOT EXISTS assistantAvailabilityTable (\n"
+                + " availabilityID text PRIMARY KEY,\n"
+                + " year integer NOT NULL,\n"
+                + " month integer NOT NULL,\n"
+                + " jsonContent text NOT NULL \n"
                 + ");";
         String[] tables = new String[]{clientTable,assistantTable,locationTable,clientMonthTable,compatibilityTable,clientDayTable,serviceIntervalTable};
         try (Connection conn = DriverManager.getConnection(databaseName);
@@ -235,7 +246,7 @@ public class Database {
         }
     }
     public static Location loadLocation(UUID locID){
-        String query = "SELECT * FROM locationTable WHERE ID = ?";
+        String query = "SELECT * FROM locationTable WHERE locationID = ?";
         try(Connection conn = DriverManager.getConnection(databaseName );
             PreparedStatement stmt = conn.prepareStatement(query)){
             stmt.setString(1,locID.toString());
@@ -268,13 +279,13 @@ public class Database {
         return null;
     }
     public static Location loadLocation(String locID, Connection conn){
-        String query = "SELECT * FROM locationTable WHERE ID = ?";
+        String query = "SELECT * FROM locationTable WHERE locationID = ?";
         try(conn;
             PreparedStatement stmt = conn.prepareStatement(query)){
             stmt.setString(1,locID);
             try(ResultSet rs = stmt.executeQuery()){
                 if(rs.next()){
-                    Location outputLocation = new Location(UUID.fromString(rs.getString("ID")),rs.getString("address"),rs.getString("casualName"));
+                    Location outputLocation = new Location(UUID.fromString(rs.getString("locationID")),rs.getString("address"),rs.getString("casualName"));
                     return  outputLocation;
                 }
             }
@@ -284,14 +295,14 @@ public class Database {
         return null;
     }
     public static ClientProfile loadClientProfile(UUID clientID){
-        String query = "SELECT * FROM clientTable WHERE ID = ?";
+        String query = "SELECT * FROM clientTable WHERE clientID = ?";
         try(Connection conn = DriverManager.getConnection(databaseName);
             PreparedStatement stmt = conn.prepareStatement(query)){
             stmt.setString(1,String.valueOf(clientID));
             try(ResultSet rs = stmt.executeQuery()){
                 if(rs.next()){
                     //String out = rs.getString(2);
-                    String ID = rs.getString("ID");
+                    String ID = rs.getString("clientID");
                     String name = rs.getString("name");
                     Boolean status = rs.getBoolean("status");
                     String surname = rs.getString("surname");
@@ -310,10 +321,11 @@ public class Database {
         return null;
     }
     public static ListOfClientsProfiles loadClientProfiles(){
-        String query = "SELECT * FROM clientTable";
+        String query = "SELECT * FROM clientTable WHERE isDeleted = ?";
         ListOfClientsProfiles lis = new ListOfClientsProfiles(new ArrayList<ClientProfile>());
         try(Connection conn = DriverManager.getConnection(databaseName);
             PreparedStatement stmt = conn.prepareStatement(query)){
+            stmt.setBoolean(1,false);
             try(ResultSet rs = stmt.executeQuery()){
                 while(rs.next()){
                     //String out = rs.getString(2);
@@ -323,18 +335,16 @@ public class Database {
                     String surname = rs.getString("surname");
                     String homeLocation = rs.getString("homeLocation");
                     String comment = rs.getString("comment");
-                    ClientProfile outputProfile = new ClientProfile(UUID.fromString(ID),status, name,surname,loadLocation(homeLocation,conn),comment);
+                    //TODO redesign to avoid nested database calls or creating new connection
+                    ClientProfile outputProfile = new ClientProfile(UUID.fromString(ID),status, name,surname,loadLocation(UUID.fromString(homeLocation)),comment);
                     lis.getFullClientList().add(outputProfile);
                 }
                 return  lis;
-            }catch (Exception e) {
-                System.out.println(e.getMessage());
             }
-            //
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        return null;
+        return new ListOfClientsProfiles(new ArrayList<ClientProfile>());
     }
     public static void saveClientProfile(ClientProfile clip){
         String query = "INSERT OR REPLACE INTO clientTable (clientID, status, name,surname, homeLocation, comment,isDeleted) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -426,7 +436,7 @@ public class Database {
         1 =
         2 =
          */
-        String query = "SELECT * FROM compatibilityTable WHERE assistantID = ?";
+        String query = "SELECT * FROM compatibilityTable WHERE assistantID =  ?";
         ArrayList<ArrayList<UUID>> output = new ArrayList<>(Arrays.asList(new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>()));
         try(Connection conn = DriverManager.getConnection(databaseName);
             PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -461,6 +471,43 @@ public class Database {
             saveCompatibility(assistant.getClientPreference(), assistant.getID());
         }catch (Exception e) {
             System.out.println(e.getMessage());
+        }
+    }
+    public static void softDeleteAssistant(Assistant assistant){
+        String query = "UPDATE assistantTable SET isDeleted = ? WHERE assistantID = ?";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setBoolean(1,true);
+            stmt.setString(2, assistant.getID().toString());
+            stmt.execute();
+            //TODO add delete compatibility on SoftDelete
+            //saveCompatibility(assistant.getClientPreference(), assistant.getID());
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    public static void softDeleteClient(ClientProfile client){
+        String query = "UPDATE clientTable SET isDeleted = ? WHERE clientID = ?";
+        String deleteS = "DELETE FROM clientMonthTable WHERE clientID = ?";
+        try(Connection conn = DriverManager.getConnection(databaseName)){
+            conn.setAutoCommit(false);
+            try(PreparedStatement stmt = conn.prepareStatement(query);
+                PreparedStatement delete = conn.prepareStatement(deleteS)){
+                stmt.setBoolean(1, true);
+                stmt.setString(2, client.getID().toString());
+                stmt.executeUpdate();
+                delete.setString(1, client.getID().toString());
+                delete.executeUpdate();
+                conn.commit();
+                //TODO add delete compatibility on SoftDelete
+               //saveCompatibility(assistant.getClientPreference(), assistant.getID());
+        }catch (SQLException e) {
+                // Attempt to rollback transaction if SQLException occurs in the try block
+                conn.rollback();
+                throw new RuntimeException("Transaction rolled back due to an exception", e);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Database error", e);
         }
     }
     public static ListOfAssistants loadAssistants(){
@@ -550,6 +597,32 @@ public class Database {
         }
         return null;
     }
+    public static ArrayList<ClientDay> loadClientDays(String monthID, Boolean timeStatus, Connection conn){
+        String query = "SELECT * FROM clientDayTable WHERE monthID = ? AND isDay = ?";
+        ArrayList<ClientDay> lis = new ArrayList<ClientDay>();
+        try(PreparedStatement stmt = conn.prepareStatement(query)){
+            stmt.setString(1, monthID);
+            stmt.setBoolean(2, timeStatus);
+            try(ResultSet rs = stmt.executeQuery()){
+                while(rs.next()){
+                    String clientID = rs.getString("clientID");
+                    Boolean isMerged = rs.getBoolean("isMerged");
+                    Boolean isDay = rs.getBoolean("isDay");
+                    int day = rs.getInt("day");
+                    int month = rs.getInt("month");
+                    int year = rs.getInt("year");
+                    String location = rs.getString("locationID");
+                    ClientDay cl = new ClientDay(UUID.fromString(clientID), day, Month.of(month), year,null,null,loadLocation(UUID.fromString(location)),isMerged,isDay);
+                    cl.setDayIntervalList(loadServiceInterval(cl));
+                    lis.add(cl);
+                }
+                return  lis;
+            }
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
     public static void saveServiceIntervals(ClientDay cl, String dayID, Connection conn){
         String query = "INSERT OR REPLACE INTO serviceIntervalTable (serviceIntervalID, clientDayID, overseeingAssistantID,start, end, location,isNotRequired,comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try(PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -558,7 +631,7 @@ public class Database {
             for(ServiceInterval serv : cl.getDayIntervalList()){
                 stmt.setString(++inDex, dayID+","+servCount);
                 stmt.setString(++inDex, dayID);
-                stmt.setString(++inDex,String.valueOf(serv.getOverseeingAssistant()));
+                stmt.setString(++inDex, (serv.getOverseeingAssistant() == null) ? null :String.valueOf(serv.getOverseeingAssistant().getID()));
                 stmt.setString(++inDex,serv.getStart().toString());
                 stmt.setString(++inDex,serv.getEnd().toString());
                 if(serv.getLocation()==null){
@@ -569,6 +642,9 @@ public class Database {
                 stmt.setBoolean(++inDex,serv.getIsNotRequired());
                 stmt.setString(++inDex,serv.getComment());
                 servCount++;
+                if(servCount>1){
+                   System.out.println();
+                }
                 stmt.addBatch();
                 inDex = 0;
             }
@@ -594,11 +670,11 @@ public class Database {
                      Boolean isNotRequired = rs.getBoolean("isNotRequired");
                      String comment = rs.getString("comment");
                      Assistant out = null;
-                     if(!(overseeingAssistantID.equals("null"))){
+                     if((overseeingAssistantID != null)){
                          out = loadAssistant(UUID.fromString(overseeingAssistantID));
                      }
-                     ServiceInterval outputInterval = new ServiceInterval(LocalDateTime.parse(start),LocalDateTime.parse(end),out,comment,isNotRequired);
-                     if(!(location.equals("null"))){
+                     ServiceInterval outputInterval = new ServiceInterval(LocalDateTime.parse(start,formatter),LocalDateTime.parse(end,formatter),out,comment,isNotRequired);
+                     if(!(location != null)){
                          outputInterval.setLocation(UUID.fromString(location));
                      }
                      lis.add(outputInterval);
@@ -610,60 +686,115 @@ public class Database {
          }
          return null;
     }
-
     public static void saveClientMonth(ClientMonth clm){
         String query = "INSERT OR REPLACE INTO clientMonthTable (monthID, clientID, year,month) VALUES (?, ?, ?, ?)";
-        try(Connection conn = DriverManager.getConnection(databaseName );
-            PreparedStatement stmt = conn.prepareStatement(query)) {
+        try(Connection conn = DriverManager.getConnection(databaseName )){
+            try(PreparedStatement stmt = conn.prepareStatement(query)){
+            String id = DatabaseUtils.prepMID(clm);
             conn.setAutoCommit(false);
-            stmt.setString(1, DatabaseUtils.prepMID(clm));
+            stmt.setString(1, id);
             stmt.setString(2, String.valueOf(clm.getClientId()));
             stmt.setInt(3,clm.getYear());
             stmt.setInt(4,clm.getMon().getValue());
-            saveClientDay(clm.getClientDaysInMonth(),DatabaseUtils.prepMID(clm),conn);
-            saveClientDay(clm.getClientNightsInMonth(),DatabaseUtils.prepMID(clm),conn);
+            saveClientDay(clm.getClientDaysInMonth(),id,conn);
+            saveClientDay(clm.getClientNightsInMonth(),id,conn);
             stmt.execute();
             conn.commit();
+        }catch (SQLException e) {
+            // Attempt to rollback transaction if SQLException occurs in the try block
+            conn.rollback();
+            conn.setAutoCommit(true);
+            throw new RuntimeException("Transaction rolled back due to an exception", e);
+        }
+    } catch (SQLException e) {
+        throw new RuntimeException("Database error", e);
+    }
+    }
+    public static ClientMonth loadClientMonth(int yearI, int monthI, UUID clientIDI){
+        String monthID = DatabaseUtils.prepMID(yearI, monthI,clientIDI);
+         String query = "SELECT * FROM clientMonthTable WHERE monthID = ?";
+         try(Connection conn = DriverManager.getConnection(databaseName)){
+             try( PreparedStatement stmt = conn.prepareStatement(query)){
+             conn.setAutoCommit(false);
+             stmt.setString(1,monthID);
+             try(ResultSet rs = stmt.executeQuery()){
+                 if(rs.next()){
+                     String clientID = rs.getString("clientID");
+                     int year = rs.getInt("year");
+                     int month = rs.getInt("month");
+                     //String location = rs.getString("locationID");
+                     ArrayList<ClientDay> dayList = loadClientDays(monthID,true,conn);
+                     ArrayList<ClientDay> nightList = loadClientDays(monthID,false,conn);
+                     ClientMonth output = new ClientMonth(Month.of(month),year,UUID.fromString(clientID),dayList,nightList);
+                     conn.commit();
+                     return  output;
+                 }else{
+                     ClientMonth clm = new ClientMonth(Month.of(monthI),yearI,clientIDI,
+                             Database.loadLocation(Database.loadClientProfile(clientIDI).getHomeLocation().getID()));
+                     saveClientMonth(clm );
+                     conn.commit();
+                     return clm;
+                 }
+             }
+         }catch (SQLException e) {
+                     // Attempt to rollback transaction if SQLException occurs in the try block
+                     conn.rollback();
+                     conn.setAutoCommit(true);
+                     throw new RuntimeException("Transaction rolled back due to an exception", e);
+                 }
+             } catch (SQLException e) {
+                 throw new RuntimeException("Database error", e);
+             }
+    }
+    public static ListOfClients loadFullClients(int yearI, int monthI){
+        ListOfClientsProfiles lop = loadClientProfiles();
+        ListOfClients loc = new ListOfClients();
+        for(ClientProfile clp : lop.getFullClientList()){
+            Client newCl =clp.convertToClient(loadClientMonth(yearI,monthI,clp.getID()));
+            loc.getClientList().add(newCl);
+        }
+        return loc;
+    }
+
+    public static void saveAllClientMonths(ListOfClientMonths licmo){
+            for(ClientMonth clm : licmo.getListOfClientMonths()){
+                saveClientMonth(clm);
+            }
+    }
+    public static void saveAssistantAvailability(int year,int month,AvailableAssistants av ){
+        String query = "INSERT OR REPLACE INTO AssistantAvailabilityTable (availabilityID, month, year,jsonContent) VALUES (?, ?, ?, ?)";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            stmt.setString(1, year + "." +month);
+            stmt.setInt(2, year);
+            stmt.setInt(3,month);
+            stmt.setString(4,objectMapper.writeValueAsString(av));
+            stmt.execute();
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
 
     }
-    /*
-     public static ClientMonth loadClientMonth(String clientMonthID){
-
-    }
-     */
-
-    public static void testLoad(){
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        String dataName = "jdbc:sqlite:"+ Settings.getSettings().getFilePath()+ "test.db";
-        String queryAlt = "SELECT * FROM clientTable WHERE ID = ?";
-        try(Connection conn = DriverManager.getConnection(dataName);
-            PreparedStatement stmt = conn.prepareStatement(queryAlt)){
-            ClientProfile testP = JsonManip.getJsonManip().loadClientProfileInfo().getClientList().getFirst();
-            stmt.setString(1,String.valueOf(testP.getID()));
+    public static AvailableAssistants loadAssistantAvailability(int year,int month ){
+        String query = "SELECT * FROM AssistantAvailabilityTable WHERE availabilityID, = ?";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)){
+            stmt.setString(1,year + "." +month);
             try(ResultSet rs = stmt.executeQuery()){
                 if(rs.next()){
-                    //String out = rs.getString(2);
-                    String ID = rs.getString("ID");
-                    String name = rs.getString("ID");
-                    String surname = rs.getString("ID");
-                    String homeLocation = rs.getString("ID");
-                    String comment = rs.getString("ID");
-                   // System.out.println(out);
-                   // ClientProfile clp = new ClientProfile(ID,)
-                   // ClientProfile clp = objectMapper.readValue(out,ClientProfile.class);
-                   // System.out.println(clp.getID());
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    AvailableAssistants avOut = objectMapper.readValue(rs.getString("jsonContent"),AvailableAssistants.class);
+                    return avOut;
+                }else{
+                    JsonManip.getJsonManip().generateNewMonthsAssistants(year,month);
+                    return loadAssistantAvailability(year,month);
                 }
-            }catch (Exception e) {
-                System.out.println(e.getMessage());
             }
-            //
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
+        return null;
     }
+
 }

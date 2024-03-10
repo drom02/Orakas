@@ -175,7 +175,7 @@ public class JsonManip {
         Settings set = objectMapper.readValue(jsonData, Settings.class );
         return set;
     }
-    public void saveSettings(Settings lias) throws IOException {
+    public static void saveSettings(Settings lias) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.writeValue(new File(".\\Settings.json"),lias);
@@ -197,9 +197,9 @@ public class JsonManip {
         availableAssistants.setAvailableAssistantsAtNights(nightList);
         jsom.saveAvailableAssistantInfo(availableAssistants,settings);
     }
-    public void generateNewMonthsAssistants(Settings settings) throws IOException {
-        JsonManip jsom = new JsonManip();
-        ListOfAssistants listOfA = jsom.loadAssistantInfo();
+    public void  generateNewMonthsAssistants(Settings settings) throws IOException {
+        //JsonManip jsom = new JsonManip();
+        ListOfAssistants listOfA = Database.loadAssistants();
         AvailableAssistants availableAssistants = new AvailableAssistants();
         ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
         ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
@@ -223,7 +223,35 @@ public class JsonManip {
 
         availableAssistants.setAvailableAssistantsAtDays(dayList);
         availableAssistants.setAvailableAssistantsAtNights(nightList);
-        jsom.saveAvailableAssistantInfo(availableAssistants,settings);
+        Database.saveAssistantAvailability(settings.getCurrentYear(), settings.getCurrentMonth(), availableAssistants);
+    }
+    public void  generateNewMonthsAssistants(int year,int month) throws IOException {
+        //JsonManip jsom = new JsonManip();
+        ListOfAssistants listOfA = Database.loadAssistants();
+        AvailableAssistants availableAssistants = new AvailableAssistants();
+        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
+        ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
+        for(int i =0; i < Month.of(month).length(Year.isLeap(year)); i++){
+            ArrayList<Assistant> inputDayList = new ArrayList<>();
+            ArrayList<Assistant> inputNightList = new ArrayList<>();
+            dayList.add(inputDayList);
+            nightList.add(inputNightList);
+            for(Assistant asis : listOfA.getAssistantList()){
+                if(asis.getWorkDays()[(LocalDate.of(year, month, i+1).getDayOfWeek().getValue()-1)] == 1 ){
+                    inputDayList.add(asis);
+                }
+                if(asis.getWorkDays()[(LocalDate.of(year, month, i+1).getDayOfWeek().getValue()+6)] == 1 ){
+                    inputNightList.add(asis);
+                }
+
+            }
+
+
+        }
+
+        availableAssistants.setAvailableAssistantsAtDays(dayList);
+        availableAssistants.setAvailableAssistantsAtNights(nightList);
+        Database.saveAssistantAvailability(year, month, availableAssistants);
     }
     public void  saveLocations(ListOfLocations lOL) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
