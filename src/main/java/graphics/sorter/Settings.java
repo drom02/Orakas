@@ -75,10 +75,12 @@ public class Settings {
 
     private String filePath;
 
-    public static void createNewSettingsFile() throws IOException {
+    public static Settings createNewSettingsFile() throws IOException {
         JsonManip jsom = JsonManip.getJsonManip();
-        Settings defset = new Settings(12,2024, "E:\\JsonWriteTest\\",new int[]{8,30},new int[]{20,30},16);
-        jsom.saveSettings(defset);
+        String st =  System.getenv("APPDATA")+"\\Local\\ORAKAS\\";
+        Settings defset = new Settings(12,2024, st,new int[]{8,30},new int[]{20,30},16);
+        Database.saveSettings(defset);
+        return defset;
 
     }
 

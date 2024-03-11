@@ -49,17 +49,21 @@ public class Start extends Application {
           //  System.out.println("error");
             try {
                 Settings.createNewSettingsFile();
+                return loadSetting();
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
             // def.setPathToSettings("E:\\JsonWriteTest\\Settings\\Settings.json");
-            try {
+            /*
+              try {
                 objectMapper.writeValue(new File(".\\Settings.json"),Settings.getSettings());
                 byte[]  jsonData = Files.readAllBytes(Paths.get(".\\Settings.json"));
                 lot = objectMapper.readValue(jsonData, Settings.class );
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
+             */
+
             //throw new RuntimeException(e);
         }
         return lot;

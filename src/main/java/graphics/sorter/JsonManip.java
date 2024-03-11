@@ -175,6 +175,38 @@ public class JsonManip {
         Settings set = objectMapper.readValue(jsonData, Settings.class );
         return set;
     }
+    public static String loadRedirect() {
+        new File(System.getenv("APPDATA")+"\\ORAKAS").mkdir();
+        new File(System.getenv("APPDATA")+"\\ORAKAS\\Data").mkdir();
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        try{byte[]jsonData = Files.readAllBytes(Paths.get(System.getenv("APPDATA")+"\\ORAKAS\\Data\\redirect.json"));
+            RedirectPath  set = objectMapper.readValue(jsonData, RedirectPath .class );
+            return set.getPath();
+        }
+        catch (Exception e){
+            try {
+                return saveRedirect(null).getPath();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+
+    }
+    public static RedirectPath saveRedirect(String lias) throws IOException {
+        String st;
+        if(lias == null){
+             st =  System.getenv("APPDATA")+"\\ORAKAS\\Data\\";
+        }else{
+            st = lias;
+        }
+        RedirectPath l = new RedirectPath();
+        l.setPath(st);
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.writeValue(new File(System.getenv("APPDATA")+"\\ORAKAS\\redirect.json"),lias);
+        return l;
+    }
     public static void saveSettings(Settings lias) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());

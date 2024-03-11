@@ -1,6 +1,7 @@
 package graphics.sorter.Structs;
 
 import graphics.sorter.Assistant;
+import graphics.sorter.Database;
 import graphics.sorter.JsonManip;
 import graphics.sorter.Settings;
 
@@ -11,8 +12,8 @@ import java.time.Year;
 import java.util.ArrayList;
 
 public class AvailableAssistants implements Saveable {
-
-
+    private int year;
+    private int month;
     public ArrayList<ArrayList<Assistant>> getAvailableAssistantsAtDays() {
         return availableAssistantsAtDays;
     }
@@ -33,7 +34,7 @@ public class AvailableAssistants implements Saveable {
     private ArrayList<ArrayList<Assistant>> availableAssistantsAtNights = new ArrayList();
     public void createNew(JsonManip map) throws IOException {
         Settings settings = map. loadSettings();
-        ListOfAssistants listOfA = map.loadAssistantInfo();
+        ListOfAssistants listOfA = Database.loadAssistants();
         AvailableAssistants availableAssistants = new AvailableAssistants();
         ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
         ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
@@ -57,6 +58,21 @@ public class AvailableAssistants implements Saveable {
 
         availableAssistants.setAvailableAssistantsAtDays(dayList);
         availableAssistants.setAvailableAssistantsAtNights(nightList);
-        map.saveAvailableAssistantInfo(availableAssistants,settings);
+        Database.saveAssistantAvailability(settings.getCurrentYear(), settings.getCurrentMonth(),availableAssistants);
+    }
+    public int getYear() {
+        return year;
+    }
+
+    public void setYear(int year) {
+        this.year = year;
+    }
+
+    public int getMonth() {
+        return month;
+    }
+
+    public void setMonth(int month) {
+        this.month = month;
     }
 }

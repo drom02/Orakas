@@ -321,7 +321,6 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
            }
             grp.getRowConstraints().add(new RowConstraints(){{setValignment(VPos.CENTER);}});
             clientOpinionGrid.getChildren().add(grp);
-           System.out.println(grp.getRowCount());
            clientOpinionGrid.setConstraints(grp,0,citer++);
             clientOpinionGrid.setMargin(grp, new Insets(0,10,0,10));
            // clientOpinionGrid.setValignment(grp,VPos.CENTER);

@@ -16,7 +16,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class Database {
-    public static  String databaseName = "jdbc:sqlite:"+ Settings.getSettings().getFilePath()+ "mainSorter.db";
+    public static  String databaseName = "jdbc:sqlite:"+ JsonManip.loadRedirect()+ "mainSorter.db";
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     public static void prepareTables(){
 
@@ -101,7 +101,18 @@ public class Database {
                 + " month integer NOT NULL,\n"
                 + " jsonContent text NOT NULL \n"
                 + ");";
-        String[] tables = new String[]{clientTable,assistantTable,locationTable,clientMonthTable,compatibilityTable,clientDayTable,serviceIntervalTable};
+        String settingsTable = "CREATE TABLE IF NOT EXISTS settingsTable (\n"
+                + " settingsID text PRIMARY KEY,\n"
+                + " filePath text NOT NULL,\n"
+                + " selectedYear integer NOT NULL,\n"
+                + " selectedMonth integer NOT NULL,\n"
+                + " defStart1 integer NOT NULL, \n"
+                + " defStart2 integer NOT NULL, \n"
+                + " defEnd1 integer NOT NULL, \n"
+                + " defEnd2 integer NOT NULL, \n"
+                + " maxShiftLength integer NOT NULL \n"
+                + ");";
+        String[] tables = new String[]{clientTable,assistantTable,locationTable,clientMonthTable,compatibilityTable,clientDayTable,serviceIntervalTable,assistantAvailabilityTable,settingsTable };
         try (Connection conn = DriverManager.getConnection(databaseName);
         Statement stmt = conn.createStatement()) {
             for(String st : tables){
@@ -762,6 +773,8 @@ public class Database {
             }
     }
     public static void saveAssistantAvailability(int year,int month,AvailableAssistants av ){
+        av.setYear(year);
+        av.setMonth(month);
         String query = "INSERT OR REPLACE INTO AssistantAvailabilityTable (availabilityID, month, year,jsonContent) VALUES (?, ?, ?, ?)";
         try(Connection conn = DriverManager.getConnection(databaseName );
             PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -777,7 +790,7 @@ public class Database {
 
     }
     public static AvailableAssistants loadAssistantAvailability(int year,int month ){
-        String query = "SELECT * FROM AssistantAvailabilityTable WHERE availabilityID, = ?";
+        String query = "SELECT * FROM AssistantAvailabilityTable WHERE availabilityID = ?";
         try(Connection conn = DriverManager.getConnection(databaseName );
             PreparedStatement stmt = conn.prepareStatement(query)){
             stmt.setString(1,year + "." +month);
@@ -785,6 +798,8 @@ public class Database {
                 if(rs.next()){
                     ObjectMapper objectMapper = new ObjectMapper();
                     AvailableAssistants avOut = objectMapper.readValue(rs.getString("jsonContent"),AvailableAssistants.class);
+                    avOut.setYear(year);
+                    avOut.setMonth(month);
                     return avOut;
                 }else{
                     JsonManip.getJsonManip().generateNewMonthsAssistants(year,month);
@@ -795,6 +810,49 @@ public class Database {
             System.out.println(e.getMessage());
         }
         return null;
+    }
+    public static Settings loadSettings(){
+        String query = "SELECT * FROM settingsTable WHERE settingsID = ? ";
+
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)){
+            stmt.setString(1, "settings1");
+            try(ResultSet rs = stmt.executeQuery()){
+                if(rs.next()){
+                    Settings st = Settings.createNewSettingsFile();
+                    st.setCurrentYear(rs.getInt("selectedYear"));
+                    st.setCurrentMonth(rs.getInt("selectedMonth"));
+                    st.setDeftStart(new int[]{rs.getInt("defStart1"),rs.getInt("defStart2")});
+                    st.setDefEnd(new int[]{rs.getInt("defEnd1"),rs.getInt("defEnd2")});
+                    st.setFilePath(rs.getString("filePath"));
+                    st.setMaxShiftLength(rs.getInt("maxShiftLength"));
+                    return  st;
+                }
+            }
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+    public static void saveSettings(Settings set){
+        String query = "INSERT OR REPLACE INTO settingsTable (settingsID, filePath, selectedYear,selectedMonth," +
+                "defStart1,defStart2,defEnd1,defEnd2,maxShiftLength) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?)";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, "settings1");
+            stmt.setString(2, set.getFilePath());
+            JsonManip.saveRedirect(set.getFilePath());
+            stmt.setInt(3,set.getCurrentYear());
+            stmt.setInt(4,set.getCurrentMonth());
+            stmt.setInt(5,set.getDeftStart()[0]);
+            stmt.setInt(6,set.getDeftStart()[1]);
+            stmt.setInt(7,set.getDefEnd()[0]);
+            stmt.setInt(8,set.getDefEnd()[1]);
+            stmt.setInt(9,set.getMaxShiftLength());
+            stmt.execute();
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
 }
