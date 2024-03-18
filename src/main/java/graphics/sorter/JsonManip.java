@@ -20,7 +20,7 @@ public class JsonManip {
 
     private String path;
     public void initialize() throws IOException {
-        Settings set = loadSettings();
+        Settings set = Database.loadSettings();
         path = set.getFilePath();
         ArrayList<String> directories = new ArrayList<>(Arrays.asList("Assistants","Clients","Settings","Locations","ClientRequirements","AvailableAssistants"));
         for(String st : directories){
@@ -148,7 +148,7 @@ public class JsonManip {
         try {
             jsonData = Files.readAllBytes(Paths.get(path +  "AvailableAssistants\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
         } catch (IOException e) {
-            generateNewMonthsAssistants(loadSettings());
+            generateNewMonthsAssistants(Database.loadSettings());
             jsonData = Files.readAllBytes(Paths.get(path +  "AvailableAssistants\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
         }
         AvailableAssistants listOfA = objectMapper.readValue(jsonData, AvailableAssistants.class );
@@ -212,13 +212,11 @@ public class JsonManip {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.writeValue(new File(".\\Settings.json"),lias);
     }
-    public void generateEmptyState(Settings settings) throws IOException {
-        JsonManip jsom = new JsonManip();
+    public static void generateEmptyState(Settings settings) throws IOException {
         AvailableAssistants availableAssistants = new AvailableAssistants();
         ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
         ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
         int shift = 0;
-
         for(int i = 0; i < Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear())); i++){
             dayList.add(new ArrayList<>());
             nightList.add(new ArrayList<>());
@@ -227,7 +225,7 @@ public class JsonManip {
 
         availableAssistants.setAvailableAssistantsAtDays(dayList);
         availableAssistants.setAvailableAssistantsAtNights(nightList);
-        jsom.saveAvailableAssistantInfo(availableAssistants,settings);
+        Database.saveAssistantAvailability(settings.getCurrentYear(),settings.getCurrentMonth(),availableAssistants);
     }
     public void  generateNewMonthsAssistants(Settings settings) throws IOException {
         //JsonManip jsom = new JsonManip();
@@ -280,7 +278,6 @@ public class JsonManip {
 
 
         }
-
         availableAssistants.setAvailableAssistantsAtDays(dayList);
         availableAssistants.setAvailableAssistantsAtNights(nightList);
         Database.saveAssistantAvailability(year, month, availableAssistants);

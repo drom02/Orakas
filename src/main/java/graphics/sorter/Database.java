@@ -53,9 +53,9 @@ public class Database {
                 + " clientID text NOT NULL,\n"
                 + " year text NOT NULL,\n"
                 + " month integer NOT NULL,\n"
-                + " locationID text NOT NULL,\n"
-                + " FOREIGN KEY (clientID) REFERENCES clientTable(clientID) ON DELETE CASCADE, \n"
-                + " FOREIGN KEY (locationID) REFERENCES locationTable(locationID )\n"
+             //   + " locationID text NOT NULL,\n"
+                + " FOREIGN KEY (clientID) REFERENCES clientTable(clientID) ON DELETE CASCADE \n"
+             //   + " FOREIGN KEY (locationID) REFERENCES locationTable(locationID )\n"
                 + ");";
         String clientDayTable = "CREATE TABLE IF NOT EXISTS clientDayTable (\n"
                 + " clientDayID text PRIMARY KEY,\n"
@@ -121,8 +121,6 @@ public class Database {
             }
             stmt.execute("PRAGMA journal_mode = WAL");
             stmt.execute("PRAGMA synchronous = NORMAL");
-            System.out.println("A new table has been created22.");
-
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -189,31 +187,7 @@ public class Database {
             System.out.println(e.getMessage());
         }
     }
-    public static void testLoadAlt(){
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        String name = "jdbc:sqlite:"+ Settings.getSettings().getFilePath()+ "test.db";
-        String queryAlt = "SELECT * FROM clientTableAlt WHERE ID = ?";
-        try(Connection conn = DriverManager.getConnection(name);
-            PreparedStatement stmt = conn.prepareStatement(queryAlt)){
-            ClientProfile testP = JsonManip.getJsonManip().loadClientProfileInfo().getClientList().getFirst();
-            stmt.setString(1,String.valueOf(testP.getID()));
-            try(ResultSet rs = stmt.executeQuery()){
-                if(rs.next()){
-                    String out = rs.getString(2);
-                    System.out.println(out);
-                    ClientProfile clp = objectMapper.readValue(out,ClientProfile.class);
-                    System.out.println(clp.getID());
-                }
-            }catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-           //
-        }catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
 
-    }
     public static void saveLocation(Location loc){
 
         String query = "INSERT OR REPLACE INTO locationTable (ID, address,casualName) VALUES (?, ?, ?)";
@@ -574,9 +548,41 @@ public class Database {
             }else{
                 stmt.setString(9,clD.getLocation().getID().toString());
             }
+                pruneServiceIntervals(clDID,conn);
                 saveServiceIntervals(clD,clDID,conn);
             stmt.addBatch();
             }
+            stmt.executeBatch();
+
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    public static void saveIndividualClientDay(ClientDay clD, String monthID){
+        String query = "INSERT OR REPLACE INTO clientDayTable (clientDayID, clientID, monthID,isMerged, isDay, " +
+                "day,month,year,locationID) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try(Connection conn = DriverManager.getConnection(databaseName);
+                PreparedStatement stmt = conn.prepareStatement(query)) {
+                String clDID = DatabaseUtils.prepCDID(clD);
+                stmt.setString(1,clDID );
+                stmt.setString(2, clD.getClient().toString());
+                stmt.setString(3,monthID);
+                stmt.setBoolean(4, clD.isMerged());
+                stmt.setBoolean(5,clD.getDayStatus());
+                stmt.setInt(6, clD.getDay());
+                stmt.setInt(7, clD.getMonth().getValue());
+                stmt.setInt(8,clD.getYear());
+                if(clD.getLocation()==null){
+                    stmt.setString(9,null);
+                }else{
+                    stmt.setString(9,clD.getLocation().getID().toString());
+                }
+                pruneServiceIntervals(clDID,conn);
+                saveServiceIntervals(clD,clDID,conn);
+                stmt.addBatch();
+
             stmt.executeBatch();
 
         }catch (Exception e) {
@@ -633,6 +639,15 @@ public class Database {
             System.out.println(e.getMessage());
         }
         return null;
+    }
+    public static void pruneServiceIntervals(String dayID,Connection conn){
+        String sql = "DELETE FROM serviceIntervalTable WHERE clientDayID = ?";
+        try(PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, dayID);
+            stmt.execute();
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
     public static void saveServiceIntervals(ClientDay cl, String dayID, Connection conn){
         String query = "INSERT OR REPLACE INTO serviceIntervalTable (serviceIntervalID, clientDayID, overseeingAssistantID,start, end, location,isNotRequired,comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -827,6 +842,9 @@ public class Database {
                     st.setFilePath(rs.getString("filePath"));
                     st.setMaxShiftLength(rs.getInt("maxShiftLength"));
                     return  st;
+                }else{
+                    System.out.println("Error");
+                    return  Settings.createNewSettingsFile();
                 }
             }
         }catch (Exception e) {

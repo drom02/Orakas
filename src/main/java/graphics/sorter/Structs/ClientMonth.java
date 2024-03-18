@@ -25,7 +25,6 @@ public class ClientMonth {
     private int year;
     private ArrayList<ClientDay> clientDaysInMonth = new ArrayList<ClientDay>();
     private ArrayList<ClientDay> clientNightsInMonth = new ArrayList<ClientDay>();
-    private JsonManip jsoM = JsonManip.getJsonManip();
 
     public Month getMon() {
         return mon;
@@ -62,7 +61,7 @@ public class ClientMonth {
         if(mon.getValue()>1){
               newNight0 = new ClientDay(clientId,1,mon, year, LocalDateTime.of(year,mon.getValue()-1,Month.of(mon.getValue()-1).length(Year.isLeap(year)),nightDefHour,nightDefMin),LocalDateTime.of(year,mon.getValue(),1,dayDefHour,dayDefMin), location,false,false);
         }else{
-              newNight0 = new ClientDay(clientId,1,mon, year, LocalDateTime.of(year-1,12,Month.of(mon.getValue()-1).length(Year.isLeap(year)),nightDefHour,nightDefMin),LocalDateTime.of(year,mon.getValue(),1,dayDefHour,dayDefMin), location,false,false);
+              newNight0 = new ClientDay(clientId,1,mon, year, LocalDateTime.of(year-1,12,Month.of(12).length(Year.isLeap(year)),nightDefHour,nightDefMin),LocalDateTime.of(year,mon.getValue(),1,dayDefHour,dayDefMin), location,false,false);
         }
        // clientDaysInMonth.add(newDay0);
         //clientNightsInMonth.add(newNight0);

@@ -18,6 +18,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
+
+import java.io.Console;
 import java.io.IOException;
 import java.time.*;
 import java.time.format.TextStyle;
@@ -83,7 +85,6 @@ public class MainPageController implements ControllerInterface{
     private ArrayList<TextFlow> areaList ;
     private ArrayList<TextFlow> titleList = new ArrayList<TextFlow>();
     private ArrayList<StackPane> clientCardList= new ArrayList<StackPane>();
-    //private JsonManip jsom = JsonManip.getJsonManip();
     private Settings settings;
     private GridPane dayGrid = new GridPane();
     private Boolean isMenuVisible = false;
@@ -96,9 +97,13 @@ public class MainPageController implements ControllerInterface{
     private ArrayList<Integer> minuteList = new ArrayList<>();
     private ArrayList<ChangeListener<Integer>> listOfObserv = new ArrayList<>();
     private ServiceInterval selectedInterval;
+    private ClientMonth futureMonth = null;
+    private ClientMonth  pastMonth = null;
     private GraphicalSettings GS= new GraphicalSettings(null,null);
     private int selectedYearValue;
     private int selectedMonthValue;
+    private ClientDay pastDay = null;;
+    private ClientDay futureDay = null;;
     //endregion
     public void initialize() throws IOException {
 
@@ -111,7 +116,7 @@ public class MainPageController implements ControllerInterface{
         });
         populateClientIndex();
         isMenuVisible = false;
-        settings = JsonManip.loadSettings();
+        settings = Database.loadSettings();
       //  ListOfLocations listOfLocations = jsom.loadLocations(settings);
         selectedYearValueVisual.setText(String.valueOf(settings.getCurrentYear()));
         selectedMonthValueVisual.setText(String.valueOf(settings.getCurrentMonth()));
@@ -517,8 +522,7 @@ public class MainPageController implements ControllerInterface{
         Sorter sorter = new Sorter(asL);
         int monthLength;
         AvailableAssistants avAs = null;
-        JsonManip toBeDeleted = JsonManip.getJsonManip();
-        avAs = toBeDeleted.loadAvailableAssistantInfo(settings);
+        avAs = Database.loadAssistantAvailability(selectedYearValue,selectedMonthValue);
 
         ListOfClients listOfClients = Database.loadFullClients(selectedYearValue,selectedMonthValue);
 
@@ -574,7 +578,7 @@ public class MainPageController implements ControllerInterface{
         CompletableFuture<Void> future = CompletableFuture.runAsync(()-> { for(ClientProfile clip :listOfClients.convertToListOfClientProfiles().getFullClientList()){
             Database.saveClientProfile(clip);
         }});
-
+        sorter.report();
 
     }
     private ArrayList<Assistant> getAvailableAssistantForDay(AvailableAssistants lisA, int date, boolean day ){
@@ -591,16 +595,14 @@ public class MainPageController implements ControllerInterface{
         String[] parts = datePick.getValue().toString().split("-");
         selectedYearValueVisual.setText(parts[0]);
         selectedMonthValueVisual.setText(parts[1]);
-        selectedYearValue = Integer.valueOf(parts[0]);
-        selectedMonthValue= Integer.valueOf(parts[1]);
-        settings.setCurrentYear(Integer.parseInt(parts[0]));
-        settings.setCurrentMonth(Integer.parseInt(parts[1]));
-        try {
-            JsonManip.saveSettings(settings);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        settings = JsonManip.loadSettings();
+        selectedYearValue = Integer.parseInt(parts[0]);
+        selectedMonthValue= Integer.parseInt(parts[1]);
+        settings.setCurrentYear(selectedYearValue);
+        settings.setCurrentMonth(selectedMonthValue);
+        System.out.println("Selected year" + selectedYearValue);
+        System.out.println("Selected month" + selectedMonthValue);
+       // settings = Database.loadSettings();
+        Database.saveSettings(settings);
         populateView(getClientsOfMonth(settings));
         /*
         for( Node ce : grid.getChildren()){
@@ -660,6 +662,8 @@ public class MainPageController implements ControllerInterface{
             dayInfoGrid.setVisible(true);
             isMenuVisible=true;
             selectedTextArea = (TextFlow) mouseEvent.getSource();
+            pastDay = null;
+            futureDay = null;
             loadDayData(selectedTextArea);
             selectedTextArea.getStyleClass().add("selected-pane");
         } else if (selectedTextArea==mouseEvent.getSource()) {
@@ -668,11 +672,15 @@ public class MainPageController implements ControllerInterface{
                 isMenuVisible=false;
                 selectedTextArea.getStyleClass().remove("selected-pane");
                 selectedTextArea =null;
+                pastDay = null;
+                futureDay = null;
             }else{
             //selectedTextArea.setStyle("-fx-border-color: null");
             selectedTextArea.getStyleClass().remove("selected-pane");
             selectedTextArea =(TextFlow) mouseEvent.getSource();
             selectedTextArea.getStyleClass().add("selected-pane");
+            pastDay = null;
+            futureDay = null;
             loadDayData(selectedTextArea);
         }
         }
@@ -1082,6 +1090,7 @@ public class MainPageController implements ControllerInterface{
                     intervalOverreach(startNew, endNew);
                 }
                 Database.saveAllClientMonths(listOfClm);
+                saveChangedDays();
                 setIntervalBars(day);
                 return;
             }
@@ -1108,8 +1117,18 @@ public class MainPageController implements ControllerInterface{
             intervalOverreach(startNew, endNew);
         }
         Database.saveAllClientMonths(listOfClm);
+        saveChangedDays();
         //day.getDayIntervalListUsefull().get(0).setComment("Testing save logic");
         setIntervalBars(day);
+    }
+    private void saveChangedDays(){
+        if(futureDay !=null){
+            Database.saveIndividualClientDay(futureDay,DatabaseUtils.prepMID(futureMonth));
+        }
+        if(pastDay !=null){
+            Database.saveIndividualClientDay(pastDay,DatabaseUtils.prepMID(pastMonth));
+        }
+
     }
     public void createNewInterval(ActionEvent actionEvent) throws IOException {
        createNewIntervalAlg();
@@ -1118,11 +1137,6 @@ public class MainPageController implements ControllerInterface{
     public void intervalOverreach( LocalDateTime newStart, LocalDateTime newEnd){
        // LocalDateTime defStart = LocalDateTime.of(settings.getDeftStart()[0],settings.getDeftStart()[1]);
        // LocalDateTime defEnd = settings.getDefEnd();
-        if(newStart.getDayOfMonth() == 1||
-                newEnd.getDayOfMonth() == newEnd.getMonth().length(Year.isLeap(newStart.getYear()))+1){
-            //TODO case for edge days
-            return;
-        }
         boolean isDay;
         int[] switchCode;
         if(dayList.contains(selectedTextArea)){
@@ -1132,79 +1146,262 @@ public class MainPageController implements ControllerInterface{
             isDay = false;
             switchCode = new int[]{0,1};
         }
-            if(isDay==true){
-                ClientDay past = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[0]));
-                if((textClientIndex.get(selectedTextArea).getDayIntervalList().getFirst().getStart().isEqual(newStart) )){
-                    ServiceIntervalArrayList servListPast= past.getDayIntervalList();
-                    //  int i = servListPast.size()-1;
-                    ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
-                    for(ServiceInterval serv: servListPast.reversed()){
-                        LocalDateTime startTemp = serv.getStart();
-                        LocalDateTime defEnd= serv.getEnd();
-                        if(startTemp.isAfter(newStart)){
-                            toBeRemoved.add(serv);
-                        }
-                    }
-                    servListPast.removeAll(toBeRemoved);
-                    servListPast.getLast().setEnd(newStart);
-                }
-                ClientDay future = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[1]));
-                if((textClientIndex.get(selectedTextArea).getDayIntervalList().getLast().getEnd().isEqual(newEnd))){
-                    ServiceIntervalArrayList servListFuture= future.getDayIntervalList();
-                    //int iFuture = servListFuture.size()-1;
-                    ArrayList<ServiceInterval> toBeRemovedFuture = new ArrayList<>();
-                    for(ServiceInterval serv: servListFuture){
-                        LocalDateTime startTemp = serv.getStart();
-                        LocalDateTime endTemp= serv.getEnd();
-                        if(endTemp.isBefore(newEnd)){
-                            toBeRemovedFuture.add(serv);
-                        }
-                    }
-                    servListFuture.removeAll(toBeRemovedFuture);
-                    servListFuture.getFirst().setStart(newEnd);
-
-                }
-
-            }else {
-                ClientDay past = textClientIndex.get(dayList.get(nightList.indexOf(selectedTextArea) + switchCode[0]));
-                if ((textClientIndex.get(selectedTextArea).getDayIntervalList().getFirst().getStart().isEqual(newStart)))
-                {
-                    ServiceIntervalArrayList servListPast = past.getDayIntervalList();
-                    //  int i = servListPast.size()-1;
-                    ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
-                    for (ServiceInterval serv : servListPast.reversed()) {
-                        LocalDateTime startTemp = serv.getStart();
-                        LocalDateTime defEnd = serv.getEnd();
-                        if (startTemp.isAfter(newStart)) {
-                            toBeRemoved.add(serv);
-                        }
-                    }
-                    servListPast.removeAll(toBeRemoved);
-                    servListPast.getLast().setEnd(newStart);
-                }
-                ClientDay future = textClientIndex.get(dayList.get(nightList.indexOf(selectedTextArea) + switchCode[1]));
-                if ((textClientIndex.get(selectedTextArea).getDayIntervalList().getLast().getEnd().isEqual(newEnd))) {
-                    ServiceIntervalArrayList servListFuture = future.getDayIntervalList();
-                    //int iFuture = servListFuture.size()-1;
-                    ArrayList<ServiceInterval> toBeRemovedFuture = new ArrayList<>();
-                    for (ServiceInterval serv : servListFuture) {
-                        LocalDateTime startTemp = serv.getStart();
-                        LocalDateTime endTemp = serv.getEnd();
-                        if (endTemp.isBefore(newEnd)) {
-                            toBeRemovedFuture.add(serv);
-                        }
-                    }
-                    servListFuture.removeAll(toBeRemovedFuture);
-                    servListFuture.getFirst().setStart(newEnd);
+        if(newStart.getDayOfMonth() == 1){
+            universalFuture( textClientIndex.get(selectedTextArea) ,switchCode,newEnd);
+            specialPast(textClientIndex.get(selectedTextArea) ,switchCode,newStart,getPastMonths(textClientIndex.get(selectedTextArea).getClient()));
+//} else if (newStart.getDayOfMonth() == newStart.getMonth().length(Year.isLeap(newStart.getYear()))+1) {
+        } else if (newStart.getDayOfMonth() == newStart.getMonth().length(Year.isLeap(newStart.getYear()))) {
+            specialFuture(textClientIndex.get(selectedTextArea) ,switchCode,newEnd,getFutureMonths(textClientIndex.get(selectedTextArea).getClient()));
+            universalPast( textClientIndex.get(selectedTextArea) ,switchCode,newEnd);
+        }else{
+           // intervalOverreachInternals(newStart,newEnd);
+            universalFuture( textClientIndex.get(selectedTextArea) ,switchCode,newEnd);
+            universalPast( textClientIndex.get(selectedTextArea) ,switchCode,newStart);
+        }
+    }
+    private void specialPast(ClientDay currentDay,int[] switchCode, LocalDateTime newStart,ClientMonth specialMonth){
+        ClientDay past;
+        if(currentDay.getDayStatus()){
+           // past = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[0]));
+            past = specialMonth.getClientNightsInMonth().getLast();
+            pastDay = past;
+        }else{
+          //  past = textClientIndex.get(dayList.get(nightList.indexOf(selectedTextArea) + switchCode[0]));
+            past = specialMonth.getClientDaysInMonth().getLast();
+            pastDay = past;
+        }
+        if((currentDay.getDayIntervalList().getFirst().getStart().isEqual(newStart) )) {
+            ServiceIntervalArrayList servListPast = past.getDayIntervalList();
+            //  int i = servListPast.size()-1;
+            ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
+            for (ServiceInterval serv : servListPast.reversed()) {
+                LocalDateTime startTemp = serv.getStart();
+                if (startTemp.isAfter(newStart)) {
+                    toBeRemoved.add(serv);
                 }
             }
-            /*
-            if (newEnd> defEnd) {
-                ClientDay future = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[1]));
+            servListPast.removeAll(toBeRemoved);
+            servListPast.getLast().setEnd(newStart);
+        }
+    }
+    private void specialFuture(ClientDay currentDay,int[] switchCode, LocalDateTime newEnd,ClientMonth specialMonth){
+        ClientDay future;
+        if(currentDay.getDayStatus()){
+            //future = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[1]));
+            future = specialMonth.getClientNightsInMonth().getFirst();
+            futureDay= future;
+        }else{
+            //future = textClientIndex.get(dayList.get(nightList.indexOf(selectedTextArea) + switchCode[1]));
+            future = specialMonth.getClientDaysInMonth().getFirst();
+            futureDay= future;
+        }
+        if((currentDay.getDayIntervalList().getLast().getEnd().isEqual(newEnd))){
+            ServiceIntervalArrayList servListFuture= future.getDayIntervalList();
+            //int iFuture = servListFuture.size()-1;
+            ArrayList<ServiceInterval> toBeRemovedFuture = new ArrayList<>();
+            for(ServiceInterval serv: servListFuture){
+                LocalDateTime endTemp= serv.getEnd();
+                if(endTemp.isBefore(newEnd)){
+                    toBeRemovedFuture.add(serv);
+                }
             }
-            */
+            servListFuture.removeAll(toBeRemovedFuture);
+            servListFuture.getFirst().setStart(newEnd);
+
+        }
+    }
+    private void universalPast(ClientDay currentDay,int[] switchCode, LocalDateTime newStart){
+        ClientDay past;
+        if(currentDay.getDayStatus()){
+             past = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[0]));
+        }else{
+             past = textClientIndex.get(dayList.get(nightList.indexOf(selectedTextArea) + switchCode[0]));
+        }
+
+        if((currentDay.getDayIntervalList().getFirst().getStart().isEqual(newStart) )) {
+            ServiceIntervalArrayList servListPast = past.getDayIntervalList();
+            //  int i = servListPast.size()-1;
+            ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
+            for (ServiceInterval serv : servListPast.reversed()) {
+                LocalDateTime startTemp = serv.getStart();
+                if (startTemp.isAfter(newStart)) {
+                    toBeRemoved.add(serv);
+                }
+            }
+            servListPast.removeAll(toBeRemoved);
+            servListPast.getLast().setEnd(newStart);
+        }
+    }
+    private void universalFuture(ClientDay currentDay,int[] switchCode, LocalDateTime newEnd){
+        ClientDay future;
+        if(currentDay.getDayStatus()){
+             future = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[1]));
+        }else{
+             future = textClientIndex.get(dayList.get(nightList.indexOf(selectedTextArea) + switchCode[1]));
+        }
+        //TODO problem is here
+        if((currentDay.getDayIntervalList().getLast().getEnd().isEqual(newEnd))){
+            ServiceIntervalArrayList servListFuture= future.getDayIntervalList();
+            //int iFuture = servListFuture.size()-1;
+            ArrayList<ServiceInterval> toBeRemovedFuture = new ArrayList<>();
+            for(ServiceInterval serv: servListFuture){
+                LocalDateTime endTemp= serv.getEnd();
+                if(endTemp.isBefore(newEnd)){
+                    toBeRemovedFuture.add(serv);
+                }
+            }
+            servListFuture.removeAll(toBeRemovedFuture);
+            servListFuture.getFirst().setStart(newEnd);
+
+        }
+    }
+    private void intervalOverreachInternals(LocalDateTime newStart, LocalDateTime newEnd){
+        boolean isDay;
+        int[] switchCode;
+        if(dayList.contains(selectedTextArea)){
+            isDay = true;
+            switchCode = new int[]{-1,0};
+        }else{
+            isDay = false;
+            switchCode = new int[]{0,1};
+        }
+        if(isDay==true){
+            ClientDay past = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[0]));
+            if((textClientIndex.get(selectedTextArea).getDayIntervalList().getFirst().getStart().isEqual(newStart) )){
+                ServiceIntervalArrayList servListPast= past.getDayIntervalList();
+                //  int i = servListPast.size()-1;
+                ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
+                for(ServiceInterval serv: servListPast.reversed()){
+                    LocalDateTime startTemp = serv.getStart();
+                    if(startTemp.isAfter(newStart)){
+                        toBeRemoved.add(serv);
+                    }
+                }
+                servListPast.removeAll(toBeRemoved);
+                servListPast.getLast().setEnd(newStart);
+            }
+            ClientDay future = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[1]));
+            if((textClientIndex.get(selectedTextArea).getDayIntervalList().getLast().getEnd().isEqual(newEnd))){
+                ServiceIntervalArrayList servListFuture= future.getDayIntervalList();
+                //int iFuture = servListFuture.size()-1;
+                ArrayList<ServiceInterval> toBeRemovedFuture = new ArrayList<>();
+                for(ServiceInterval serv: servListFuture){
+                    LocalDateTime endTemp= serv.getEnd();
+                    if(endTemp.isBefore(newEnd)){
+                        toBeRemovedFuture.add(serv);
+                    }
+                }
+                servListFuture.removeAll(toBeRemovedFuture);
+                servListFuture.getFirst().setStart(newEnd);
+
+            }
+
+        }else {
+            ClientDay past = textClientIndex.get(dayList.get(nightList.indexOf(selectedTextArea) + switchCode[0]));
+            if ((textClientIndex.get(selectedTextArea).getDayIntervalList().getFirst().getStart().isEqual(newStart)))
+            {
+                ServiceIntervalArrayList servListPast = past.getDayIntervalList();
+                ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
+                for (ServiceInterval serv : servListPast.reversed()) {
+                    LocalDateTime startTemp = serv.getStart();
+                    if (startTemp.isAfter(newStart)) {
+                        toBeRemoved.add(serv);
+                    }
+                }
+                servListPast.removeAll(toBeRemoved);
+                servListPast.getLast().setEnd(newStart);
+            }
+            ClientDay future = textClientIndex.get(dayList.get(nightList.indexOf(selectedTextArea) + switchCode[1]));
+            if ((textClientIndex.get(selectedTextArea).getDayIntervalList().getLast().getEnd().isEqual(newEnd))) {
+                ServiceIntervalArrayList servListFuture = future.getDayIntervalList();
+                ArrayList<ServiceInterval> toBeRemovedFuture = new ArrayList<>();
+                for (ServiceInterval serv : servListFuture) {
+                    LocalDateTime endTemp = serv.getEnd();
+                    if (endTemp.isBefore(newEnd)) {
+                        toBeRemovedFuture.add(serv);
+                    }
+                }
+                servListFuture.removeAll(toBeRemovedFuture);
+                servListFuture.getFirst().setStart(newEnd);
+            }
+        }
 
     }
+    /*
+    private void intervalOverreachInternals(LocalDateTime newStart, LocalDateTime newEnd){
+        boolean isDay;
+        int[] switchCode;
+        if(dayList.contains(selectedTextArea)){
+            isDay = true;
+            switchCode = new int[]{-1,0};
+        }else{
+            isDay = false;
+            switchCode = new int[]{0,1};
+        }
+        if(isDay==true){
+            ClientDay past = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[0]));
+            if((textClientIndex.get(selectedTextArea).getDayIntervalList().getFirst().getStart().isEqual(newStart) )){
+                ServiceIntervalArrayList servListPast= past.getDayIntervalList();
+                //  int i = servListPast.size()-1;
+                ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
+                for(ServiceInterval serv: servListPast.reversed()){
+                    LocalDateTime startTemp = serv.getStart();
+                    if(startTemp.isAfter(newStart)){
+                        toBeRemoved.add(serv);
+                    }
+                }
+                servListPast.removeAll(toBeRemoved);
+                servListPast.getLast().setEnd(newStart);
+            }
+            ClientDay future = textClientIndex.get(nightList.get(dayList.indexOf(selectedTextArea)+switchCode[1]));
+            if((textClientIndex.get(selectedTextArea).getDayIntervalList().getLast().getEnd().isEqual(newEnd))){
+                ServiceIntervalArrayList servListFuture= future.getDayIntervalList();
+                //int iFuture = servListFuture.size()-1;
+                ArrayList<ServiceInterval> toBeRemovedFuture = new ArrayList<>();
+                for(ServiceInterval serv: servListFuture){
+                    LocalDateTime endTemp= serv.getEnd();
+                    if(endTemp.isBefore(newEnd)){
+                        toBeRemovedFuture.add(serv);
+                    }
+                }
+                servListFuture.removeAll(toBeRemovedFuture);
+                servListFuture.getFirst().setStart(newEnd);
+
+            }
+
+        }else {
+            ClientDay past = textClientIndex.get(dayList.get(nightList.indexOf(selectedTextArea) + switchCode[0]));
+            if ((textClientIndex.get(selectedTextArea).getDayIntervalList().getFirst().getStart().isEqual(newStart)))
+            {
+                ServiceIntervalArrayList servListPast = past.getDayIntervalList();
+                ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
+                for (ServiceInterval serv : servListPast.reversed()) {
+                    LocalDateTime startTemp = serv.getStart();
+                    if (startTemp.isAfter(newStart)) {
+                        toBeRemoved.add(serv);
+                    }
+                }
+                servListPast.removeAll(toBeRemoved);
+                servListPast.getLast().setEnd(newStart);
+            }
+            ClientDay future = textClientIndex.get(dayList.get(nightList.indexOf(selectedTextArea) + switchCode[1]));
+            if ((textClientIndex.get(selectedTextArea).getDayIntervalList().getLast().getEnd().isEqual(newEnd))) {
+                ServiceIntervalArrayList servListFuture = future.getDayIntervalList();
+                ArrayList<ServiceInterval> toBeRemovedFuture = new ArrayList<>();
+                for (ServiceInterval serv : servListFuture) {
+                    LocalDateTime endTemp = serv.getEnd();
+                    if (endTemp.isBefore(newEnd)) {
+                        toBeRemovedFuture.add(serv);
+                    }
+                }
+                servListFuture.removeAll(toBeRemovedFuture);
+                servListFuture.getFirst().setStart(newEnd);
+            }
+        }
+
+    }
+     */
+
     public void saveIntervalChanges(ActionEvent actionEvent) throws IOException {
         /*
          ClientDay editedDay = textClientIndex.get(selectedTextArea);
@@ -1253,6 +1450,7 @@ public class MainPageController implements ControllerInterface{
                     newMonth = 1;
                 }else{
                     newMonth = month +1;
+                    newDay = 1;
                 }
                 System.out.println("triggered");
             }else{
@@ -1266,9 +1464,38 @@ public class MainPageController implements ControllerInterface{
                         Month.of(newMonth), newDay, hours, minutes);
             }
         }
+    }
+    public LocalDateTime setLocalDateTimeEnd(int hours, int minutes, int day){
+        if(dayList.contains(selectedTextArea)){
+            return LocalDateTime.of(Integer.parseInt(selectedYearValueVisual.getText()),
+                    Month.of(Integer.parseInt(selectedMonthValueVisual.getText())), day, hours, minutes);
+        }else{
+            int year = Integer.parseInt(selectedYearValueVisual.getText());
+            int month = Integer.parseInt(selectedMonthValueVisual.getText());
+            Integer newYear = year;
+            Integer newMonth = month;
+            Integer newDay = day;
 
-
-
+            if(day == Month.of(month).length(Year.isLeap(year))) {
+                if(month == 12){
+                    newYear = year+1;
+                    newMonth = 1;
+                }else{
+                    newMonth = month +1;
+                    day = 1;
+                }
+                System.out.println("triggered");
+            }else{
+                newDay++;
+            }
+            if(hours> 12){
+                return LocalDateTime.of(Integer.valueOf(selectedYearValueVisual.getText()),
+                        Month.of(Integer.valueOf(selectedMonthValueVisual.getText())), day, hours, minutes);
+            }else{
+                return LocalDateTime.of(newYear,
+                        Month.of(newMonth), newDay, hours, minutes);
+            }
+        }
     }
     private ArrayList<LocationRepresentative> prepareMergeable()  {
         ClientDay cl = textClientIndex.get(selectedTextArea);
@@ -1295,8 +1522,7 @@ public class MainPageController implements ControllerInterface{
             return output;
     }
     public void findNewSolution(ActionEvent actionEvent) throws IOException {
-        JsonManip toBeDeleted = JsonManip.getJsonManip();
-        toBeDeleted.generateNewMonthsAssistants(settings);
+        JsonManip.getJsonManip().generateNewMonthsAssistants(settings);
         findSolutionV2(actionEvent);
     }
     public void clearTable() throws IOException {
@@ -1322,9 +1548,40 @@ public class MainPageController implements ControllerInterface{
        populateView(Database.loadFullClients(selectedYearValue,selectedMonthValue));
     }
 
-
+    private ClientMonth getPastMonths(UUID id){
+        int yearIter = 0;
+        int month = settings.getCurrentMonth();
+        if(month==1){
+            yearIter = -1;
+        }
+        if(pastMonth == null){
+            pastMonth = Database.loadClientMonth(settings.getCurrentYear()+yearIter, changeMonth(settings.getCurrentMonth(),-1),id);
+        }
+        return pastMonth;
+    }
+    private ClientMonth getFutureMonths(UUID id){
+        int yearIter = 0;
+        int month = settings.getCurrentMonth();
+        if(month==12){
+            yearIter = 1;
+        }
+        if(futureMonth == null){
+            futureMonth = Database.loadClientMonth(settings.getCurrentYear()+yearIter, changeMonth(settings.getCurrentMonth(),+1),id);
+        }
+        return futureMonth;
+    }
+    private int changeMonth(int inputMonth, int change){
+        if(inputMonth+change>12){
+            return ((inputMonth+change)-12);
+        } else if (inputMonth+change<=0) {
+            return ((inputMonth+change)+12);
+        }else {
+        return inputMonth+change;
+        }
+    }
     @Override
     public void updateScreen() {
+           // populateView(getClientsOfMonth(settings));
 
     }
 }

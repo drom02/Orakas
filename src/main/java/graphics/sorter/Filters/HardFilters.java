@@ -46,4 +46,7 @@ public class HardFilters {
         input.removeAll(toRemove);
         return  input;
     }
+    private void assureProperPause(){
+
+    }
 }

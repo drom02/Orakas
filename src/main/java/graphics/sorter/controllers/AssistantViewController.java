@@ -127,7 +127,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                     loadContract();
                 });
         listViewofA.setCellFactory(new HumanCellFactory());
-        set = JsonManip.loadSettings();
+        set = Database.loadSettings();
         listOfA = Database.loadAssistants();
        // listOfAssist = listOfA .getFullAssistantList();
         listOfAssist = Database.loadAssistants().getAssistantList();
@@ -192,8 +192,8 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                 listOfA.getFullAssistantList().add(temp);
                 Database.saveAssistant(temp);
                 selectedAssistant = temp;
-                JsonManip toBeDeleted = JsonManip.getJsonManip();
-                toBeDeleted.saveAssistantInfo(listOfA);
+                //JsonManip toBeDeleted = JsonManip.getJsonManip();
+                //toBeDeleted.saveAssistantInfo(listOfA);
                 ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getFullAssistantList());
                 listViewofA.setItems(observLocationList);
                 return;
@@ -208,8 +208,8 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                     listOfA.getFullAssistantList().add(temp);
                     Database.saveAssistant(temp);
                     selectedAssistant = temp;
-                    JsonManip toBeDeleted = JsonManip.getJsonManip();
-                    toBeDeleted.saveAssistantInfo(listOfA);
+                   // JsonManip toBeDeleted = JsonManip.getJsonManip();
+                  //  toBeDeleted.saveAssistantInfo(listOfA);
                     ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getFullAssistantList());
                     listViewofA.setItems(observLocationList);
 
@@ -376,6 +376,11 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
 
     @Override
     public void updateScreen() {
+        try {
+            populateClientOpinion();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 }

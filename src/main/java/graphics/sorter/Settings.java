@@ -60,11 +60,7 @@ public class Settings {
     public static Settings getSettings(){
         if (settings == null) {
             // if instance is null, initialize
-            try {
-                settings = JsonManip.loadSettings();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            settings = Database.loadSettings();
         }
         return settings;
     }
@@ -76,10 +72,9 @@ public class Settings {
     private String filePath;
 
     public static Settings createNewSettingsFile() throws IOException {
-        JsonManip jsom = JsonManip.getJsonManip();
         String st =  System.getenv("APPDATA")+"\\Local\\ORAKAS\\";
         Settings defset = new Settings(12,2024, st,new int[]{8,30},new int[]{20,30},16);
-        Database.saveSettings(defset);
+       // Database.saveSettings(defset);
         return defset;
 
     }

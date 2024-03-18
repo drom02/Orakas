@@ -33,7 +33,7 @@ public class AvailableAssistants implements Saveable {
     private ArrayList<ArrayList<Assistant>> availableAssistantsAtDays = new ArrayList();
     private ArrayList<ArrayList<Assistant>> availableAssistantsAtNights = new ArrayList();
     public void createNew(JsonManip map) throws IOException {
-        Settings settings = map. loadSettings();
+        Settings settings = Database.loadSettings();
         ListOfAssistants listOfA = Database.loadAssistants();
         AvailableAssistants availableAssistants = new AvailableAssistants();
         ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();

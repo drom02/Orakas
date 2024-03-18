@@ -25,9 +25,11 @@ public class SoftFilters {
         availableAssistants.clear();
         availableAssistants.addAll(linkedMapOfLatestWork.keySet());
     }
-    public void penalizeRecent(HashMap<UUID,Integer> input, HashMap<UUID, Integer> mapOfLatestWork, int day, int penaly){
-        for(UUID id : input.keySet()){
-            input.put(id,(penaly*Math.abs(mapOfLatestWork.get(id)-day)));
+    public void penalizeRecent(HashMap<UUID,Integer> input, HashMap<UUID, Integer> mapOfLatestWork, int day, int penalty){
+            for(UUID id : input.keySet()) {
+                if (mapOfLatestWork.get(id) != null) {
+                    input.put(id, (penalty * Math.abs(mapOfLatestWork.get(id) - day)));
+                }
             //linkedMapOfLatestWork.put(id,(penaly*Math.abs(mapOfLatestWork.get(id)-day)));
           //  System.out.println(id + " "+(penaly*Math.abs(mapOfLatestWork.get(id)-day)));
 
@@ -88,4 +90,5 @@ public class SoftFilters {
         }
         return 0;
     }
+
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import graphics.sorter.Structs.DefSettings;
 import graphics.sorter.Structs.ListOfLocations;
+import graphics.sorter.controllers.fizbuzz;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -19,19 +20,19 @@ import java.util.UUID;
 public class Start extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        loadSetting();
-        int[] deftStart = new int[]{8,30};
-        int[] defEnd = new int[]{20,30};
+        //loadSetting();
+       // int[] deftStart = new int[]{8,30};
+       // int[] defEnd = new int[]{20,30};
         //Settings set = new Settings(12,2024,"",deftStart,defEnd,16);
         //set.createNewSettingsFile();
        // jsoM.jsonTest();
         FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("start-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 640, 480);
-        stage.setTitle("Sorter");
+        stage.setTitle("Orakas");
         stage.setScene(scene);
         stage.show();
-        ValidateFiles valid = new ValidateFiles();
-        valid.run();
+       // ValidateFiles valid = new ValidateFiles();
+       // valid.run();
         Database.prepareTables();
     }
 
