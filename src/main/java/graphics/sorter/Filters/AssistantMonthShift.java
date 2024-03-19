@@ -2,6 +2,7 @@ package graphics.sorter.Filters;
 
 import graphics.sorter.Assistant;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class AssistantMonthShift {
@@ -10,6 +11,16 @@ public class AssistantMonthShift {
     private UUID assistantID;
     private long workedHours;
     private int lastDayInWork;
+
+    public LocalDateTime getLastShift() {
+        return lastShift;
+    }
+
+    public void setLastShift(LocalDateTime lastShift) {
+        this.lastShift = lastShift;
+    }
+
+    private LocalDateTime lastShift;
 
     public AssistantMonthShift(UUID id){
         this.setAssistantID(id);

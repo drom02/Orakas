@@ -1,5 +1,7 @@
 package graphics.sorter.Filters;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -45,5 +47,16 @@ public class HardFilters {
         }
         input.removeAll(toRemove);
         return  input;
+    }
+    public ArrayList<UUID>  assureProperPause(ArrayList<UUID> input, AssistantMonthWorks workMonth, LocalDateTime startOfCurrent){
+        ArrayList<UUID> toRemove = new ArrayList<>();
+        for(UUID id : input){
+            LocalDateTime last = workMonth.getLastWorkedDayTime().get(id);
+                if( last != null && ChronoUnit.HOURS.between(last,startOfCurrent) < 8  ){
+                    toRemove.add(id);
+                }
+        }
+        input.removeAll(toRemove);
+        return input;
     }
 }

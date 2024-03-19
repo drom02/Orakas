@@ -17,10 +17,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
@@ -31,7 +28,10 @@ import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import com.opencsv.CSVReader;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.util.StringUtil;
+import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -47,6 +47,7 @@ import java.time.Month;
 import java.time.Year;
 import java.time.format.TextStyle;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static com.opencsv.ICSVWriter.*;
 
@@ -78,8 +79,10 @@ public class ShiftPickerController implements ControllerInterface{
     private ArrayList<ArrayList> listOfAssistantLists = new ArrayList<>();
    private  ArrayList<ShiftTextArea> assistantsDayList = new ArrayList<ShiftTextArea>();
    private  ArrayList<ShiftTextArea> assistantsNightList = new ArrayList<ShiftTextArea>();
-   private JsonManip jsoMap= JsonManip.getJsonManip();
+  // private JsonManip jsoMap= JsonManip.getJsonManip();
    private Settings settings;
+   private AvailableAssistants AAGlobal;
+   private HashMap<String,Assistant> mapOfAssistants= new HashMap<>();
    //endregion
 
 
@@ -87,6 +90,8 @@ public class ShiftPickerController implements ControllerInterface{
    Method will generate empty table with only column and row titles.
     */
     public void populateTable(Month moth, int year){
+        ContextMenu emptyContextMenu = new ContextMenu();
+
         editedMonth = moth;
         listOfAssistantLists.add(assistantsDayList);
         listOfAssistantLists.add(assistantsNightList);
@@ -134,6 +139,7 @@ public class ShiftPickerController implements ControllerInterface{
                 int shift = 0;
                 for (ArrayList arList : listOfAssistantLists) {
                     rowTitleAr = new ShiftTextArea();
+                    rowTitleAr.setContextMenu(emptyContextMenu);
                     rowTitleAr.setEditable(false);
                     rowTitleAr.getStyleClass().add(dayStyles[shift]);
                     inputText= "";
@@ -163,28 +169,21 @@ public class ShiftPickerController implements ControllerInterface{
     @Override
     public void updateScreen()  {
         ListOfAssistants listOfA = null;
-        try {
-            listOfA = jsoMap.loadAssistantInfo();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        listOfA = Database.loadAssistants();
         listOfAssist = listOfA .getAssistantList();
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getAssistantList());
         assistantList.setItems(observAssistantList);
     }
     public void initialize() throws IOException {
-        writeXSLX();
-
-        settings = jsoMap.loadSettings();
+        settings = Database.loadSettings();
         assistantList.setCellFactory(new HumanCellFactory());
-
-        ListOfAssistants listOfA = jsoMap.loadAssistantInfo();
+        ListOfAssistants listOfA = Database.loadAssistants();
         listOfAssist = listOfA .getAssistantList();
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getAssistantList());
         assistantList.setItems(observAssistantList);
         populateTable(Month.of(settings.getCurrentMonth()),settings.getCurrentYear());
-        loadAvailableAssistants();
-
+        loadAvailableAssistants(Database.loadAssistantAvailability(settings.getCurrentYear(),settings.getCurrentMonth()));
+        writeXSLX();
         Platform.runLater(() -> {
             GraphicalFunctions.screenResizing(mainPane,mainGrid);
 
@@ -252,14 +251,20 @@ public class ShiftPickerController implements ControllerInterface{
     Will populate the table with latest saved state.
     //Todo option to select save to load.
      */
-    public void loadAvailableAssistants() throws IOException {
-        JsonManip jsom = JsonManip.getJsonManip();
-
+    private void purgeText(){
+        for(ArrayList<ShiftTextArea> l : listOfAssistantLists){
+            for(ShiftTextArea s : l){
+                s.clear();
+            }
+        }
+    }
+    public void loadAvailableAssistants(AvailableAssistants av) throws IOException {
+        purgeText();
         int i =0;
         ArrayList<ShiftTextArea> tempListDay = listOfAssistantLists.get(0);
-        AvailableAssistants avAsD = null;
-        avAsD = jsom.loadAvailableAssistantInfo(settings);
-        ArrayList<ArrayList<Assistant>> listDays = avAsD.getAvailableAssistantsAtDays();
+       // AvailableAssistants AAGlobal = null;
+        AAGlobal = av;
+        ArrayList<ArrayList<Assistant>> listDays = AAGlobal.getAvailableAssistantsAtDays();
         for(ShiftTextArea arList: tempListDay ){
                 arList.setAvailableAssistants(listDays.get(i));
                 String output;
@@ -272,8 +277,8 @@ public class ShiftPickerController implements ControllerInterface{
         }
         i = 0;
         ArrayList<ShiftTextArea> tempListNight = listOfAssistantLists.get(1);
-        AvailableAssistants avAsN = jsom.loadAvailableAssistantInfo(settings);
-        ArrayList<ArrayList<Assistant>> listNights = avAsD.getAvailableAssistantsAtNights();
+        //AvailableAssistants avAsN = jsom.loadAvailableAssistantInfo(settings);
+        ArrayList<ArrayList<Assistant>> listNights = AAGlobal.getAvailableAssistantsAtNights();
         for(ShiftTextArea sText: tempListNight ){
                 sText.setAvailableAssistants(listNights.get(i));
             String output;
@@ -285,8 +290,8 @@ public class ShiftPickerController implements ControllerInterface{
         }
     }
     public void generateNewMonthsAssistants() throws IOException {
-        JsonManip jsom = JsonManip.getJsonManip();
-        ListOfAssistants listOfA = jsom.loadAssistantInfo();
+
+        ListOfAssistants listOfA = Database.loadAssistants();
         AvailableAssistants availableAssistants = new AvailableAssistants();
         ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
         ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
@@ -310,14 +315,14 @@ public class ShiftPickerController implements ControllerInterface{
 
         availableAssistants.setAvailableAssistantsAtDays(dayList);
         availableAssistants.setAvailableAssistantsAtNights(nightList);
-        jsom.saveAvailableAssistantInfo(availableAssistants,settings);
+        Database.saveAssistantAvailability(settings.getCurrentYear(),settings.getCurrentMonth(),availableAssistants);
     }
     /*
     Will save current state to json file.
     //TODO better save system
      */
     public void saveCurrentState() throws IOException {
-        JsonManip jsom = JsonManip.getJsonManip();
+       // JsonManip jsom = JsonManip.getJsonManip();
         AvailableAssistants availableAssistants = new AvailableAssistants();
         ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
         ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
@@ -334,7 +339,7 @@ public class ShiftPickerController implements ControllerInterface{
 
         availableAssistants.setAvailableAssistantsAtDays(dayList);
             availableAssistants.setAvailableAssistantsAtNights(nightList);
-          jsom.saveAvailableAssistantInfo(availableAssistants,settings);
+          Database.saveAssistantAvailability(settings.getCurrentYear(),settings.getCurrentMonth(),availableAssistants);
     }
     public void generateEmptyState() throws IOException {
         JsonManip jsom = JsonManip.getJsonManip();
@@ -351,33 +356,58 @@ public class ShiftPickerController implements ControllerInterface{
 
         availableAssistants.setAvailableAssistantsAtDays(dayList);
         availableAssistants.setAvailableAssistantsAtNights(nightList);
-        jsom.saveAvailableAssistantInfo(availableAssistants,settings);
+        Database.saveAssistantAvailability(settings.getCurrentYear(),settings.getCurrentMonth(),availableAssistants);
     }
-
+    private AvailableAssistants loadExcel(String path) throws IOException {
+       ArrayList<String> acceptableInputs = prepareAcceptableInputs();
+        settings = Database.loadSettings();
+        AvailableAssistants out = new AvailableAssistants();
+        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<ArrayList<Assistant>>();
+        ArrayList<ArrayList<Assistant>>  nightList = new ArrayList<ArrayList<Assistant>>();
+        try (FileInputStream fileInputStream = new FileInputStream(new File(path));
+             Workbook workbook = new XSSFWorkbook(fileInputStream)) {
+            Sheet sheet = workbook.getSheet("availableAssistants");
+            for(int i =1; i < 3;i++){
+                Row editedRow = sheet.getRow(i);
+                for(int c = 0;c< Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear()));c++){
+                    Cell editedCell = editedRow.getCell(c);
+                    if(i==1){
+                        dayList.add(ExcelOutput.parseCell(acceptableInputs,editedCell, mapOfAssistants));
+                    }else{
+                        nightList.add(ExcelOutput.parseCell(acceptableInputs,editedCell,mapOfAssistants));
+                    }
+                }
+            }
+            out.setAvailableAssistantsAtDays(dayList);
+            out.setAvailableAssistantsAtNights(nightList);
+            loadAvailableAssistants(out);
+            return out;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
     public void loadCsv(ActionEvent actionEvent) throws IOException, CsvException {
        // writeCSV();
         //writeXSLX();
-        /*
-
-         */
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("csv files (*.csv)","*.csv", "*.xlsx");
         fileChooser.getExtensionFilters().add(extFilter);
         Stage stage = (Stage)((Node) actionEvent.getSource()).getScene().getWindow();
         File selectedFile = fileChooser.showOpenDialog(stage);
         String st = selectedFile.getAbsolutePath();
+        loadExcel(st);
         /**/
-        InputStreamReader filereader = new InputStreamReader(new FileInputStream(st), StandardCharsets.UTF_8);
-
-        // create csvReader object and skip first Line
+        /*
+         InputStreamReader filereader = new InputStreamReader(new FileInputStream(st), StandardCharsets.UTF_8);
         CSVReader csvReader = new CSVReaderBuilder(filereader)
                 .withSkipLines(0)
                 .build();
         ArrayList<ArrayList<ArrayList<String>>>  input = new ArrayList<ArrayList<ArrayList<String>>>();
 
+        XSSFReader xssfReader = new XSSFReader();
 
-
-        List<String[]> allData = csvReader.readAll();
+        List<String[]> allData =
         int shift = 0;
         for(String[] ste :allData){
             ArrayList shiftList = new ArrayList<>();
@@ -401,6 +431,8 @@ public class ShiftPickerController implements ControllerInterface{
         System.out.println(input);
         System.out.println(input);
 
+         */
+        // create csvReader object and skip first Line
     }
     private void writeCSV() throws IOException {
        int year = settings.getCurrentYear();
@@ -431,14 +463,10 @@ public class ShiftPickerController implements ControllerInterface{
 
     }
     private void writeXSLX(){
-        XSSFWorkbook workbook = new XSSFWorkbook();
-        XSSFSheet sheet = workbook.createSheet("Example Sheet");
-        XSSFRow row = sheet.createRow(0);
-        XSSFCell cell0 = row.createCell(0);
-        cell0.setCellValue("Cell 1");
-        XSSFCell cell1 = row.createCell(1);
-        cell1.setCellValue("Cell 2");
-        try (FileOutputStream fos = new FileOutputStream("C:\\Users\\matej\\VSE\\delete\\createdExample.xlsx")) {
+        CompletableFuture<Void> future = CompletableFuture.runAsync(()->
+        {Database.saveAssistantAvailability(AAGlobal.getYear(),AAGlobal.getMonth(),AAGlobal);});
+        XSSFWorkbook workbook = ExcelOutput.convert(AAGlobal);
+        try (FileOutputStream fos = new FileOutputStream("C:\\Users\\matej\\VSE\\delete\\"+"available assistants "+ AAGlobal.getYear()+"."+AAGlobal.getMonth()+".xlsx")) {
             workbook.write(fos);
         } catch (IOException e) {
             e.printStackTrace();
@@ -450,13 +478,17 @@ public class ShiftPickerController implements ControllerInterface{
             }
         }
     }
-    private ArrayList prepareAcceptableInputs() throws IOException {
+    private ArrayList prepareAcceptableInputs() {
+        mapOfAssistants.clear();
         ArrayList<String> acceptable = new ArrayList<>();
-        JsonManip jsom = JsonManip.getJsonManip();
-        ListOfAssistants lisfa = jsom.loadAssistantInfo();
+        ListOfAssistants lisfa = Database.loadAssistants();
         for(Assistant a: lisfa.getAssistantList()){
-            String nameSurname = a.getName() +" "+a.getSurname();
+            String nameSurname = a.getName()+a.getSurname();
+            nameSurname = nameSurname.replaceAll(" ","");
             String surname = a.getSurname();
+            surname = surname.replaceAll(" ","");
+            mapOfAssistants.put(nameSurname,a);
+            mapOfAssistants.put(surname,a);
             acceptable.add(nameSurname);
             acceptable.add(surname);
         }

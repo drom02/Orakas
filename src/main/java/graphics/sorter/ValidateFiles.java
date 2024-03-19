@@ -11,11 +11,8 @@ public class ValidateFiles {
 
     Settings set;
     {
-        try {
-            set = JsonManip.loadSettings();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+            set = Database.loadSettings();
+
     }
     public void run(){
         JsonManip jsom = JsonManip.getJsonManip();

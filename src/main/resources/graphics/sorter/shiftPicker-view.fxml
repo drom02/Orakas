@@ -28,7 +28,7 @@
                </GridPane.margin>
             </ScrollPane>
             <ListView fx:id="assistantList" onMouseClicked="#selectAssistant" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" />
-            <Button fx:id="saveCurrentStateButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#saveCurrentState" text="save" GridPane.rowIndex="2">
+            <Button fx:id="saveCurrentStateButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#saveCurrentState" text="Uložit změny" GridPane.rowIndex="2">
                <GridPane.margin>
                   <Insets top="15.0" />
                </GridPane.margin></Button>

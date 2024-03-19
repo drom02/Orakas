@@ -21,6 +21,7 @@ import javafx.scene.layout.Pane;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class LocationController implements ControllerInterface{
     @FXML
@@ -43,13 +44,18 @@ public class LocationController implements ControllerInterface{
     JsonManip jsoMap;
     Settings set;
     public void initialize() throws IOException {
-        jsoMap= JsonManip.getJsonManip();
-        set = jsoMap.loadSettings();
-        listOfL = jsoMap.loadLocations(set);
-        listOfLoc = listOfL .getListOfLocations();
+        set = Database.loadSettings();
+       // listOfL = jsoMap.loadLocations(set);
+        /*
+        CompletableFuture<Void> future = CompletableFuture.runAsync(()-> {listOfL = Database.loadLocations();}).thenAccept( result -> {listOfLoc = listOfL.getListOfLocations();
+            ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
+         */
+        listOfL = Database.loadLocations();
+        listOfLoc = listOfL.getListOfLocations();
         ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
-        listViewofL.setItems(observLocationList);
-        listViewofL.setCellFactory(new LocationCellFactory());
+            listViewofL.setItems(observLocationList);
+            listViewofL.setCellFactory(new LocationCellFactory());
+       // future.the
         Platform.runLater(() -> {
             GraphicalFunctions.screenResizing(basePane,mainGrid);
         });
@@ -80,6 +86,11 @@ public class LocationController implements ControllerInterface{
     }
 
     public void saveLocation(MouseEvent mouseEvent) {
+      //  Database.dataTest();
+       // Database.testUser();
+       // Database.testLoad();
+        Database.saveLocation(selectedLocationGlobal);
+       // Database.loadLocation(selectedLocationGlobal.getID());
     }
 
     public void loadLocation(MouseEvent mouseEvent) {
@@ -95,8 +106,10 @@ public class LocationController implements ControllerInterface{
     public void saveNewLocation(ActionEvent actionEvent) throws IOException {
         if(!(addressField.getText().isEmpty()) & !(nameField.getText().isEmpty())){
             if(listOfL.getListOfLocations().isEmpty()){
-                listOfLoc.add(new Location(UUID.randomUUID(), addressField.getText(),nameField.getText()));
-                jsoMap.saveLocations(listOfL);
+                selectedLocationGlobal = new Location(UUID.randomUUID(), addressField.getText(),nameField.getText());
+                selectedLocationGlobal.setComments(comments.getText());
+                listOfLoc.add(selectedLocationGlobal);
+                Database.saveLocation(selectedLocationGlobal);
                 ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
                 listViewofL.setItems(observLocationList);
                 return;
@@ -106,8 +119,10 @@ public class LocationController implements ControllerInterface{
                 name.add(loc.getCasualName());
             }
                 if(!(name.contains(nameField.getText()))){
-                    listOfLoc.add(new Location(UUID.randomUUID(), addressField.getText(),nameField.getText()));
-                    jsoMap.saveLocations(listOfL);
+                    selectedLocationGlobal = new Location(UUID.randomUUID(), addressField.getText(),nameField.getText());
+                    selectedLocationGlobal.setComments(comments.getText());
+                    listOfLoc.add(selectedLocationGlobal);
+                    Database.saveLocation(selectedLocationGlobal);
                     ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
                     listViewofL.setItems(observLocationList);
                 }else{
@@ -120,6 +135,6 @@ public class LocationController implements ControllerInterface{
 
     @Override
     public void updateScreen() {
-        
+
     }
 }

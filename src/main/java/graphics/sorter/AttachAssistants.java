@@ -11,7 +11,6 @@ public class AttachAssistants {
 
      private AvailableAssistants availableAssistants;
      private ListOfClients listOfClients;
-     private JsonManip jsom = JsonManip.getJsonManip();
     //public void a(AvailableAssistants availableAssistants, ){
 
    // }
@@ -22,14 +21,14 @@ public class AttachAssistants {
 
     }
     public void initialize() throws IOException {
-        Settings set = jsom.loadSettings();
+        Settings set = Database.loadSettings();
         try {
-            availableAssistants = jsom.loadAvailableAssistantInfo(set);
+            availableAssistants = Database.loadAssistantAvailability(set.getCurrentYear(), set.getCurrentMonth());
         }catch(Exception e){
-            jsom.generateEmptyState(set);
+            JsonManip.generateEmptyState(set);
         }
 
-       listOfClients = jsom.loadClientInfo(set);
+       listOfClients = Database.loadFullClients(set.getCurrentYear(),set.getCurrentMonth());
        extractClientsForDay(1);
     }
     private ArrayList<ClientDay> extractClientsForDay(int day ){

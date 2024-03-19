@@ -20,7 +20,7 @@ public class JsonManip {
 
     private String path;
     public void initialize() throws IOException {
-        Settings set = loadSettings();
+        Settings set = Database.loadSettings();
         path = set.getFilePath();
         ArrayList<String> directories = new ArrayList<>(Arrays.asList("Assistants","Clients","Settings","Locations","ClientRequirements","AvailableAssistants"));
         for(String st : directories){
@@ -100,25 +100,29 @@ public class JsonManip {
         ListOfAssistants listOfA = objectMapper.readValue(jsonData, ListOfAssistants.class );
         return listOfA;
     }
-    public ListOfClients loadClientInfo(Settings set) throws IOException {
+    public ListOfClients loadClientInfo(Settings set)  {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
+        try {
         byte[]  jsonData = Files.readAllBytes(Paths.get(path+"Clients\\Clients.json"));
         ListOfClientsProfiles listOfA = objectMapper.readValue(jsonData, ListOfClientsProfiles.class );
-        byte[]  jsonDataMonth = Files.readAllBytes(Paths.get(set.getFilePath()+  "ClientRequirements\\ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"));
-        ListOfClientMonths listOfClm = objectMapper.readValue(jsonDataMonth, ListOfClientMonths.class );
-        ListOfClients listOfClients = new ListOfClients();
-        for(ClientProfile clP: listOfA.getClientList()){
-            Client out;
-            if(!(listOfClm.getMonthOfSpecificClient(clP.getID()) == null)){
-                out = clP.convertToClient(listOfClm.getMonthOfSpecificClient(clP.getID()));
-            }else{
-                out = clP.convertToClient(new ClientMonth(Month.of(set.getCurrentMonth()), set.getCurrentYear(), clP.getID(), clP.getHomeLocation()));
+        byte[]  jsonDataMonth = new byte[0];
+        jsonDataMonth = Files.readAllBytes(Paths.get(set.getFilePath()+  "ClientRequirements\\ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"));
+            ListOfClientMonths listOfClm = objectMapper.readValue(jsonDataMonth, ListOfClientMonths.class );
+            ListOfClients listOfClients = new ListOfClients();
+            for(ClientProfile clP: listOfA.getClientList()){
+                Client out;
+                if(!(listOfClm.getMonthOfSpecificClient(clP.getID()) == null)){
+                    out = clP.convertToClient(listOfClm.getMonthOfSpecificClient(clP.getID()));
+                }else{
+                    out = clP.convertToClient(new ClientMonth(Month.of(set.getCurrentMonth()), set.getCurrentYear(), clP.getID(), clP.getHomeLocation()));
+                }
+                listOfClients.getClientList().add(out);
             }
-            listOfClients.getClientList().add(out);
+            return listOfClients;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        return listOfClients;
     }
     public ListOfClientsProfiles loadClientProfileInfo() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -144,7 +148,7 @@ public class JsonManip {
         try {
             jsonData = Files.readAllBytes(Paths.get(path +  "AvailableAssistants\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
         } catch (IOException e) {
-            generateNewMonthsAssistants(loadSettings());
+            generateNewMonthsAssistants(Database.loadSettings());
             jsonData = Files.readAllBytes(Paths.get(path +  "AvailableAssistants\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
         }
         AvailableAssistants listOfA = objectMapper.readValue(jsonData, AvailableAssistants.class );
@@ -155,6 +159,7 @@ public class JsonManip {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.writeValue(new File(set.getFilePath()+  "ClientRequirements\\ClientRequirements." +set.getCurrentMonth()+"." +set.getCurrentYear()+ ".json"),lias);
+
     }
     public ListOfClientMonths loadClientRequirementsForMonth( Settings set) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -170,18 +175,48 @@ public class JsonManip {
         Settings set = objectMapper.readValue(jsonData, Settings.class );
         return set;
     }
-    public void saveSettings(Settings lias) throws IOException {
+    public static String loadRedirect() {
+        new File(System.getenv("APPDATA")+"\\ORAKAS").mkdir();
+        new File(System.getenv("APPDATA")+"\\ORAKAS\\Data").mkdir();
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        try{byte[]jsonData = Files.readAllBytes(Paths.get(System.getenv("APPDATA")+"\\ORAKAS\\Data\\redirect.json"));
+            RedirectPath  set = objectMapper.readValue(jsonData, RedirectPath .class );
+            return set.getPath();
+        }
+        catch (Exception e){
+            try {
+                return saveRedirect(null).getPath();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+
+    }
+    public static RedirectPath saveRedirect(String lias) throws IOException {
+        String st;
+        if(lias == null){
+             st =  System.getenv("APPDATA")+"\\ORAKAS\\Data\\";
+        }else{
+            st = lias;
+        }
+        RedirectPath l = new RedirectPath();
+        l.setPath(st);
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.writeValue(new File(System.getenv("APPDATA")+"\\ORAKAS\\redirect.json"),lias);
+        return l;
+    }
+    public static void saveSettings(Settings lias) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.writeValue(new File(".\\Settings.json"),lias);
     }
-    public void generateEmptyState(Settings settings) throws IOException {
-        JsonManip jsom = new JsonManip();
+    public static void generateEmptyState(Settings settings) throws IOException {
         AvailableAssistants availableAssistants = new AvailableAssistants();
         ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
         ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
         int shift = 0;
-
         for(int i = 0; i < Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear())); i++){
             dayList.add(new ArrayList<>());
             nightList.add(new ArrayList<>());
@@ -190,11 +225,11 @@ public class JsonManip {
 
         availableAssistants.setAvailableAssistantsAtDays(dayList);
         availableAssistants.setAvailableAssistantsAtNights(nightList);
-        jsom.saveAvailableAssistantInfo(availableAssistants,settings);
+        Database.saveAssistantAvailability(settings.getCurrentYear(),settings.getCurrentMonth(),availableAssistants);
     }
-    public void generateNewMonthsAssistants(Settings settings) throws IOException {
-        JsonManip jsom = new JsonManip();
-        ListOfAssistants listOfA = jsom.loadAssistantInfo();
+    public void  generateNewMonthsAssistants(Settings settings) throws IOException {
+        //JsonManip jsom = new JsonManip();
+        ListOfAssistants listOfA = Database.loadAssistants();
         AvailableAssistants availableAssistants = new AvailableAssistants();
         ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
         ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
@@ -218,7 +253,34 @@ public class JsonManip {
 
         availableAssistants.setAvailableAssistantsAtDays(dayList);
         availableAssistants.setAvailableAssistantsAtNights(nightList);
-        jsom.saveAvailableAssistantInfo(availableAssistants,settings);
+        Database.saveAssistantAvailability(settings.getCurrentYear(), settings.getCurrentMonth(), availableAssistants);
+    }
+    public void  generateNewMonthsAssistants(int year,int month) throws IOException {
+        //JsonManip jsom = new JsonManip();
+        ListOfAssistants listOfA = Database.loadAssistants();
+        AvailableAssistants availableAssistants = new AvailableAssistants();
+        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
+        ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
+        for(int i =0; i < Month.of(month).length(Year.isLeap(year)); i++){
+            ArrayList<Assistant> inputDayList = new ArrayList<>();
+            ArrayList<Assistant> inputNightList = new ArrayList<>();
+            dayList.add(inputDayList);
+            nightList.add(inputNightList);
+            for(Assistant asis : listOfA.getAssistantList()){
+                if(asis.getWorkDays()[(LocalDate.of(year, month, i+1).getDayOfWeek().getValue()-1)] == 1 ){
+                    inputDayList.add(asis);
+                }
+                if(asis.getWorkDays()[(LocalDate.of(year, month, i+1).getDayOfWeek().getValue()+6)] == 1 ){
+                    inputNightList.add(asis);
+                }
+
+            }
+
+
+        }
+        availableAssistants.setAvailableAssistantsAtDays(dayList);
+        availableAssistants.setAvailableAssistantsAtNights(nightList);
+        Database.saveAssistantAvailability(year, month, availableAssistants);
     }
     public void  saveLocations(ListOfLocations lOL) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();

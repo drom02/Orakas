@@ -52,14 +52,13 @@
                         <Insets />
                      </GridPane.margin>
                   </TextField>
-                  <TextField fx:id="surnameField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                  <TextField GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                  <TextField fx:id="surnameField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                   <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="default-text" text="Jméno" wrappingWidth="73.13671875">
                      <GridPane.margin>
                         <Insets left="10.0" />
                      </GridPane.margin>
                   </Text>
-                  <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="default-text" text="Příjmení" wrappingWidth="74.13671875" GridPane.rowIndex="2">
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="default-text" text="Příjmení" wrappingWidth="74.13671875" GridPane.rowIndex="1">
                      <GridPane.margin>
                         <Insets left="10.0" />
                      </GridPane.margin>
@@ -76,19 +75,19 @@
                   </Text>
                   <TextArea fx:id="comments" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                   <ChoiceBox fx:id="homeLocationBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                  <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="default-text" text="Status" wrappingWidth="73.13671875" GridPane.rowIndex="1">
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="default-text" text="Status" wrappingWidth="73.13671875" GridPane.rowIndex="2">
                      <GridPane.margin>
                         <Insets left="10.0" />
                      </GridPane.margin>
                   </Text>
-                  <CheckBox fx:id="statusChoiceBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+                  <CheckBox fx:id="statusChoiceBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
                </children>
             </GridPane>
             <ListView fx:id="listViewofC" onMouseClicked="#loadClient" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" GridPane.rowSpan="4" />
-            <GridPane GridPane.rowIndex="5">
+            <GridPane maxWidth="1.7976931348623157E308" GridPane.rowIndex="5">
               <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" maxWidth="40.0" minWidth="10.0" prefWidth="28.0" />
-                <ColumnConstraints hgrow="SOMETIMES" maxWidth="40.0" minWidth="10.0" prefWidth="28.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="40.0" minWidth="10.0" percentWidth="100.0" prefWidth="28.0" />
+                  <ColumnConstraints />
               </columnConstraints>
               <rowConstraints>
                 <RowConstraints minHeight="10.0" percentHeight="34.0" prefHeight="30.0" vgrow="SOMETIMES" />

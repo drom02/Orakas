@@ -65,11 +65,11 @@
                      <GridPane.margin>
                         <Insets left="10.0" top="20.0" />
                      </GridPane.margin></Text>
-                  <Text fx:id="selectedYearValue" strokeType="OUTSIDE" strokeWidth="0.0" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.valignment="TOP">
+                  <Text fx:id="selectedYearValueVisual" strokeType="OUTSIDE" strokeWidth="0.0" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.valignment="TOP">
                      <GridPane.margin>
                         <Insets />
                      </GridPane.margin></Text>
-                  <Text fx:id="selectedMonthValue" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="23.0" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.valignment="TOP">
+                  <Text fx:id="selectedMonthValueVisual" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="23.0" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.valignment="TOP">
                      <GridPane.margin>
                         <Insets top="20.0" />
                      </GridPane.margin></Text>
@@ -186,7 +186,7 @@
                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                      <children>
-                        <CheckBox fx:id="isMergedCheckBox" mnemonicParsing="false" onAction="#isMergedSwitch" text="Is merged" />
+                        <CheckBox fx:id="isMergedCheckBox" mnemonicParsing="false" onAction="#isMergedSwitch" text="Den je spojený s jiným dnem" />
                         <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#removeInterval" text="Odstranit interval" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS" />
                         <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#saveIntervalChanges" text="Uložit změny" GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.vgrow="ALWAYS">
                            <GridPane.margin>

@@ -19,7 +19,12 @@ public class ClientProfile extends Human {
     private Location homeLocation;
 
     @JsonCreator
-    public ClientProfile(@JsonProperty("ID") UUID ID,  @JsonProperty("status") boolean status,@JsonProperty("name")String name, @JsonProperty("surname")String surname, @JsonProperty("homeLocation")Location homeLocation, @JsonProperty("comment")String comment){
+    public ClientProfile(@JsonProperty("ID") UUID ID,
+                         @JsonProperty("status") boolean status,
+                         @JsonProperty("name")String name,
+                         @JsonProperty("surname")String surname,
+                         @JsonProperty("homeLocation")Location homeLocation,
+                         @JsonProperty("comment")String comment){
         setID(ID);
         setActivityStatus(status);
         setName(name);

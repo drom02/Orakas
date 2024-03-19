@@ -25,9 +25,11 @@ public class SoftFilters {
         availableAssistants.clear();
         availableAssistants.addAll(linkedMapOfLatestWork.keySet());
     }
-    public void penalizeRecent(HashMap<UUID,Integer> input, HashMap<UUID, Integer> mapOfLatestWork, int day, int penaly){
-        for(UUID id : input.keySet()){
-            input.put(id,(penaly*Math.abs(mapOfLatestWork.get(id)-day)));
+    public void penalizeRecent(HashMap<UUID,Integer> input, HashMap<UUID, Integer> mapOfLatestWork, int day, int penalty){
+            for(UUID id : input.keySet()) {
+                if (mapOfLatestWork.get(id) != null) {
+                    input.put(id, (penalty * Math.abs(mapOfLatestWork.get(id) - day)));
+                }
             //linkedMapOfLatestWork.put(id,(penaly*Math.abs(mapOfLatestWork.get(id)-day)));
           //  System.out.println(id + " "+(penaly*Math.abs(mapOfLatestWork.get(id)-day)));
 
@@ -55,6 +57,14 @@ public class SoftFilters {
         }
 
     }
+    public void emergencyAssistant(HashMap<UUID,Integer> ratingMap,ArrayList<Assistant> listOfAssistants){
+        for(Assistant a : listOfAssistants){
+            if(a.isEmergencyAssistant()){
+                ratingMap.put(a.getID(), -999999999);
+            }
+        }
+
+    }
     private Assistant getfromID(ArrayList<Assistant> inp, UUID id){
         for(Assistant as : inp){
             if(id == as.getID()){
@@ -63,6 +73,7 @@ public class SoftFilters {
         }
         return  null;
     }
+
     private int getPenalty(Assistant as, UUID client){
         switch (getCategory(as,client)){
             case 0:
@@ -88,4 +99,5 @@ public class SoftFilters {
         }
         return 0;
     }
+
 }

@@ -51,6 +51,8 @@ public class AssistantViewController implements ControllerInterface{
     @FXML
     private CheckBox nightCheck;
     @FXML
+    private CheckBox emergencyAssistantCheck;
+    @FXML
     private TextField nameField;
     @FXML
     private TextField surnameField;
@@ -63,12 +65,12 @@ public class AssistantViewController implements ControllerInterface{
     @FXML
     private TextArea comments;
     @FXML
-    private ArrayList listOfAssist;
+    private ArrayList<Assistant> listOfAssist;
     //endregion
     //region variables
     private Assistant selectedAssistant;
-    private int[] stateOfDays;
-    private JsonManip jsoMap;
+    private int[] stateOfDays = new int[]{1,1,1,1,1,0,0,1,1,1,1,1,0,0};
+   // private JsonManip jsoMap;
     private ListOfAssistants listOfA;
     private ArrayList<Control> assistantNodes;
     private HashMap<UUID, ArrayList<Object>> itemIndex;
@@ -76,6 +78,7 @@ public class AssistantViewController implements ControllerInterface{
     Settings set;
     public void deleteAssistant(MouseEvent mouseEvent) throws IOException {
         if(!(selectedAssistant == null)){
+            Database.softDeleteAssistant(selectedAssistant);
             listOfA.getFullAssistantList().remove(selectedAssistant);
             ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getFullAssistantList());
             listViewofA.setItems(observAssistantList);
@@ -88,7 +91,12 @@ public class AssistantViewController implements ControllerInterface{
                     ((CheckBox) n).setSelected(false);
                 }
             }
-            jsoMap.saveAssistantInfo(listOfA);
+            if(listOfA.getAssistantList().isEmpty()){
+                selectedAssistant = null;
+            }else{
+                selectedAssistant = listOfA.getAssistantList().getFirst();
+            }
+
         }else{
             System.out.println("Vyberte asistenta k odstranění.");
         }
@@ -103,13 +111,12 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         selectedAssistant.setActivityStatus(statusCheckBox.isSelected());
         selectedAssistant.setContractType((String) contractField.getValue());
         selectedAssistant.setLikesOvertime(overtimeCheck.isSelected());
-        selectedAssistant.setWorksOnlyDay(dayCheck.isSelected());
-        selectedAssistant.setWorksOnlyNight(nightCheck.isSelected());
-        selectedAssistant.setWorkTime(Double.parseDouble(workField.getText()));
+        selectedAssistant.setContractTime(Double.parseDouble(workField.getText()));
         selectedAssistant.setComment(comments.getText());
         selectedAssistant.setWorkDays(stateOfDays);
         selectedAssistant.setClientPreference(savePreferred());
-        jsoMap.saveAssistantInfo(listOfA);
+        Database.saveAssistant(selectedAssistant);
+        Database.saveAssistant(selectedAssistant);
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getFullAssistantList());
         listViewofA.setItems(observAssistantList);
 
@@ -122,37 +129,24 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                     loadContract();
                 });
         listViewofA.setCellFactory(new HumanCellFactory());
-        jsoMap= JsonManip.getJsonManip();
-        set = jsoMap.loadSettings();
-        listOfA = jsoMap.loadAssistantInfo();
-        listOfAssist = listOfA .getFullAssistantList();
+        set = Database.loadSettings();
+        listOfA = Database.loadAssistants();
+       // listOfAssist = listOfA .getFullAssistantList();
+        listOfAssist = Database.loadAssistants().getAssistantList();
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getFullAssistantList());
         listViewofA.setItems(observAssistantList);
-        populateClientOpinion();
+
         Platform.runLater(() -> {
             GraphicalFunctions.screenResizing(mainPane,mainGrid);
+            populateDaysInWeekTable();
+            try {
+                populateClientOpinion();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
         });
-
-
-
-
     }
-    private ListOfAssistants loadAssistantsJson() throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        byte[]  jsonData = Files.readAllBytes(Paths.get("E:\\JsonWriteTest\\test.json"));
-        ListOfAssistants listOfA = objectMapper.readValue(jsonData, ListOfAssistants.class );
-        listOfAssist = listOfA.getFullAssistantList();
-        return listOfA;
-    }
-
-    public void switchPage(ActionEvent actionEvent) throws IOException {
-        Scene scen = listViewofA.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("Main-view.fxml"));
-        Parent rot = fxmlLoader.load();
-        scen.setRoot(rot);
-    }
-
     public void loadAssistant(MouseEvent mouseEvent) {
         selectedAssistant = (Assistant) listViewofA.getSelectionModel().getSelectedItem();
     if(!(selectedAssistant== null)){
@@ -161,13 +155,12 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         statusCheckBox.setSelected(selectedAssistant.getActivityStatus());
         contractField.setValue(selectedAssistant.getContractType());
         overtimeCheck.setSelected(selectedAssistant.getLikesOvertime());
-        dayCheck.setSelected(selectedAssistant.getWorksOnlyDay());
-        nightCheck.setSelected(selectedAssistant.getWorksOnlyNight());
         loadContract();
-        workField.setText(String.valueOf(selectedAssistant.getWorkTime()));
+        workField.setText(String.valueOf(selectedAssistant.getContractTime()));
         comments.setText(selectedAssistant.getComment());
         stateOfDays = selectedAssistant.getWorkDays();
-        populateDaysInWeekTable();
+        emergencyAssistantCheck.setSelected(selectedAssistant.isEmergencyAssistant());
+
         loadClientOpinion(selectedAssistant);
     }
 
@@ -182,7 +175,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
 }
  private ArrayList<ArrayList<UUID>> savePreferred() throws IOException {
      ArrayList<ArrayList<UUID>> output = new ArrayList<ArrayList<UUID>>(Arrays.asList(new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>()));
-     for(ClientProfile cl : jsoMap.loadClientProfileInfo().getClientList()){
+     for(ClientProfile cl : Database.loadClientProfiles().getFullClientList()){
         // ArrayList<RadioButton>
         List<Object> buttons = itemIndex.get(cl.getID()).subList(2,5);
         int i =0;
@@ -198,11 +191,14 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
     public void saveNewAssistant(ActionEvent actionEvent) throws IOException {
         if(!(nameField.getText().isEmpty()) & !(surnameField.getText().isEmpty())){
             if(listOfA.getFullAssistantList().isEmpty()){
-                listOfAssist.add(new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), dayCheck.isSelected(), nightCheck.isSelected(), comments.getText(),stateOfDays, savePreferred()));
-                jsoMap.saveAssistantInfo(listOfA);
+                Assistant temp = new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), comments.getText(),stateOfDays, savePreferred(),emergencyAssistantCheck.isSelected());
+                listOfA.getFullAssistantList().add(temp);
+                Database.saveAssistant(temp);
+                selectedAssistant = temp;
+                //JsonManip toBeDeleted = JsonManip.getJsonManip();
+                //toBeDeleted.saveAssistantInfo(listOfA);
                 ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getFullAssistantList());
                 listViewofA.setItems(observLocationList);
-                System.out.println("No other assistants exist");
                 return;
 
             }
@@ -211,11 +207,15 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                 nameAndSurname.add(loc.getName() +" "+ loc.getSurname());
             }
                 if(!( nameAndSurname.contains(nameField.getText() +" "+ surnameField.getText()))){
-                    listOfAssist.add(new Assistant(UUID.randomUUID(),statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), dayCheck.isSelected(), nightCheck.isSelected(), comments.getText(),stateOfDays, savePreferred()));
-                    jsoMap.saveAssistantInfo(listOfA);
+                    Assistant temp = new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), comments.getText(),stateOfDays, savePreferred(),emergencyAssistantCheck.isSelected());
+                    listOfA.getFullAssistantList().add(temp);
+                    Database.saveAssistant(temp);
+                    selectedAssistant = temp;
+                   // JsonManip toBeDeleted = JsonManip.getJsonManip();
+                  //  toBeDeleted.saveAssistantInfo(listOfA);
                     ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getFullAssistantList());
                     listViewofA.setItems(observLocationList);
-                    System.out.println("FFS");
+
 
                 }else{
                     System.out.println("Asistent už existuje");
@@ -286,12 +286,12 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
 
     public void populateClientOpinion() throws IOException {
     clientOpinionGrid.getRowConstraints().clear();
-    ListOfClientsProfiles lip = jsoMap.loadClientProfileInfo();
-     itemIndex = new HashMap<>();
+    ListOfClientsProfiles lip = Database.loadClientProfiles();
+    itemIndex = new HashMap<>();
     int citer = 0;
-        for(ClientProfile clp : lip.getClientList()) {
+    System.out.println(lip.getClientList());
+        for(ClientProfile clp : lip.getFullClientList()) {
             ArrayList<Object> templist = new ArrayList();
-
             GridPane grp = new GridPane();
             grp.getRowConstraints().clear();
             grp.setStyle("-fx-background-color:" +toHexString(Color.GRAY));
@@ -324,7 +324,6 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
            }
             grp.getRowConstraints().add(new RowConstraints(){{setValignment(VPos.CENTER);}});
             clientOpinionGrid.getChildren().add(grp);
-           System.out.println(grp.getRowCount());
            clientOpinionGrid.setConstraints(grp,0,citer++);
             clientOpinionGrid.setMargin(grp, new Insets(0,10,0,10));
            // clientOpinionGrid.setValignment(grp,VPos.CENTER);
@@ -380,6 +379,11 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
 
     @Override
     public void updateScreen() {
+        try {
+            populateClientOpinion();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 }

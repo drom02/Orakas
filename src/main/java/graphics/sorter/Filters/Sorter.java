@@ -20,31 +20,45 @@ public class Sorter {
      */
     private int day;
 
-    public ListOfAssistantMonthShifts getAssistantMonthShifts() {
-        return assistantMonthShifts;
-    }
 
+    AssistantMonthWorks workMonth;
+    /*
     private ListOfAssistantMonthShifts assistantMonthShifts;
-    private HardFilters hardFilters = new HardFilters();
-    private SoftFilters softFilters = new SoftFilters();
     public Sorter(ListOfAssistants assistList){
         for(int i=0;i<31;i++){
             past.put(String.valueOf(i), new ArrayList<ArrayList<UUID>>(List.of(new ArrayList<UUID>(),new ArrayList<UUID>() )));
         }
        assistantMonthShifts = new ListOfAssistantMonthShifts(assistList);
+        public ListOfAssistantMonthShifts getAssistantMonthShifts() {
+        return assistantMonthShifts;
     }
+    }
+     */
+    //
+    public Sorter(ListOfAssistants assistList){
+        workMonth = new AssistantMonthWorks(assistList);
+        for(int i=0;i<31;i++){
+            past.put(String.valueOf(i), new ArrayList<ArrayList<UUID>>(List.of(new ArrayList<UUID>(),new ArrayList<UUID>() )));
+        }
+        }
+    private HardFilters hardFilters = new HardFilters();
+    private SoftFilters softFilters = new SoftFilters();
+
 
     public UUID sort(ArrayList<Assistant> availableAssistants,int day, int dayState, ClientDay cl){
         //cl.getClient();
         ArrayList<UUID> availableAssistantsID = getIdFromList(availableAssistants);
         hardFilters.removePreviousShift(availableAssistantsID,day,past,dayState);
+        hardFilters.assureProperPause(availableAssistantsID,workMonth,cl.getDayIntervalListUsefull().getFirst().getStart());
         /*
         Soft filters have to be applied after all hard filters.
          */
+        //TODO problem is with availableAssistants and availableAssistantsID
         HashMap<UUID,Integer> soft;
-       soft = softFilters.prepare(availableAssistantsID);
-         softFilters.penalizeRecent(soft,getAssistantMonthShifts().generateHashMapLatestShift(availableAssistantsID),day,1);
+        soft = softFilters.prepare(availableAssistantsID);
+         softFilters.penalizeRecent(soft,workMonth.getLastWorkedDay(),day,1);
          softFilters.clientPreference(soft,cl.getClient(),availableAssistants);
+         softFilters.emergencyAssistant(soft,availableAssistants);
          softFilters.output(availableAssistantsID,soft);
 
         ArrayList<ArrayList<UUID>> tempList = past.get(String.valueOf(day));
@@ -61,9 +75,8 @@ public class Sorter {
                 sevInt.setOverseeingAssistant(pickedForDay);
                 lenghtOfShift = lenghtOfShift + sevInt.getIntervalLength();
             }
-            AssistantMonthShift editedShift = assistantMonthShifts.getMontShift(availableAssistantsID.get(0));
-            editedShift.setLastDayInWork(day);
-            editedShift.setWorkedHours(editedShift.getWorkedHours()+ lenghtOfShift);
+            AssistantWorkShift workShift= new AssistantWorkShift(availableAssistantsID.get(0),cl);
+            workMonth.registerWorkDay(workShift);
             return availableAssistantsID.get(0);
         }else{
             for (ServiceInterval sevInt : cl.getDayIntervalListUsefull()) {
@@ -71,6 +84,7 @@ public class Sorter {
             }
             return  null;
         }
+
 
     }
     public ArrayList<UUID> getIdFromList(ArrayList<Assistant> input){
@@ -80,5 +94,14 @@ public class Sorter {
 
         }
         return  output;
+    }
+    public void report(){
+        for(UUID id: workMonth.getFinishedWork().keySet()){
+            System.out.println(id);
+            for(AssistantWorkShift list :workMonth.getFinishedWork().get(id)){
+                System.out.println(list.getDay());
+                System.out.println(list.getWorkedHours());
+            }
+        }
     }
 }

@@ -8,7 +8,7 @@ public class WorkHoursCalculation {
 
     public int getAvailableWork(AssistantMonthShift asm, Assistant assist, LocalDate date){
             assist.getContractType();
-            assist.getWorkTime();
+            assist.getContractTime();
             return 5;
     }
 }

@@ -12,8 +12,10 @@ import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class StartViewController  {
     @FXML
@@ -21,24 +23,24 @@ public class StartViewController  {
     private  HashMap<Tab, FXMLLoader> map = new HashMap<Tab, FXMLLoader>();
     public void  initialize()  {
         String[] str = new String[] {"Main-view","shiftPicker-view","client-view","assistant-view","Location-view"};
-        String[] title = new String[] {"Main-view","shiftPicker-view","client-view","assistant-view","Location-view"};
+        String[] title = new String[] {"Main view","Úpravy směn","Klienti","Asistenti","Lokace"};
+        ArrayList<CompletableFuture> futures = new ArrayList<>();
         mainTabPane.getTabs().clear();
         Platform.runLater(() -> {
+            int i = 0;
             for(String stri : str){
-                FXMLLoader loader = new FXMLLoader(Start.class.getResource(stri+".fxml"));
-
-                Parent root = null;
-                try {
-                    root = loader.load();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-                Tab tab = new Tab(stri);
-                map.put(tab,loader);
-                tab.setContent(root);
-                mainTabPane.getTabs().add(tab);
-
+                    FXMLLoader loader = new FXMLLoader(Start.class.getResource(stri+".fxml"));
+                    Parent root = null;
+                    try {
+                        root = loader.load();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    Tab tab = new Tab(title[i]);
+                    i++;
+                    map.put(tab,loader);
+                    tab.setContent(root);
+                    mainTabPane.getTabs().add(tab);
             }
             });
         mainTabPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
@@ -55,7 +57,7 @@ public class StartViewController  {
        Platform.runLater(() -> {Stage stag = (Stage)tab.getContent().getScene().getWindow();
            ControllerInterface cont = map.get(tab).getController();
            cont.updateScreen();
-           System.out.println("Error");});
+           });
 
    }
 }
