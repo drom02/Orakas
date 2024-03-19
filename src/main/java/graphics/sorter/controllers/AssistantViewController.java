@@ -51,6 +51,8 @@ public class AssistantViewController implements ControllerInterface{
     @FXML
     private CheckBox nightCheck;
     @FXML
+    private CheckBox emergencyAssistantCheck;
+    @FXML
     private TextField nameField;
     @FXML
     private TextField surnameField;
@@ -157,6 +159,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         workField.setText(String.valueOf(selectedAssistant.getContractTime()));
         comments.setText(selectedAssistant.getComment());
         stateOfDays = selectedAssistant.getWorkDays();
+        emergencyAssistantCheck.setSelected(selectedAssistant.isEmergencyAssistant());
 
         loadClientOpinion(selectedAssistant);
     }
@@ -188,7 +191,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
     public void saveNewAssistant(ActionEvent actionEvent) throws IOException {
         if(!(nameField.getText().isEmpty()) & !(surnameField.getText().isEmpty())){
             if(listOfA.getFullAssistantList().isEmpty()){
-                Assistant temp = new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), comments.getText(),stateOfDays, savePreferred());
+                Assistant temp = new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), comments.getText(),stateOfDays, savePreferred(),emergencyAssistantCheck.isSelected());
                 listOfA.getFullAssistantList().add(temp);
                 Database.saveAssistant(temp);
                 selectedAssistant = temp;
@@ -204,7 +207,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                 nameAndSurname.add(loc.getName() +" "+ loc.getSurname());
             }
                 if(!( nameAndSurname.contains(nameField.getText() +" "+ surnameField.getText()))){
-                    Assistant temp = new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), comments.getText(),stateOfDays, savePreferred());
+                    Assistant temp = new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), comments.getText(),stateOfDays, savePreferred(),emergencyAssistantCheck.isSelected());
                     listOfA.getFullAssistantList().add(temp);
                     Database.saveAssistant(temp);
                     selectedAssistant = temp;

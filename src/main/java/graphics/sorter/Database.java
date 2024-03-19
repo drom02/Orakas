@@ -40,13 +40,15 @@ public class Database {
                 + " likesOvertime integer NOT NULL,\n"
                 + " comment text NOT NULL, \n"
                 + " workDays text NOT NULL,\n"
-                + " isDeleted integer NOT NULL\n"
+                + " isDeleted integer NOT NULL,\n"
+                + " emergencyAssistant integer NOT NULL\n"
                 + ");";
         String locationTable = "CREATE TABLE IF NOT EXISTS locationTable (\n"
                 + " locationID text PRIMARY KEY,\n"
                 + " address text NOT NULL,\n"
                 + " casualName text NOT NULL,\n"
-                + " isDeleted integer NOT NULL\n"
+                + " isDeleted integer NOT NULL,\n"
+                + " comment String\n"
                 + ");";
         String clientMonthTable = "CREATE TABLE IF NOT EXISTS clientMonthTable (\n"
                 + " monthID text PRIMARY KEY,\n"
@@ -190,13 +192,14 @@ public class Database {
 
     public static void saveLocation(Location loc){
 
-        String query = "INSERT OR REPLACE INTO locationTable (ID, address,casualName) VALUES (?, ?, ?)";
+        String query = "INSERT OR REPLACE INTO locationTable (locationID, address,casualName,isDeleted,comment ) VALUES (?, ?, ?, ?, ?)";
         try(Connection conn = DriverManager.getConnection(databaseName );
             PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, loc.getID().toString());
             stmt.setString(2, loc.getAddress());
             stmt.setString(3,loc.getCasualName());
             stmt.setInt(4,0);
+            stmt.setString(5,loc.getComments());
             stmt.execute();
         }catch (Exception e) {
             System.out.println(e.getMessage());
@@ -204,13 +207,14 @@ public class Database {
     }
     public static void saveLocation(Connection conn, Location loc){
 
-        String query = "INSERT OR REPLACE INTO locationTable (locationID, address,casualName,isDeleted) VALUES (?, ?, ?, ?)";
+        String query = "INSERT OR REPLACE INTO locationTable (locationID, address,casualName,isDeleted,comment ) VALUES (?, ?, ?, ?, ?)";
         try(
             PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, loc.getID().toString());
             stmt.setString(2, loc.getAddress());
             stmt.setString(3,loc.getCasualName());
             stmt.setInt(4,0);
+            stmt.setString(5,loc.getComments());
             stmt.execute();
         }catch (Exception e) {
             System.out.println(e.getMessage());
@@ -218,13 +222,14 @@ public class Database {
     }
     public static void saveLocation(Connection conn, Location loc, Integer state){
 
-        String query = "INSERT OR REPLACE INTO locationTable (ID, address,casualName) VALUES (?, ?, ?)";
+        String query = "INSERT OR REPLACE INTO locationTable (locationID, address,casualName,isDeleted,comment) VALUES (?, ?, ?, ?, ?)";
         try(
                 PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, loc.getID().toString());
             stmt.setString(2, loc.getAddress());
             stmt.setString(3,loc.getCasualName());
             stmt.setInt(4,state);
+            stmt.setString(5,loc.getComments());
             stmt.execute();
         }catch (Exception e) {
             System.out.println(e.getMessage());
@@ -238,6 +243,7 @@ public class Database {
             try(ResultSet rs = stmt.executeQuery()){
                 if(rs.next()){
                     Location outputLocation = new Location(UUID.fromString(rs.getString("locationID")),rs.getString("address"),rs.getString("casualName"));
+                    outputLocation.setComments(rs.getString("comment"));
                     return  outputLocation;
                 }
             }
@@ -254,6 +260,7 @@ public class Database {
             try(ResultSet rs = stmt.executeQuery()){
                 while(rs.next()){
                     Location outputLocation = new Location(UUID.fromString(rs.getString("locationID")),rs.getString("address"),rs.getString("casualName"));
+                    outputLocation.setComments(rs.getString("comment"));
                     loc.getListOfLocations().add(outputLocation);
                 }
                 return  loc;
@@ -271,6 +278,7 @@ public class Database {
             try(ResultSet rs = stmt.executeQuery()){
                 if(rs.next()){
                     Location outputLocation = new Location(UUID.fromString(rs.getString("locationID")),rs.getString("address"),rs.getString("casualName"));
+                    outputLocation.setComments(rs.getString("comment"));
                     return  outputLocation;
                 }
             }
@@ -363,10 +371,11 @@ public class Database {
                     String contractType = rs.getString("contractType");
                     Integer contractTime = rs.getInt("contractTime");
                     Boolean likesOvertime = rs.getBoolean("likesOvertime");
+                    Boolean emergencyAssistant= rs.getBoolean("emergencyAssistant");
                     int[] workDays = DatabaseUtils.stringToIntArray(rs.getString("workDays"));
                     String comment = rs.getString("comment");
                     ArrayList<ArrayList<UUID>> compatibility = loadCompatibility(assistantID);
-                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility);
+                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility,emergencyAssistant);
                     return  outputAssistant;
                 }
             }catch (Exception e) {
@@ -439,7 +448,7 @@ public class Database {
         return null;
     }
     public static void saveAssistant(Assistant assistant){
-        String query = "INSERT OR REPLACE INTO assistantTable (assistantID, status, name,surname, contractType, contractTime,likesOvertime,comment,workDays,isDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT OR REPLACE INTO assistantTable (assistantID, status, name,surname, contractType, contractTime,likesOvertime,comment,workDays,isDeleted,emergencyAssistant) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try(Connection conn = DriverManager.getConnection(databaseName );
             PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, assistant.getID().toString());
@@ -452,6 +461,7 @@ public class Database {
             stmt.setString(8,assistant.getComment());
             stmt.setString(9,DatabaseUtils.IntArrayToString(assistant.getWorkDays()));
             stmt.setBoolean(10,false);
+            stmt.setBoolean(11,assistant.isEmergencyAssistant());
             stmt.execute();
             saveCompatibility(assistant.getClientPreference(), assistant.getID());
         }catch (Exception e) {
@@ -513,8 +523,9 @@ public class Database {
                     Boolean likesOvertime = rs.getBoolean("likesOvertime");
                     int[] workDays = DatabaseUtils.stringToIntArray(rs.getString("workDays"));
                     String comment = rs.getString("comment");
+                    Boolean emergencyAssistant= rs.getBoolean("emergencyAssistant");
                     ArrayList<ArrayList<UUID>> compatibility = loadCompatibility(UUID.fromString(ID));
-                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility);
+                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility,emergencyAssistant);
                     output.getFullAssistantList().add(outputAssistant);
                 }
                 return  output;
@@ -844,7 +855,9 @@ public class Database {
                     return  st;
                 }else{
                     System.out.println("Error");
-                    return  Settings.createNewSettingsFile();
+                    Settings set = Settings.createNewSettingsFile();
+                    Database.saveSettings(set);
+                    return  set;
                 }
             }
         }catch (Exception e) {

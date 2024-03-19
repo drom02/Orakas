@@ -57,6 +57,14 @@ public class SoftFilters {
         }
 
     }
+    public void emergencyAssistant(HashMap<UUID,Integer> ratingMap,ArrayList<Assistant> listOfAssistants){
+        for(Assistant a : listOfAssistants){
+            if(a.isEmergencyAssistant()){
+                ratingMap.put(a.getID(), -999999999);
+            }
+        }
+
+    }
     private Assistant getfromID(ArrayList<Assistant> inp, UUID id){
         for(Assistant as : inp){
             if(id == as.getID()){
@@ -65,6 +73,7 @@ public class SoftFilters {
         }
         return  null;
     }
+
     private int getPenalty(Assistant as, UUID client){
         switch (getCategory(as,client)){
             case 0:

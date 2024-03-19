@@ -17,11 +17,12 @@ public class Assistant extends Human{
     //Seznam klientů a vztahu s nimi
     private ArrayList<ArrayList<UUID>> clientPreference;
     private int[] workDays;
+    private boolean emergencyAssistant;
     @JsonCreator
      public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("status")boolean status,@JsonProperty("name")String name, @JsonProperty("surname")String surname,
                       @JsonProperty("contract")String contract, @JsonProperty("work")double work, @JsonProperty("overtime")boolean overtime,
                       @JsonProperty("comments")String comments, @JsonProperty("workDays")int[] workDays,
-                      @JsonProperty("clientPreference") ArrayList<ArrayList<UUID>> clientpreference){
+                      @JsonProperty("clientPreference") ArrayList<ArrayList<UUID>> clientpreference,@JsonProperty("emergencyAssistant")boolean emergencyAssistant){
         setID(ID);
         setActivityStatus(status);
         setName(name);
@@ -31,12 +32,21 @@ public class Assistant extends Human{
         setLikesOvertime(overtime);
         setComment(comments);
         setClientPreference(clientpreference);
+        setEmergencyAssistant(emergencyAssistant);
         if( (workDays == null)){
             setWorkDays(new int[]{1,1,1,1,1,0,0,1,1,1,1,1,0,0});
         }else{
             setWorkDays(workDays);
         }
     }
+    public boolean isEmergencyAssistant() {
+        return emergencyAssistant;
+    }
+
+    public void setEmergencyAssistant(boolean emergencyAssistant) {
+        this.emergencyAssistant = emergencyAssistant;
+    }
+
     public String getContractType() {
         return ContractType;
     }

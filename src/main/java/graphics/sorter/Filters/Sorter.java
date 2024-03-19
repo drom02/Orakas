@@ -49,13 +49,16 @@ public class Sorter {
         //cl.getClient();
         ArrayList<UUID> availableAssistantsID = getIdFromList(availableAssistants);
         hardFilters.removePreviousShift(availableAssistantsID,day,past,dayState);
+        hardFilters.assureProperPause(availableAssistantsID,workMonth,cl.getDayIntervalListUsefull().getFirst().getStart());
         /*
         Soft filters have to be applied after all hard filters.
          */
+        //TODO problem is with availableAssistants and availableAssistantsID
         HashMap<UUID,Integer> soft;
         soft = softFilters.prepare(availableAssistantsID);
          softFilters.penalizeRecent(soft,workMonth.getLastWorkedDay(),day,1);
          softFilters.clientPreference(soft,cl.getClient(),availableAssistants);
+         softFilters.emergencyAssistant(soft,availableAssistants);
          softFilters.output(availableAssistantsID,soft);
 
         ArrayList<ArrayList<UUID>> tempList = past.get(String.valueOf(day));

@@ -178,7 +178,7 @@ public class MainPageController implements ControllerInterface{
         selectedMonth.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-font-style: italic;");
         selectedYearValueVisual.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-font-style: italic;");
         selectedMonthValueVisual.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-font-style: italic;-fx-fill: #FF0000;");
-        sideGrid.setStyle("-fx-control-inner-background:" +GS.getColors().get("SecondaryColor") +";");
+        //sideGrid.setStyle("-fx-control-inner-background:" +GS.getColors().get("SecondaryColor") +";");
 
     }
     public void populateView(ListOfClients LiCcl){

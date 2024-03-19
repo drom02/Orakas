@@ -57,6 +57,9 @@
     -fx-border-color:  #000000;
     -fx-border-width: 2px 1.5px 1.5px 1.5px;
 }
+.date-picker .text-field {
+    -fx-control-inner-background: #add8e6;
+}
 #calendarScrollPane{
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;

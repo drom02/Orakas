@@ -44,13 +44,17 @@ public class LocationController implements ControllerInterface{
     JsonManip jsoMap;
     Settings set;
     public void initialize() throws IOException {
-
         set = Database.loadSettings();
        // listOfL = jsoMap.loadLocations(set);
-        CompletableFuture<Void> future = CompletableFuture.runAsync(()-> {listOfL = Database.loadLocations();}).thenAccept( result -> {listOfLoc = listOfL .getListOfLocations();
+        /*
+        CompletableFuture<Void> future = CompletableFuture.runAsync(()-> {listOfL = Database.loadLocations();}).thenAccept( result -> {listOfLoc = listOfL.getListOfLocations();
             ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
+         */
+        listOfL = Database.loadLocations();
+        listOfLoc = listOfL.getListOfLocations();
+        ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
             listViewofL.setItems(observLocationList);
-            listViewofL.setCellFactory(new LocationCellFactory());});
+            listViewofL.setCellFactory(new LocationCellFactory());
        // future.the
         Platform.runLater(() -> {
             GraphicalFunctions.screenResizing(basePane,mainGrid);
@@ -103,6 +107,7 @@ public class LocationController implements ControllerInterface{
         if(!(addressField.getText().isEmpty()) & !(nameField.getText().isEmpty())){
             if(listOfL.getListOfLocations().isEmpty()){
                 selectedLocationGlobal = new Location(UUID.randomUUID(), addressField.getText(),nameField.getText());
+                selectedLocationGlobal.setComments(comments.getText());
                 listOfLoc.add(selectedLocationGlobal);
                 Database.saveLocation(selectedLocationGlobal);
                 ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
@@ -115,6 +120,7 @@ public class LocationController implements ControllerInterface{
             }
                 if(!(name.contains(nameField.getText()))){
                     selectedLocationGlobal = new Location(UUID.randomUUID(), addressField.getText(),nameField.getText());
+                    selectedLocationGlobal.setComments(comments.getText());
                     listOfLoc.add(selectedLocationGlobal);
                     Database.saveLocation(selectedLocationGlobal);
                     ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
