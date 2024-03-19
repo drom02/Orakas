@@ -89,6 +89,9 @@ public class LocationController implements ControllerInterface{
       //  Database.dataTest();
        // Database.testUser();
        // Database.testLoad();
+        selectedLocationGlobal.setAddress(addressField.getText());
+        selectedLocationGlobal.setCasualName(nameField.getText());
+        selectedLocationGlobal.setComments(comments.getText());
         Database.saveLocation(selectedLocationGlobal);
        // Database.loadLocation(selectedLocationGlobal.getID());
     }

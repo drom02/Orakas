@@ -108,6 +108,6 @@ public class ClientViewController implements ControllerInterface{
 
     @Override
     public void updateScreen() {
-
+        homeLocationBox.getItems().setAll(Database.loadLocations().getListOfLocations());
     }
 }

@@ -16,6 +16,8 @@ public class ServiceInterval {
     private LocalDateTime end;
     private UUID location;
     private boolean isNotRequired;
+
+    private boolean isMerged;
     private String comment;
 //Přidat truncate form
     /*
@@ -31,12 +33,13 @@ public class ServiceInterval {
                            @JsonProperty("end") LocalDateTime end,
                            @JsonProperty("overseeingAssistant") Assistant overseeingAssistant,
                            @JsonProperty("comment") String comment,
-                           @JsonProperty("isNotRequired") boolean isNotRequired){
-        this.start = start;
+                           @JsonProperty("isNotRequired") boolean isNotRequired,@JsonProperty("isMerged") boolean isMerged){
+        setStart(start);
         this.end = end;
         this.overseeingAssistant = overseeingAssistant != null ? overseeingAssistant : null;
         this.comment = comment == null ? new String() : comment;
         setNotRequired(isNotRequired);
+        setMerged(isMerged);
 
     }
     public Assistant getOverseeingAssistant() {
@@ -72,6 +75,13 @@ public class ServiceInterval {
             }else{
                 throw new ArithmeticException("Interval nemůže skončit předtím než začne");
             }
+    }
+    public boolean isMerged() {
+        return isMerged;
+    }
+
+    public void setMerged(boolean merged) {
+        isMerged = merged;
     }
 
     public UUID getLocation() {

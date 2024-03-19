@@ -25,6 +25,10 @@
     -fx-border-color:  #75228c;
     -fx-border-width: 7.5px;
 }
+.selected-interval{
+    -fx-border-color:  #75228c;
+    -fx-border-width: 4.5px;
+}
 .day-title-card{
     -fx-font-size: 18px;
     -fx-font-weight: bold;

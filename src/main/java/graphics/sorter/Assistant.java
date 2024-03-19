@@ -18,11 +18,15 @@ public class Assistant extends Human{
     private ArrayList<ArrayList<UUID>> clientPreference;
     private int[] workDays;
     private boolean emergencyAssistant;
+
+
+
+    private boolean isDriver;
     @JsonCreator
      public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("status")boolean status,@JsonProperty("name")String name, @JsonProperty("surname")String surname,
                       @JsonProperty("contract")String contract, @JsonProperty("work")double work, @JsonProperty("overtime")boolean overtime,
                       @JsonProperty("comments")String comments, @JsonProperty("workDays")int[] workDays,
-                      @JsonProperty("clientPreference") ArrayList<ArrayList<UUID>> clientpreference,@JsonProperty("emergencyAssistant")boolean emergencyAssistant){
+                      @JsonProperty("clientPreference") ArrayList<ArrayList<UUID>> clientpreference,@JsonProperty("emergencyAssistant")boolean emergencyAssistant,@JsonProperty("isDriver")boolean isDriver){
         setID(ID);
         setActivityStatus(status);
         setName(name);
@@ -33,11 +37,19 @@ public class Assistant extends Human{
         setComment(comments);
         setClientPreference(clientpreference);
         setEmergencyAssistant(emergencyAssistant);
+        setDriver(isDriver);
         if( (workDays == null)){
             setWorkDays(new int[]{1,1,1,1,1,0,0,1,1,1,1,1,0,0});
         }else{
             setWorkDays(workDays);
         }
+    }
+    public boolean isDriver() {
+        return isDriver;
+    }
+
+    public void setDriver(boolean driver) {
+        isDriver = driver;
     }
     public boolean isEmergencyAssistant() {
         return emergencyAssistant;

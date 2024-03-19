@@ -138,6 +138,7 @@
                       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                      <children>
@@ -157,8 +158,13 @@
                         <ChoiceBox fx:id="startMinutesChoice" prefWidth="150.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                         <ChoiceBox fx:id="endHoursChoice" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                         <ChoiceBox fx:id="endMinutesChoice" prefWidth="150.0" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-                        <TextArea fx:id="intervalCommentArea" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="4" GridPane.rowIndex="4" />
+                        <TextArea fx:id="intervalCommentArea" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="4" GridPane.rowIndex="5" />
                         <CheckBox fx:id="isRequiredCheckBox" mnemonicParsing="false" text="Nevyžaduje asistenta" GridPane.rowIndex="3">
+                           <GridPane.margin>
+                              <Insets left="5.0" />
+                           </GridPane.margin>
+                        </CheckBox>
+                        <CheckBox fx:id="isServiceMergedCheckBox" mnemonicParsing="false" onAction="#isMergedSwitch" text="Den je spojený s jiným dnem" GridPane.rowIndex="4">
                            <GridPane.margin>
                               <Insets left="5.0" />
                            </GridPane.margin>

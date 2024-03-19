@@ -41,7 +41,8 @@ public class Database {
                 + " comment text NOT NULL, \n"
                 + " workDays text NOT NULL,\n"
                 + " isDeleted integer NOT NULL,\n"
-                + " emergencyAssistant integer NOT NULL\n"
+                + " emergencyAssistant integer NOT NULL,\n"
+                + " isDriver integer NOT NULL\n"
                 + ");";
         String locationTable = "CREATE TABLE IF NOT EXISTS locationTable (\n"
                 + " locationID text PRIMARY KEY,\n"
@@ -84,6 +85,7 @@ public class Database {
                 + " end text NOT NULL,\n"
                 + " location text,\n"
                 + " isNotRequired integer NOT NULL,\n"
+                + " isMerged integer NOT NULL,\n"
                 + " comment text, \n"
                 + " FOREIGN KEY (clientDayID) REFERENCES clientDayTable(clientDayID) ON DELETE CASCADE, \n"
                 + " FOREIGN KEY (overseeingAssistantID) REFERENCES assistantTable(assistantID) , \n"
@@ -372,10 +374,11 @@ public class Database {
                     Integer contractTime = rs.getInt("contractTime");
                     Boolean likesOvertime = rs.getBoolean("likesOvertime");
                     Boolean emergencyAssistant= rs.getBoolean("emergencyAssistant");
+                    Boolean isDriver= rs.getBoolean("isDriver");
                     int[] workDays = DatabaseUtils.stringToIntArray(rs.getString("workDays"));
                     String comment = rs.getString("comment");
                     ArrayList<ArrayList<UUID>> compatibility = loadCompatibility(assistantID);
-                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility,emergencyAssistant);
+                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility,emergencyAssistant,isDriver);
                     return  outputAssistant;
                 }
             }catch (Exception e) {
@@ -431,7 +434,7 @@ public class Database {
         2 =
          */
         String query = "SELECT * FROM compatibilityTable WHERE assistantID =  ?";
-        ArrayList<ArrayList<UUID>> output = new ArrayList<>(Arrays.asList(new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>()));
+        ArrayList<ArrayList<UUID>> output = new ArrayList<>(Arrays.asList(new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>()));
         try(Connection conn = DriverManager.getConnection(databaseName);
             PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1,String.valueOf(assistantID));
@@ -448,7 +451,7 @@ public class Database {
         return null;
     }
     public static void saveAssistant(Assistant assistant){
-        String query = "INSERT OR REPLACE INTO assistantTable (assistantID, status, name,surname, contractType, contractTime,likesOvertime,comment,workDays,isDeleted,emergencyAssistant) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT OR REPLACE INTO assistantTable (assistantID, status, name,surname, contractType, contractTime,likesOvertime,comment,workDays,isDeleted,emergencyAssistant,isDriver) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try(Connection conn = DriverManager.getConnection(databaseName );
             PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, assistant.getID().toString());
@@ -462,6 +465,7 @@ public class Database {
             stmt.setString(9,DatabaseUtils.IntArrayToString(assistant.getWorkDays()));
             stmt.setBoolean(10,false);
             stmt.setBoolean(11,assistant.isEmergencyAssistant());
+            stmt.setBoolean(12,assistant.isDriver());
             stmt.execute();
             saveCompatibility(assistant.getClientPreference(), assistant.getID());
         }catch (Exception e) {
@@ -524,8 +528,9 @@ public class Database {
                     int[] workDays = DatabaseUtils.stringToIntArray(rs.getString("workDays"));
                     String comment = rs.getString("comment");
                     Boolean emergencyAssistant= rs.getBoolean("emergencyAssistant");
+                    Boolean isDriver= rs.getBoolean("isDriver");
                     ArrayList<ArrayList<UUID>> compatibility = loadCompatibility(UUID.fromString(ID));
-                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility,emergencyAssistant);
+                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility,emergencyAssistant,isDriver);
                     output.getFullAssistantList().add(outputAssistant);
                 }
                 return  output;
@@ -554,6 +559,8 @@ public class Database {
             stmt.setInt(6, clD.getDay());
             stmt.setInt(7, clD.getMonth().getValue());
             stmt.setInt(8,clD.getYear());
+           // stmt.setString(9, String.valueOf(clD.getDefStarTime()));
+            //stmt.setString(10, String.valueOf(clD.getYear()));
             if(clD.getLocation()==null){
                 stmt.setString(9,null);
             }else{
@@ -614,6 +621,8 @@ public class Database {
                     int day = rs.getInt("day");
                     int month = rs.getInt("month");
                     int year = rs.getInt("year");
+                  //  LocalDateTime defStartTime = LocalDateTime.parse(rs.getString("defStartTime"),formatter);
+                   // LocalDateTime defEndTime = LocalDateTime.parse(rs.getString("defEndTime"),formatter);
                     String location = rs.getString("locationID");
                     ClientDay cl = new ClientDay(UUID.fromString(clientID), day, Month.of(month), year,null,null,loadLocation(UUID.fromString(location)),isMerged,isDay);
                     lis.add(cl);
@@ -661,7 +670,7 @@ public class Database {
         }
     }
     public static void saveServiceIntervals(ClientDay cl, String dayID, Connection conn){
-        String query = "INSERT OR REPLACE INTO serviceIntervalTable (serviceIntervalID, clientDayID, overseeingAssistantID,start, end, location,isNotRequired,comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT OR REPLACE INTO serviceIntervalTable (serviceIntervalID, clientDayID, overseeingAssistantID,start, end, location,isNotRequired,isMerged,comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try(PreparedStatement stmt = conn.prepareStatement(query)) {
             int inDex = 0;
             int servCount = 0;
@@ -677,6 +686,7 @@ public class Database {
                     stmt.setString(++inDex,String.valueOf(serv.getLocation()));
                 }
                 stmt.setBoolean(++inDex,serv.getIsNotRequired());
+                stmt.setBoolean(++inDex,serv.isMerged());
                 stmt.setString(++inDex,serv.getComment());
                 servCount++;
                 if(servCount>1){
@@ -705,12 +715,13 @@ public class Database {
                      String end = rs.getString("end");
                      String location = rs.getString("location");
                      Boolean isNotRequired = rs.getBoolean("isNotRequired");
+                     Boolean isMerged = rs.getBoolean("isMerged");
                      String comment = rs.getString("comment");
                      Assistant out = null;
                      if((overseeingAssistantID != null)){
                          out = loadAssistant(UUID.fromString(overseeingAssistantID));
                      }
-                     ServiceInterval outputInterval = new ServiceInterval(LocalDateTime.parse(start,formatter),LocalDateTime.parse(end,formatter),out,comment,isNotRequired);
+                     ServiceInterval outputInterval = new ServiceInterval(LocalDateTime.parse(start,formatter),LocalDateTime.parse(end,formatter),out,comment,isNotRequired,isMerged);
                      if(!(location != null)){
                          outputInterval.setLocation(UUID.fromString(location));
                      }

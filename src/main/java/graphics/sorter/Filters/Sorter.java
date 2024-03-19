@@ -55,18 +55,27 @@ public class Sorter {
          */
         //TODO problem is with availableAssistants and availableAssistantsID
         HashMap<UUID,Integer> soft;
-        soft = softFilters.prepare(availableAssistantsID);
-         softFilters.penalizeRecent(soft,workMonth.getLastWorkedDay(),day,1);
-         softFilters.clientPreference(soft,cl.getClient(),availableAssistants);
-         softFilters.emergencyAssistant(soft,availableAssistants);
-         softFilters.output(availableAssistantsID,soft);
+        ArrayList<Assistant> trimmedAssistants = new ArrayList<>();
+        for(Assistant a : availableAssistants){
+            if(availableAssistantsID.contains(a.getID())){
+                trimmedAssistants.add(a);
+            }
+        }
+        if(!availableAssistantsID.isEmpty()) {
+            soft = softFilters.prepare(availableAssistantsID);
+            softFilters.penalizeRecent(soft,workMonth.getLastWorkedDay(),day,1);
+            softFilters.clientPreference(soft,cl.getClient(),trimmedAssistants);
+            softFilters.emergencyAssistant(soft,trimmedAssistants);
+            softFilters.output(availableAssistantsID,soft);
+        }
+
 
         ArrayList<ArrayList<UUID>> tempList = past.get(String.valueOf(day));
         if(!availableAssistantsID.isEmpty()){
            // System.out.println(availableAssistantsID.get(0));
             tempList.get(dayState).add(availableAssistantsID.get(0));
             past.put(String.valueOf(day),tempList);
-            Assistant pickedForDay = availableAssistants.stream()
+            Assistant pickedForDay = trimmedAssistants.stream()
                     .filter(c -> c.getID().equals(availableAssistantsID.get(0)))
                     .findFirst()
                     .orElse(null);

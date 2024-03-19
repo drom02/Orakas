@@ -46,7 +46,7 @@ public class ClientDay {
                @JsonProperty("defStarTime") LocalDateTime defStarTime, @JsonProperty("defEndTime")LocalDateTime defEndTime,
                @JsonProperty("Location")Location location, @JsonProperty("isMerged")boolean ismerged, @JsonProperty("isDay")boolean isDay){
         
-        ServiceInterval def = new ServiceInterval(defStarTime, defEndTime, null, null,false);
+        ServiceInterval def = new ServiceInterval(defStarTime, defEndTime, null, null,false,false);
         this.dayIntervalList.add(def);
         setDay(dayI);
         this.month = monthI;

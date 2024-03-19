@@ -50,6 +50,7 @@
                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
                   <TextField fx:id="nameField" GridPane.columnIndex="1">
@@ -84,12 +85,12 @@
                         <Insets left="10.0" />
                      </GridPane.margin>
                   </Text>
-                  <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="default-text" text="Poznámky" GridPane.rowIndex="8" GridPane.valignment="TOP">
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="default-text" text="Poznámky" GridPane.rowIndex="9" GridPane.valignment="TOP">
                      <GridPane.margin>
                         <Insets left="10.0" />
                      </GridPane.margin>
                   </Text>
-                  <TextArea fx:id="comments" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="8" GridPane.rowSpan="2" />
+                  <TextArea fx:id="comments" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="9" GridPane.rowSpan="2" />
                   <CheckBox fx:id="overtimeCheck" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
                   <ChoiceBox fx:id="contractField" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                   <Text fx:id="workText1" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="default-text" text="Dostupné přesčasové hodiny" GridPane.rowIndex="5">
@@ -104,12 +105,18 @@
                      </GridPane.margin>
                   </Text>
                   <CheckBox fx:id="statusCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
-                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Asistent poslední záchrany" GridPane.rowIndex="7">
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Asistent poslední záchrany" styleClass="default-text" GridPane.rowIndex="7">
                      <GridPane.margin>
                         <Insets left="10.0" />
                      </GridPane.margin>
                   </Text>
                   <CheckBox fx:id="emergencyAssistantCheck" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="7" GridPane.valignment="CENTER" />
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Je asistent řidič" styleClass="default-text" GridPane.rowIndex="8">
+                     <GridPane.margin>
+                        <Insets left="10.0" />
+                     </GridPane.margin>
+                  </Text>
+                  <CheckBox fx:id="isDriverCheck" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="8" GridPane.valignment="CENTER" />
                </children>
             </GridPane>
             <ListView fx:id="listViewofA" onMouseClicked="#loadAssistant" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" GridPane.rowSpan="4" />

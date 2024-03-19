@@ -28,6 +28,7 @@ public class Start extends Application {
        // jsoM.jsonTest();
         FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("start-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 640, 480);
+        scene.getStylesheets().add(getClass().getResource("/main.css").toExternalForm());
         stage.setTitle("Orakas");
         stage.setScene(scene);
         stage.show();

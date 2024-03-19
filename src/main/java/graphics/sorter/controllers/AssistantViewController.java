@@ -45,6 +45,8 @@ public class AssistantViewController implements ControllerInterface{
     @FXML
     private CheckBox statusCheckBox;
     @FXML
+    private CheckBox isDriverCheck;
+    @FXML
     private CheckBox overtimeCheck;
     @FXML
     private CheckBox dayCheck;
@@ -174,10 +176,10 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
     }
 }
  private ArrayList<ArrayList<UUID>> savePreferred() throws IOException {
-     ArrayList<ArrayList<UUID>> output = new ArrayList<ArrayList<UUID>>(Arrays.asList(new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>()));
+     ArrayList<ArrayList<UUID>> output = new ArrayList<ArrayList<UUID>>(Arrays.asList(new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>()));
      for(ClientProfile cl : Database.loadClientProfiles().getFullClientList()){
         // ArrayList<RadioButton>
-        List<Object> buttons = itemIndex.get(cl.getID()).subList(2,5);
+        List<Object> buttons = itemIndex.get(cl.getID()).subList(2,6);
         int i =0;
         for(Object rad : buttons) {
                 if(((RadioButton) rad).isSelected() == true){
@@ -191,41 +193,28 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
     public void saveNewAssistant(ActionEvent actionEvent) throws IOException {
         if(!(nameField.getText().isEmpty()) & !(surnameField.getText().isEmpty())){
             if(listOfA.getFullAssistantList().isEmpty()){
-                Assistant temp = new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), comments.getText(),stateOfDays, savePreferred(),emergencyAssistantCheck.isSelected());
-                listOfA.getFullAssistantList().add(temp);
-                Database.saveAssistant(temp);
-                selectedAssistant = temp;
-                //JsonManip toBeDeleted = JsonManip.getJsonManip();
-                //toBeDeleted.saveAssistantInfo(listOfA);
-                ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getFullAssistantList());
-                listViewofA.setItems(observLocationList);
+                genericAssistant();
                 return;
-
             }
             ArrayList<String> nameAndSurname = new ArrayList<>();
             for(Assistant loc: listOfA.getFullAssistantList()){
-                nameAndSurname.add(loc.getName() +" "+ loc.getSurname());
-            }
+                nameAndSurname.add(loc.getName() +" "+ loc.getSurname());}
                 if(!( nameAndSurname.contains(nameField.getText() +" "+ surnameField.getText()))){
-                    Assistant temp = new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), comments.getText(),stateOfDays, savePreferred(),emergencyAssistantCheck.isSelected());
-                    listOfA.getFullAssistantList().add(temp);
-                    Database.saveAssistant(temp);
-                    selectedAssistant = temp;
-                   // JsonManip toBeDeleted = JsonManip.getJsonManip();
-                  //  toBeDeleted.saveAssistantInfo(listOfA);
-                    ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getFullAssistantList());
-                    listViewofA.setItems(observLocationList);
-
-
+                    genericAssistant();
                 }else{
                     System.out.println("Asistent už existuje");
-
                 }
-
-
         }else{
             System.out.println("Vyplntě povinné údaje");
         }
+    }
+    private void genericAssistant() throws IOException {
+        Assistant temp = new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), comments.getText(),stateOfDays, savePreferred(),emergencyAssistantCheck.isSelected(),isDriverCheck.isSelected());
+        listOfA.getFullAssistantList().add(temp);
+        Database.saveAssistant(temp);
+        selectedAssistant = temp;
+        ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getFullAssistantList());
+        listViewofA.setItems(observLocationList);
     }
     public void populateDaysInWeekTable(){
         String[] days = {"Pondělí","Úterý","Středa","Čtvrtek","Pátek","Sobota","Neděle"};
@@ -239,7 +228,6 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                 daysInWeekGrid.setConstraints(dayArea,iCol,iRow,1,1);
                 String displayText;
                 dayArea.setOnMouseClicked(this :: switchState);
-
                 if(iCol==0){
                     displayText = days[iRow];
                 }else{
@@ -291,7 +279,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
     int citer = 0;
     System.out.println(lip.getClientList());
         for(ClientProfile clp : lip.getFullClientList()) {
-            ArrayList<Object> templist = new ArrayList();
+            ArrayList<Object> templist = new ArrayList<Object>();
             GridPane grp = new GridPane();
             grp.getRowConstraints().clear();
             grp.setStyle("-fx-background-color:" +toHexString(Color.GRAY));
@@ -300,8 +288,8 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
             templist.add(new Text());
             ((Text) templist.get(1)).setText(clp.getName() +" "+ clp.getSurname());
             ToggleGroup group = new ToggleGroup();
-            ArrayList<String> titles = new ArrayList<>(Arrays.asList("Neutrální", "Preferovaný", "Nežádoucí"));
-            for(int i = 0; i<3;i++){
+            ArrayList<String> titles = new ArrayList<>(Arrays.asList("Neutrální", "Preferovaný", "Nežádoucí", "Nekompatibilní"));
+            for(int i = 0; i<4;i++){
                 RadioButton temp = new RadioButton(titles.get(i));
                 if( i  == 0){
                     temp.setSelected(true);
@@ -311,7 +299,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
             }
            // ArrayList<CheckBox> listOfB = new ArrayList<>(Arrays.asList(new CheckBox(),new CheckBox(),new CheckBox()));
            // templist.add(listOfB);
-           int[] columnWidth = new int[]{25,25,25,25};
+           int[] columnWidth = new int[]{20,20,20,20,20};
            int it = 1;
            for(int i : columnWidth){
                ColumnConstraints row = new ColumnConstraints();
