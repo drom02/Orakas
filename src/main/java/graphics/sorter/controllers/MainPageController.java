@@ -110,7 +110,6 @@ public class MainPageController implements ControllerInterface{
     private AnchorPane selectedAnchorPane;
     //endregion
     public void initialize() throws IOException {
-
         prepareHoursAndMinutes();
         dayInfoGrid.setVisible(false);
         calendarScrollPane.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
@@ -121,7 +120,6 @@ public class MainPageController implements ControllerInterface{
         populateClientIndex();
         isMenuVisible = false;
         settings = Database.loadSettings();
-      //  ListOfLocations listOfLocations = jsom.loadLocations(settings);
         selectedYearValueVisual.setText(String.valueOf(settings.getCurrentYear()));
         selectedMonthValueVisual.setText(String.valueOf(settings.getCurrentMonth()));
         selectedYearValue = settings.getCurrentYear();
@@ -130,13 +128,10 @@ public class MainPageController implements ControllerInterface{
         ArrayList<Location> lic = Objects.requireNonNull(Database.loadLocations()).getListOfLocations();
         lic.add(null);
         locationChoiceBox.getItems().setAll(lic);
-        System.out.println("lol");
         populateView(getClientsOfMonth(settings));
         mainGrid.setConstraints(calendarScrollPane,mainGrid.getColumnIndex(calendarScrollPane),mainGrid.getRowIndex(calendarScrollPane),mainGrid.getColumnSpan(calendarScrollPane),mainGrid.getRowSpan(calendarScrollPane)+1);
         attachObservers();
         Platform.runLater(() -> {
-           //mainGrid.prefWidthProperty().bind(basePane.widthProperty());
-           // mainGrid.prefHeightProperty().bind(basePane.heightProperty());
         GraphicalFunctions.screenResizing(basePane,mainGrid);
 
 
@@ -983,8 +978,6 @@ public class MainPageController implements ControllerInterface{
                     System.out.println("nothing");
                     break;// paneServiceIndex.get(selectedTextArea).getDayIntervalList().add(new ServiceInterval());
                 }
-
-
             }
             day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
                     , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), day.getDayIntervalList().get(0).getOverseeingAssistant(), null, false, false));

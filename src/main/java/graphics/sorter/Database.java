@@ -2,6 +2,8 @@ package graphics.sorter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import graphics.sorter.Structs.*;
+import graphics.sorter.Vacations.Vacation;
+import graphics.sorter.Vacations.VacationTemp;
 import javafx.scene.chart.PieChart;
 
 import java.io.IOException;
@@ -105,6 +107,10 @@ public class Database {
                 + " month integer NOT NULL,\n"
                 + " jsonContent text NOT NULL \n"
                 + ");";
+        String vacationTable = "CREATE TABLE IF NOT EXISTS vacationTable (\n"
+                + " assistantID text PRIMARY KEY,\n"
+                + " jsonContent text NOT NULL \n"
+                + ");";
         String settingsTable = "CREATE TABLE IF NOT EXISTS settingsTable (\n"
                 + " settingsID text PRIMARY KEY,\n"
                 + " filePath text NOT NULL,\n"
@@ -116,7 +122,8 @@ public class Database {
                 + " defEnd2 integer NOT NULL, \n"
                 + " maxShiftLength integer NOT NULL \n"
                 + ");";
-        String[] tables = new String[]{clientTable,assistantTable,locationTable,clientMonthTable,compatibilityTable,clientDayTable,serviceIntervalTable,assistantAvailabilityTable,settingsTable };
+        String[] tables = new String[]{clientTable,assistantTable,locationTable,clientMonthTable,
+                compatibilityTable,clientDayTable,serviceIntervalTable,assistantAvailabilityTable,settingsTable,vacationTable };
         try (Connection conn = DriverManager.getConnection(databaseName);
         Statement stmt = conn.createStatement()) {
             for(String st : tables){
@@ -803,7 +810,6 @@ public class Database {
         }
         return loc;
     }
-
     public static void saveAllClientMonths(ListOfClientMonths licmo){
             for(ClientMonth clm : licmo.getListOfClientMonths()){
                 saveClientMonth(clm);
@@ -895,6 +901,41 @@ public class Database {
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
+    public static void saveVacation(VacationTemp vac){
+        String query = "INSERT OR REPLACE INTO vacationTable (assistantID, jsonContent) VALUES (?, ?)";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            stmt.setString(1, String.valueOf(vac.getAssistantID()));
+            stmt.setString(2, objectMapper.writeValueAsString(vac));
+            stmt.execute();
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    public static VacationTemp loadVacation(UUID assistant){
+        String query = "SELECT * FROM vacationTable WHERE assistantID = ?";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)){
+            stmt.setString(1, String.valueOf(assistant));
+            try(ResultSet rs = stmt.executeQuery()){
+                if(rs.next()){
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.registerModule(new JavaTimeModule());
+                    VacationTemp avOut = objectMapper.readValue(rs.getString("jsonContent"),VacationTemp.class);
+                    return avOut;
+                }else{
+                    VacationTemp out = new VacationTemp(new ArrayList<Vacation>(),assistant);
+                    saveVacation(out);
+                    return out;
+                }
+            }
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return new VacationTemp(new ArrayList<>(),null);
     }
 
 }

@@ -5,6 +5,10 @@ import graphics.sorter.*;
 import graphics.sorter.Structs.HumanCellFactory;
 import graphics.sorter.Structs.ListOfAssistants;
 import graphics.sorter.Structs.ListOfClientsProfiles;
+import graphics.sorter.Structs.VacationCellFactory;
+import graphics.sorter.Vacations.Vacation;
+import graphics.sorter.Vacations.VacationTemp;
+import graphics.sorter.workHoursAllocation.WorkHoursCalcul;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -21,6 +25,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,7 +34,21 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class AssistantViewController implements ControllerInterface{
+
+
     //region graphical components
+    @FXML
+    private CheckBox vacationCountsWorkCheck;
+    @FXML
+    private ListView<Vacation> vacationList;
+    @FXML
+    private DatePicker startDatePicker;
+    @FXML
+    private DatePicker endDatePicker;
+    @FXML
+    private TextFlow startFlow;
+    @FXML
+    private TextFlow endFlow;
     @FXML
     private  Pane mainPane;
     @FXML
@@ -76,6 +95,8 @@ public class AssistantViewController implements ControllerInterface{
     private ListOfAssistants listOfA;
     private ArrayList<Control> assistantNodes;
     private HashMap<UUID, ArrayList<Object>> itemIndex;
+    private Vacation selectedVacation;
+    private VacationTemp listOfVacations;
     //endregion
     Settings set;
     public void deleteAssistant(MouseEvent mouseEvent) throws IOException {
@@ -98,11 +119,9 @@ public class AssistantViewController implements ControllerInterface{
             }else{
                 selectedAssistant = listOfA.getAssistantList().getFirst();
             }
-
         }else{
             System.out.println("Vyberte asistenta k odstranění.");
         }
-
     }
    /*
    @TODO Add how to deal with somebody changing name and surname, check that it is still unique.
@@ -123,21 +142,29 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         listViewofA.setItems(observAssistantList);
 
     }
+    private void setupDatePickers(){
+        startDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            // This code block will be executed whenever the user selects a date
+            AssistantVacationManager.onMouseClickedObs(newValue,startFlow);
+        });
+        endDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            // This code block will be executed whenever the user selects a date
+            AssistantVacationManager.onMouseClickedObs(newValue,endFlow);
+        });
+    }
     public void initialize() throws IOException {
-
         assistantNodes = new ArrayList<>(Arrays.asList(nameField, statusCheckBox, surnameField,overtimeCheck,dayCheck,nightCheck,workField,comments));
         contractField.getItems().addAll("HPP","DPP","DPČ");
         contractField.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->{
                     loadContract();
                 });
         listViewofA.setCellFactory(new HumanCellFactory());
+        vacationList.setCellFactory(new VacationCellFactory());
         set = Database.loadSettings();
         listOfA = Database.loadAssistants();
-       // listOfAssist = listOfA .getFullAssistantList();
         listOfAssist = Database.loadAssistants().getAssistantList();
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getFullAssistantList());
         listViewofA.setItems(observAssistantList);
-
         Platform.runLater(() -> {
             GraphicalFunctions.screenResizing(mainPane,mainGrid);
             populateDaysInWeekTable();
@@ -146,7 +173,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-
+            //setupDatePickers();
         });
     }
     public void loadAssistant(MouseEvent mouseEvent) {
@@ -162,10 +189,10 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         comments.setText(selectedAssistant.getComment());
         stateOfDays = selectedAssistant.getWorkDays();
         emergencyAssistantCheck.setSelected(selectedAssistant.isEmergencyAssistant());
-
         loadClientOpinion(selectedAssistant);
+        listOfVacations = Database.loadVacation(selectedAssistant.getID());
+        AssistantVacationManager.loadVacationList(listOfVacations, vacationList);
     }
-
     }
 
     public void loadContract(){
@@ -220,7 +247,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         String[] days = {"Pondělí","Úterý","Středa","Čtvrtek","Pátek","Sobota","Neděle"};
         ArrayList<TextArea> allAreas = new ArrayList<>();
         daysInWeekGrid.getChildren().clear();
-        for(int iRow=0; iRow<7;iRow++){
+        for(int iRow=0; iRow<14;iRow = iRow+2){
             for(int iCol=0; iCol<2;iCol++){
                 TextArea dayArea = new TextArea();
                 dayArea.setEditable(false);
@@ -229,7 +256,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                 String displayText;
                 dayArea.setOnMouseClicked(this :: switchState);
                 if(iCol==0){
-                    displayText = days[iRow];
+                    displayText = days[iRow/2];
                 }else{
                     displayText = "";
                 }
@@ -248,10 +275,10 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         column2.setPercentWidth(50);
         daysInWeekGrid.getColumnConstraints().setAll(column1, column2);
         ArrayList<RowConstraints> rowConList = new ArrayList<>();
-        for(int i=0;i<7;i++){
+        for(int i=0;i<14;i++){
             RowConstraints rowC = new RowConstraints();
             rowConList.add(rowC);
-            rowC.setPercentHeight(100.0/7);
+            rowC.setPercentHeight(100.0/14);
         }
         daysInWeekGrid.getRowConstraints().setAll(rowConList);
     }
@@ -262,7 +289,6 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         }else{
             inputText.setStyle("-fx-control-inner-background:" +toHexString(Color.GREEN));
         }
-
     }
     private String toHexString(Color color) {
         return String.format("#%02X%02X%02X",
@@ -270,14 +296,11 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                 (int) (color.getGreen() * 255),
                 (int) (color.getBlue() * 255));
     }
-
-
     public void populateClientOpinion() throws IOException {
     clientOpinionGrid.getRowConstraints().clear();
     ListOfClientsProfiles lip = Database.loadClientProfiles();
     itemIndex = new HashMap<>();
     int citer = 0;
-    System.out.println(lip.getClientList());
         for(ClientProfile clp : lip.getFullClientList()) {
             ArrayList<Object> templist = new ArrayList<Object>();
             GridPane grp = new GridPane();
@@ -339,8 +362,6 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
             ArrayList<CheckBox> copiedList = (ArrayList<CheckBox>) checkBoxes.stream()
                     .filter(element -> !element.equals(mouseEvent.getSource()))
                     .collect(Collectors.toList());
-
-
         }
     public void switchState(MouseEvent mouseEvent) {
         TextArea loadedArea = (TextArea) mouseEvent.getSource();
@@ -373,5 +394,44 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public void createVacation(ActionEvent actionEvent) {
+    if(startDatePicker.getValue() != null && endDatePicker.getValue() != null){
+        Vacation vac = new Vacation(startDatePicker.getValue(),endDatePicker.getValue(),vacationCountsWorkCheck.isSelected());
+        listOfVacations.getTempVacation().add(vac);
+        selectedVacation = vac;
+        AssistantVacationManager.loadVacationList(listOfVacations, vacationList);
+        Database.saveVacation(listOfVacations);
+    }
+
+    }
+
+    public void removeVacation(ActionEvent actionEvent) {
+    listOfVacations.getTempVacation().remove(selectedVacation);
+    if(!listOfVacations.getTempVacation().isEmpty()){
+        selectedVacation = listOfVacations.getTempVacation().getFirst();
+        loadVacationAlg(selectedVacation);
+
+    }
+    AssistantVacationManager.loadVacationList(listOfVacations, vacationList);
+    Database.saveVacation(listOfVacations);
+    }
+
+    public void loadVacation(MouseEvent mouseEvent) {
+        selectedVacation = (Vacation) vacationList.getSelectionModel().getSelectedItem();
+        if(selectedVacation != null){
+            loadVacationAlg(selectedVacation);
+        }
+
+    }
+    private void loadVacationAlg(Vacation vac){
+        startDatePicker.setValue(selectedVacation.getStart());
+        endDatePicker.setValue(selectedVacation.getEnd());
+        vacationCountsWorkCheck.setSelected(selectedVacation.isRemovesWorkDays());
+    }
+
+    public void testWorkedHours(ActionEvent actionEvent) {
+        System.out.println(WorkHoursCalcul.workDaysCalcul(2024,10,7.5,selectedAssistant.getID()));
     }
 }

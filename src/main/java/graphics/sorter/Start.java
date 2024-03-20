@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import graphics.sorter.Structs.DefSettings;
 import graphics.sorter.Structs.ListOfLocations;
 import graphics.sorter.controllers.fizbuzz;
+import graphics.sorter.workHoursAllocation.WorkHoursCalcul;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -34,6 +35,7 @@ public class Start extends Application {
         stage.show();
        // ValidateFiles valid = new ValidateFiles();
        // valid.run();
+        WorkHoursCalcul work = new WorkHoursCalcul();
         Database.prepareTables();
     }
 
