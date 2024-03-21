@@ -1,6 +1,7 @@
 package graphics.sorter.controllers;
 
 import graphics.sorter.*;
+import graphics.sorter.AssistantAvailability.AssistantAvailability;
 import graphics.sorter.Filters.Sorter;
 import graphics.sorter.Structs.*;
 import javafx.application.Platform;
@@ -539,12 +540,12 @@ public class MainPageController implements ControllerInterface{
                 if(iterList.getFirst().get(dayIter).contains(cl.getID())){
                     if(iterList.getFirst().get(dayIter).getFirst().equals(cl.getID())){
                         ClientDay clDay = cl.getClientsMonth().getClientDaysInMonth().get(dayIter);
-                        ArrayList<Assistant> listOfAvailableAtDay = getAvailableAssistantForDay(avAs,dayIter,true);
-                        UUID dayPicked = sorter.sort(listOfAvailableAtDay,dayIter,0,clDay);
+                        ArrayList<AssistantAvailability> listOfAvailableAtDay = getAvailableAssistantForDay(avAs,dayIter,true);
+                        UUID dayPicked = sorter.sort(listOfAvailableAtDay,dayIter,0,clDay,asL);
                         for(int i = 1;i<iterList.getFirst().get(dayIter).size();i++ ){
                             ClientDay cld = listOfClm.getMonthOfSpecificClient(iterList.getFirst().get(dayIter).get(i)).getClientDaysInMonth().get(dayIter);
                             for(ServiceInterval serv : cld.getDayIntervalListUsefull()){
-                                serv.setOverseeingAssistant(getAssistantFromID(listOfAvailableAtDay,dayPicked));
+                                serv.setOverseeingAssistant(getAssistantFromID(asL.getAssistantList(),dayPicked));
                             }
                         }
                     }else{
@@ -554,8 +555,8 @@ public class MainPageController implements ControllerInterface{
 
                 }else{
                     ClientDay clDay = cl.getClientsMonth().getClientDaysInMonth().get(dayIter);
-                    ArrayList<Assistant> listOfAvailableAtDay = getAvailableAssistantForDay(avAs,dayIter,true);
-                    UUID dayPicked = sorter.sort(listOfAvailableAtDay,dayIter,0,clDay);
+                    ArrayList<AssistantAvailability> listOfAvailableAtDay = getAvailableAssistantForDay(avAs,dayIter,true);
+                    UUID dayPicked = sorter.sort(listOfAvailableAtDay,dayIter,0,clDay,asL);
                 }
 
                 //System.out.println(sorter.getIdFromList(listOfAvailableAtDay));
@@ -566,8 +567,8 @@ public class MainPageController implements ControllerInterface{
                     continue;
                 }
                 ClientDay clNight = cl.getClientsMonth().getClientNightsInMonth().get(dayIter);
-                ArrayList<Assistant> listOfAvailableAtNight = getAvailableAssistantForDay(avAs,dayIter,false);
-                UUID nightPicked = sorter.sort(listOfAvailableAtNight,dayIter,1,clNight);
+                ArrayList<AssistantAvailability> listOfAvailableAtNight = getAvailableAssistantForDay(avAs,dayIter,false);
+                UUID nightPicked = sorter.sort(listOfAvailableAtNight,dayIter,1,clNight,asL);
             }
 
         }
@@ -580,8 +581,8 @@ public class MainPageController implements ControllerInterface{
         sorter.report();
 
     }
-    private ArrayList<Assistant> getAvailableAssistantForDay(AvailableAssistants lisA, int date, boolean day ){
-        ArrayList<Assistant> output;
+    private ArrayList<AssistantAvailability> getAvailableAssistantForDay(AvailableAssistants lisA, int date, boolean day ){
+        ArrayList<AssistantAvailability> output;
         if(day==true){
             output = lisA.getAvailableAssistantsAtDays().get(date);
         }else{
@@ -1510,7 +1511,7 @@ public class MainPageController implements ControllerInterface{
             return output;
     }
     public void findNewSolution(ActionEvent actionEvent) throws IOException {
-        JsonManip.getJsonManip().generateNewMonthsAssistants(settings);
+        JsonManip.getJsonManip().generateNewMonthsAssistants(settings.getCurrentYear(), settings.getCurrentMonth());
         findSolutionV2(actionEvent);
     }
     public void clearTable() throws IOException {

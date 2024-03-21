@@ -1,6 +1,8 @@
 package graphics.sorter.Filters;
 
 import graphics.sorter.Assistant;
+import graphics.sorter.AssistantAvailability.AssistantAvailability;
+import graphics.sorter.Structs.AvailableAssistants;
 import graphics.sorter.Structs.ListOfAssistants;
 import graphics.sorter.Structs.ClientDay;
 import graphics.sorter.Structs.ServiceInterval;
@@ -45,7 +47,7 @@ public class Sorter {
     private SoftFilters softFilters = new SoftFilters();
 
 
-    public UUID sort(ArrayList<Assistant> availableAssistants,int day, int dayState, ClientDay cl){
+    public UUID sort(ArrayList<AssistantAvailability> availableAssistants, int day, int dayState, ClientDay cl, ListOfAssistants aslList){
         //cl.getClient();
         ArrayList<UUID> availableAssistantsID = getIdFromList(availableAssistants);
         hardFilters.removePreviousShift(availableAssistantsID,day,past,dayState);
@@ -56,7 +58,7 @@ public class Sorter {
         //TODO problem is with availableAssistants and availableAssistantsID
         HashMap<UUID,Integer> soft;
         ArrayList<Assistant> trimmedAssistants = new ArrayList<>();
-        for(Assistant a : availableAssistants){
+        for(Assistant a : aslList.getFullAssistantList()){
             if(availableAssistantsID.contains(a.getID())){
                 trimmedAssistants.add(a);
             }
@@ -96,10 +98,10 @@ public class Sorter {
 
 
     }
-    public ArrayList<UUID> getIdFromList(ArrayList<Assistant> input){
+    public ArrayList<UUID> getIdFromList(ArrayList<AssistantAvailability> input){
         ArrayList<UUID> output = new ArrayList<>();
-        for (Assistant as : input){
-            output.add(as.getID());
+        for (AssistantAvailability as : input){
+            output.add(as.getAssistant());
 
         }
         return  output;

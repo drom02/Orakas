@@ -2,6 +2,8 @@ package graphics.sorter.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphics.sorter.*;
+import graphics.sorter.AssistantAvailability.Availability;
+import graphics.sorter.AssistantAvailability.ShiftAvailability;
 import graphics.sorter.Structs.HumanCellFactory;
 import graphics.sorter.Structs.ListOfAssistants;
 import graphics.sorter.Structs.ListOfClientsProfiles;
@@ -90,13 +92,14 @@ public class AssistantViewController implements ControllerInterface{
     //endregion
     //region variables
     private Assistant selectedAssistant;
-    private int[] stateOfDays = new int[]{1,1,1,1,1,0,0,1,1,1,1,1,0,0};
+    private  ArrayList<ShiftAvailability> stateOfDays= ShiftAvailability.generateWeek();
    // private JsonManip jsoMap;
     private ListOfAssistants listOfA;
     private ArrayList<Control> assistantNodes;
     private HashMap<UUID, ArrayList<Object>> itemIndex;
     private Vacation selectedVacation;
     private VacationTemp listOfVacations;
+    private ArrayList<AssistantViewConSetup> listDataEntry= new ArrayList<>();
     //endregion
     Settings set;
     public void deleteAssistant(MouseEvent mouseEvent) throws IOException {
@@ -136,7 +139,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         selectedAssistant.setComment(comments.getText());
         selectedAssistant.setWorkDays(stateOfDays);
         selectedAssistant.setClientPreference(savePreferred());
-        Database.saveAssistant(selectedAssistant);
+        saveLoadTimes();
         Database.saveAssistant(selectedAssistant);
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getFullAssistantList());
         listViewofA.setItems(observAssistantList);
@@ -163,9 +166,11 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         set = Database.loadSettings();
         listOfA = Database.loadAssistants();
         listOfAssist = Database.loadAssistants().getAssistantList();
+
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getFullAssistantList());
         listViewofA.setItems(observAssistantList);
         Platform.runLater(() -> {
+            statusCheckBox.setSelected(true);
             GraphicalFunctions.screenResizing(mainPane,mainGrid);
             populateDaysInWeekTable();
             try {
@@ -192,9 +197,37 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         loadClientOpinion(selectedAssistant);
         listOfVacations = Database.loadVacation(selectedAssistant.getID());
         AssistantVacationManager.loadVacationList(listOfVacations, vacationList);
+        loadTimes();
+        refreshDays();
     }
+    }
+    private void loadTimes(){
+        ArrayList<ShiftAvailability> availabilities =selectedAssistant.getWorkDays();
+        for(int i = 0; i<14;i++){
+            setupLoadTimes(i,availabilities);
+        }
+    }
+    private void setupLoadTimes(int i,ArrayList<ShiftAvailability> availabilities){
+        AssistantViewConSetup view = listDataEntry.get(i);
+        Availability ava = availabilities.get((i % 2 != 0) ? 7+i/2 : i / 2 ).getAvailability();
+        view.getStartHours().getValueFactory().setValue(ava.getStart()[0]);
+        view.getStartMinutes().getValueFactory().setValue(ava.getStart()[1]);
+        view.getEndHours().getValueFactory().setValue(ava.getEnd()[0]);
+        view.getEndMinutes().getValueFactory().setValue(ava.getEnd()[1]);
+    }
+    private void saveLoadTimes(){
+    ArrayList<ShiftAvailability> avail = selectedAssistant.getWorkDays();
+    int i = 0;
+    for(ShiftAvailability s : avail){
+        AssistantViewConSetup con = listDataEntry.get((i < 7) ? i*2 : i +(i-13));
+        s.getAvailability().setStartHours(con.getStartHours().getValue());
+        s.getAvailability().setStartMinutes(con.getStartMinutes().getValue());
+        s.getAvailability().setEndHours(con.getEndHours().getValue());
+        s.getAvailability().setEndMinutes(con.getEndMinutes().getValue());
+        i++;
     }
 
+    }
     public void loadContract(){
     if(contractField.getValue().equals("HPP") ){
         workText.setText("Úvazek");
@@ -244,15 +277,19 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         listViewofA.setItems(observLocationList);
     }
     public void populateDaysInWeekTable(){
+        ContextMenu emptyContextMenu = new ContextMenu();
         String[] days = {"Pondělí","Úterý","Středa","Čtvrtek","Pátek","Sobota","Neděle"};
         ArrayList<TextArea> allAreas = new ArrayList<>();
+        ArrayList<GridPane> startsAndEnds = new ArrayList<GridPane>();
         daysInWeekGrid.getChildren().clear();
         for(int iRow=0; iRow<14;iRow = iRow+2){
             for(int iCol=0; iCol<2;iCol++){
+                positionGrid(startsAndEnds,iRow,iCol,listDataEntry);
                 TextArea dayArea = new TextArea();
+                dayArea.setContextMenu(emptyContextMenu);
                 dayArea.setEditable(false);
                 allAreas.add(dayArea);
-                daysInWeekGrid.setConstraints(dayArea,iCol,iRow,1,1);
+                GridPane.setConstraints(dayArea,iCol,iRow,1,1);
                 String displayText;
                 dayArea.setOnMouseClicked(this :: switchState);
                 if(iCol==0){
@@ -261,11 +298,19 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                     displayText = "";
                 }
                 dayArea.setText(displayText);
-                setDayState(dayArea,stateOfDays[iRow]);
+                setDayState(dayArea,stateOfDays.get(iRow).getState());
             }
         }
         daysInWeekGrid.getChildren().addAll(allAreas);
+        daysInWeekGrid.getChildren().addAll(startsAndEnds);
         setGridSize();
+
+    }
+    private void positionGrid(ArrayList<GridPane> ar, int iRow, int iCol, ArrayList<AssistantViewConSetup> completeList){
+    AssistantViewConSetup temp = new AssistantViewConSetup();
+    completeList.add(temp);
+        GridPane.setConstraints(temp.getLocalGrid(),iCol,iRow+1,1,1);
+        ar.add(temp.getLocalGrid());
 
     }
     public void setGridSize(){
@@ -282,13 +327,20 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         }
         daysInWeekGrid.getRowConstraints().setAll(rowConList);
     }
-    private void setDayState(TextArea inputText, int day){
+    private void setDayState(TextArea inputText, boolean day){
 
-        if(day == 0){
+        if(!day){
             inputText.setStyle("-fx-control-inner-background:" +toHexString(Color.RED));
         }else{
             inputText.setStyle("-fx-control-inner-background:" +toHexString(Color.GREEN));
         }
+    }
+    private void refreshDays(){
+    for(int i = 0; i < 14; i = i+2){
+        TextArea text = (TextArea) daysInWeekGrid.getChildren().get(i);
+        setDayState(text,selectedAssistant.getWorkDays().get(i/2).getState());
+    }
+
     }
     private String toHexString(Color color) {
         return String.format("#%02X%02X%02X",
@@ -368,20 +420,20 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         int rowIndex = daysInWeekGrid.getRowIndex(loadedArea);
         int colIndex = daysInWeekGrid.getColumnIndex(loadedArea);
         if(colIndex == 0){
-            if(selectedAssistant.getWorkDays()[rowIndex] ==0){
-                selectedAssistant.getWorkDays()[rowIndex] = 1;
-                setDayState(loadedArea,1);
+            if(selectedAssistant.getWorkDays().get(rowIndex/2).getState() == false){
+                selectedAssistant.getWorkDays().get(rowIndex/2).setState(true);
+                setDayState(loadedArea,true);
             }else{
-                selectedAssistant.getWorkDays()[rowIndex] = 0;
-                setDayState(loadedArea,0);
+                selectedAssistant.getWorkDays().get(rowIndex/2).setState(false);
+                setDayState(loadedArea,false);
             }
         }else{
-            if(selectedAssistant.getWorkDays()[rowIndex+7] ==0){
-                selectedAssistant.getWorkDays()[rowIndex+7] = 1;
-                setDayState(loadedArea,1);
+            if(selectedAssistant.getWorkDays().get(rowIndex/2+7).getState() == false){
+                selectedAssistant.getWorkDays().get(rowIndex/2+7).setState(true);
+                setDayState(loadedArea,true);
             }else{
-                selectedAssistant.getWorkDays()[rowIndex+7] = 0;
-                setDayState(loadedArea,0);
+                selectedAssistant.getWorkDays().get(rowIndex/2+7).setState(false);
+                setDayState(loadedArea,false);
             }
         }
     }

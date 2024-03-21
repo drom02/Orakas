@@ -1,6 +1,7 @@
 package graphics.sorter.Structs;
 
 import graphics.sorter.Assistant;
+import graphics.sorter.AssistantAvailability.AssistantAvailability;
 import graphics.sorter.Database;
 import graphics.sorter.JsonManip;
 import graphics.sorter.Settings;
@@ -14,46 +15,44 @@ import java.util.ArrayList;
 public class AvailableAssistants implements Saveable {
     private int year;
     private int month;
-    public ArrayList<ArrayList<Assistant>> getAvailableAssistantsAtDays() {
+    public ArrayList<ArrayList<AssistantAvailability>> getAvailableAssistantsAtDays() {
         return availableAssistantsAtDays;
     }
 
-    public void setAvailableAssistantsAtDays(ArrayList<ArrayList<Assistant>> availableAssistantsAtDays) {
+    public void setAvailableAssistantsAtDays(ArrayList<ArrayList<AssistantAvailability>> availableAssistantsAtDays) {
         this.availableAssistantsAtDays = availableAssistantsAtDays;
     }
 
-    public ArrayList<ArrayList<Assistant>> getAvailableAssistantsAtNights() {
+    public ArrayList<ArrayList<AssistantAvailability>> getAvailableAssistantsAtNights() {
         return availableAssistantsAtNights;
     }
 
-    public void setAvailableAssistantsAtNights(ArrayList<ArrayList<Assistant>> availableAssistantsAtNights) {
+    public void setAvailableAssistantsAtNights(ArrayList<ArrayList<AssistantAvailability>> availableAssistantsAtNights) {
         this.availableAssistantsAtNights = availableAssistantsAtNights;
     }
 
-    private ArrayList<ArrayList<Assistant>> availableAssistantsAtDays = new ArrayList();
-    private ArrayList<ArrayList<Assistant>> availableAssistantsAtNights = new ArrayList();
+    private ArrayList<ArrayList<AssistantAvailability>> availableAssistantsAtDays = new ArrayList();
+    private ArrayList<ArrayList<AssistantAvailability>> availableAssistantsAtNights = new ArrayList();
     public void createNew(JsonManip map) throws IOException {
         Settings settings = Database.loadSettings();
         ListOfAssistants listOfA = Database.loadAssistants();
         AvailableAssistants availableAssistants = new AvailableAssistants();
-        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
-        ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
+        ArrayList<ArrayList<AssistantAvailability>> dayList = new ArrayList<>();
+        ArrayList<ArrayList<AssistantAvailability>> nightList = new ArrayList<>();
         for(int i = 0; i < Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear())); i++){
-            ArrayList<Assistant> inputDayList = new ArrayList<>();
-            ArrayList<Assistant> inputNightList = new ArrayList<>();
+            ArrayList<AssistantAvailability> inputDayList = new ArrayList<>();
+            ArrayList<AssistantAvailability> inputNightList = new ArrayList<>();
             dayList.add(inputDayList);
             nightList.add(inputNightList);
             for(Assistant asis : listOfA.getAssistantList()){
-                if(asis.getWorkDays()[(LocalDate.of(settings.getCurrentYear(), settings.getCurrentMonth(), i+1).getDayOfWeek().getValue()-1)] == 1 ){
-                    inputDayList.add(asis);
+                if(asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue()).getState()){
+                    inputDayList.add(new AssistantAvailability(asis.getID(),asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue()).getAvailability()));
                 }
-                if(asis.getWorkDays()[(LocalDate.of(settings.getCurrentYear(), settings.getCurrentMonth(), i+1).getDayOfWeek().getValue()+6)] == 1 ){
-                    inputNightList.add(asis);
+                if(!asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue() + 6).getState()){
+                    inputNightList.add(new AssistantAvailability(asis.getID(),asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue()+ 6).getAvailability()));
                 }
 
             }
-
-
         }
 
         availableAssistants.setAvailableAssistantsAtDays(dayList);

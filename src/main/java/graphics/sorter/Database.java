@@ -1,6 +1,9 @@
 package graphics.sorter;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import graphics.sorter.AssistantAvailability.ShiftAvailability;
+import graphics.sorter.AssistantAvailability.ShiftAvailabilityArray;
 import graphics.sorter.Structs.*;
 import graphics.sorter.Vacations.Vacation;
 import graphics.sorter.Vacations.VacationTemp;
@@ -20,6 +23,7 @@ import java.util.stream.Collectors;
 public class Database {
     public static  String databaseName = "jdbc:sqlite:"+ JsonManip.loadRedirect()+ "mainSorter.db";
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+    private static ObjectMapper objectMapper = new ObjectMapper();
     public static void prepareTables(){
 
         String clientTable = "CREATE TABLE IF NOT EXISTS clientTable (\n"
@@ -369,6 +373,7 @@ public class Database {
         String query = "SELECT * FROM assistantTable WHERE assistantID = ?";
         try(Connection conn = DriverManager.getConnection(databaseName);
             PreparedStatement stmt = conn.prepareStatement(query)){
+            ObjectMapper objectMapper = new ObjectMapper();
             stmt.setString(1,String.valueOf(assistantID));
             try(ResultSet rs = stmt.executeQuery()){
                 if(rs.next()){
@@ -382,10 +387,10 @@ public class Database {
                     Boolean likesOvertime = rs.getBoolean("likesOvertime");
                     Boolean emergencyAssistant= rs.getBoolean("emergencyAssistant");
                     Boolean isDriver= rs.getBoolean("isDriver");
-                    int[] workDays = DatabaseUtils.stringToIntArray(rs.getString("workDays"));
+                    ShiftAvailabilityArray workDays = objectMapper.readValue(rs.getString("workDays"), ShiftAvailabilityArray.class);
                     String comment = rs.getString("comment");
                     ArrayList<ArrayList<UUID>> compatibility = loadCompatibility(assistantID);
-                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility,emergencyAssistant,isDriver);
+                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays.getMain(),compatibility,emergencyAssistant,isDriver);
                     return  outputAssistant;
                 }
             }catch (Exception e) {
@@ -457,28 +462,7 @@ public class Database {
         }
         return null;
     }
-    public static void saveAssistant(Assistant assistant){
-        String query = "INSERT OR REPLACE INTO assistantTable (assistantID, status, name,surname, contractType, contractTime,likesOvertime,comment,workDays,isDeleted,emergencyAssistant,isDriver) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try(Connection conn = DriverManager.getConnection(databaseName );
-            PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, assistant.getID().toString());
-            stmt.setBoolean(2, assistant.getActivityStatus());
-            stmt.setString(3,assistant.getName());
-            stmt.setString(4,assistant.getSurname());
-            stmt.setString(5,assistant.getContractType());
-            stmt.setDouble(6,assistant.getContractTime());
-            stmt.setBoolean(7,assistant.getLikesOvertime());
-            stmt.setString(8,assistant.getComment());
-            stmt.setString(9,DatabaseUtils.IntArrayToString(assistant.getWorkDays()));
-            stmt.setBoolean(10,false);
-            stmt.setBoolean(11,assistant.isEmergencyAssistant());
-            stmt.setBoolean(12,assistant.isDriver());
-            stmt.execute();
-            saveCompatibility(assistant.getClientPreference(), assistant.getID());
-        }catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
+
     public static void softDeleteAssistant(Assistant assistant){
         String query = "UPDATE assistantTable SET isDeleted = ? WHERE assistantID = ?";
         try(Connection conn = DriverManager.getConnection(databaseName );
@@ -532,7 +516,7 @@ public class Database {
                     String contractType = rs.getString("contractType");
                     Integer contractTime = rs.getInt("contractTime");
                     Boolean likesOvertime = rs.getBoolean("likesOvertime");
-                    int[] workDays = DatabaseUtils.stringToIntArray(rs.getString("workDays"));
+                    ArrayList<ShiftAvailability> workDays=  objectMapper.readValue(rs.getString("workDays"),new TypeReference<ArrayList<ShiftAvailability>>() {});
                     String comment = rs.getString("comment");
                     Boolean emergencyAssistant= rs.getBoolean("emergencyAssistant");
                     Boolean isDriver= rs.getBoolean("isDriver");
@@ -549,6 +533,29 @@ public class Database {
             System.out.println(e.getMessage());
         }
         return null;
+    }
+    public static void saveAssistant(Assistant assistant){
+        String query = "INSERT OR REPLACE INTO assistantTable (assistantID, status, name,surname, contractType, contractTime,likesOvertime,comment,workDays,isDeleted,emergencyAssistant,isDriver) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            stmt.setString(1, assistant.getID().toString());
+            stmt.setBoolean(2, assistant.getActivityStatus());
+            stmt.setString(3,assistant.getName());
+            stmt.setString(4,assistant.getSurname());
+            stmt.setString(5,assistant.getContractType());
+            stmt.setDouble(6,assistant.getContractTime());
+            stmt.setBoolean(7,assistant.getLikesOvertime());
+            stmt.setString(8,assistant.getComment());
+            stmt.setString(9,objectMapper.writeValueAsString(assistant.getWorkDays()));
+            stmt.setBoolean(10,false);
+            stmt.setBoolean(11,assistant.isEmergencyAssistant());
+            stmt.setBoolean(12,assistant.isDriver());
+            stmt.execute();
+            saveCompatibility(assistant.getClientPreference(), assistant.getID());
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
     public static void saveClientDay(ArrayList<ClientDay> clDA, String monthID,Connection conn){
         String query = "INSERT OR REPLACE INTO clientDayTable (clientDayID, clientID, monthID,isMerged, isDay, " +
@@ -821,7 +828,7 @@ public class Database {
         String query = "INSERT OR REPLACE INTO AssistantAvailabilityTable (availabilityID, month, year,jsonContent) VALUES (?, ?, ?, ?)";
         try(Connection conn = DriverManager.getConnection(databaseName );
             PreparedStatement stmt = conn.prepareStatement(query)) {
-            ObjectMapper objectMapper = new ObjectMapper();
+
             stmt.setString(1, year + "." +month);
             stmt.setInt(2, year);
             stmt.setInt(3,month);

@@ -4,6 +4,8 @@ import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
 import graphics.sorter.*;
+import graphics.sorter.AssistantAvailability.AssistantAvailability;
+import graphics.sorter.AssistantAvailability.Availability;
 import graphics.sorter.Structs.HumanCellFactory;
 import graphics.sorter.Structs.AvailableAssistants;
 import graphics.sorter.Structs.ListOfAssistants;
@@ -69,7 +71,7 @@ public class ShiftPickerController implements ControllerInterface{
     private ListView assistantList;
     //endregion
     //region variables
-    private ArrayList listOfAssist;
+    private ArrayList<Assistant> listOfAssist;
     private Month editedMonth;
     private Assistant selectedAssistant;
     private ArrayList<ArrayList<String>> dayArrayList = new ArrayList();
@@ -77,12 +79,14 @@ public class ShiftPickerController implements ControllerInterface{
     private ArrayList<TextArea> areaList = new ArrayList<TextArea>();
     private ArrayList<TextFlow> titleList = new ArrayList<TextFlow>();
     private ArrayList<ArrayList> listOfAssistantLists = new ArrayList<>();
-   private  ArrayList<ShiftTextArea> assistantsDayList = new ArrayList<ShiftTextArea>();
-   private  ArrayList<ShiftTextArea> assistantsNightList = new ArrayList<ShiftTextArea>();
-  // private JsonManip jsoMap= JsonManip.getJsonManip();
-   private Settings settings;
-   private AvailableAssistants AAGlobal;
-   private HashMap<String,Assistant> mapOfAssistants= new HashMap<>();
+    private  ArrayList<ShiftTextArea> assistantsDayList = new ArrayList<ShiftTextArea>();
+    private  ArrayList<ShiftTextArea> assistantsNightList = new ArrayList<ShiftTextArea>();
+    private Settings settings;
+    private AvailableAssistants AAGlobal;
+    private HashMap<String,Assistant> mapOfAssistants= new HashMap<>();
+    private HashMap<UUID, AssistantAvailability>  dayAvIndex= new HashMap<UUID, AssistantAvailability>();
+    private HashMap<UUID, AssistantAvailability>  nightAvIndex= new HashMap<UUID, AssistantAvailability>();
+    private HashMap<UUID, Assistant>  assistantIndex= new HashMap<UUID, Assistant>();
    //endregion
 
 
@@ -91,7 +95,6 @@ public class ShiftPickerController implements ControllerInterface{
     */
     public void populateTable(Month moth, int year){
         ContextMenu emptyContextMenu = new ContextMenu();
-
         editedMonth = moth;
         listOfAssistantLists.add(assistantsDayList);
         listOfAssistantLists.add(assistantsNightList);
@@ -174,11 +177,19 @@ public class ShiftPickerController implements ControllerInterface{
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getAssistantList());
         assistantList.setItems(observAssistantList);
     }
+    private void prepareIndexes(ArrayList<Assistant> aList){
+        for(Assistant a : aList){
+            dayAvIndex.put(a.getID(),new AssistantAvailability(a.getID(),new Availability(settings.getDeftStart()[0],settings.getDeftStart()[1],settings.getDefEnd()[0],settings.getDefEnd()[1])));
+            nightAvIndex.put(a.getID(),new AssistantAvailability(a.getID(),new Availability(settings.getDefEnd()[0],settings.getDefEnd()[1],settings.getDeftStart()[0],settings.getDeftStart()[1])));
+            assistantIndex.put(a.getID(),a);
+        }
+    }
     public void initialize() throws IOException {
         settings = Database.loadSettings();
         assistantList.setCellFactory(new HumanCellFactory());
         ListOfAssistants listOfA = Database.loadAssistants();
         listOfAssist = listOfA .getAssistantList();
+        prepareIndexes(listOfAssist);
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getAssistantList());
         assistantList.setItems(observAssistantList);
         populateTable(Month.of(settings.getCurrentMonth()),settings.getCurrentYear());
@@ -223,22 +234,23 @@ public class ShiftPickerController implements ControllerInterface{
         String oldText = loadedArea.getText();
         if(button== MouseButton.PRIMARY){
             if(selectedAssistant != null && !oldText.contains(selectedAssistant.getName() +" "+ selectedAssistant.getSurname())){
-                loadedArea.getAvailableAssistants().add(selectedAssistant);
-                String output = new String();
-                for(Assistant a : loadedArea.getAvailableAssistants()){
-                    output = output +a.getName() +" "+ a.getSurname()+"\n";
+                if(assistantsDayList.contains(loadedArea)){
+                    loadedArea.getAvailableAssistants().add(dayAvIndex.get(selectedAssistant.getID()));
+                }else{
+                    loadedArea.getAvailableAssistants().add(nightAvIndex.get(selectedAssistant.getID()));
                 }
-               // output = output + "," +selectedAssistant.getName() +" "+ selectedAssistant.getSurname();
+                String output = new String();
+                for(AssistantAvailability a : loadedArea.getAvailableAssistants()){
+                    output = output +getNamefFromID(a.getAssistant())+"\n";
+                }
                 loadedArea.setText(output);
-                //loadedArea.setText(oldText + "," +selectedAssistant.getName() +" "+ selectedAssistant.getSurname());
             }
         }else{
             if(selectedAssistant != null && oldText.contains(selectedAssistant.getName() +" "+ selectedAssistant.getSurname())){
-               // loadedArea.getAvailableAssisants().remove(selectedAssistant);
-                loadedArea.getAvailableAssistants().remove(selectedAssistant);
+                removeFromAssistantAVAr(loadedArea.getAvailableAssistants(),selectedAssistant.getID());
                 String output = new String();
-                for(Assistant a : loadedArea.getAvailableAssistants()){
-                    output = output  +a.getName() +" "+ a.getSurname()+"\n";
+                for(AssistantAvailability a : loadedArea.getAvailableAssistants()){
+                    output = output  +getNamefFromID(a.getAssistant())+"\n";
                 }
                 loadedArea.setText(output);
                // loadedArea.setText(oldText.replace("," +selectedAssistant.getName() +" "+ selectedAssistant.getSurname(),""));
@@ -251,6 +263,19 @@ public class ShiftPickerController implements ControllerInterface{
     Will populate the table with latest saved state.
     //Todo option to select save to load.
      */
+    private void removeFromAssistantAVAr(ArrayList<AssistantAvailability> list, UUID id){
+        for(AssistantAvailability av : list){
+            if(av.getAssistant().equals(id)){
+                list.remove(av);
+                break;
+            }
+        }
+    }
+    private String getNamefFromID(UUID id){
+       Assistant a =  assistantIndex.get(id);
+
+       return a.getName() + " " + a.getSurname();
+    }
     private void purgeText(){
         for(ArrayList<ShiftTextArea> l : listOfAssistantLists){
             for(ShiftTextArea s : l){
@@ -264,13 +289,14 @@ public class ShiftPickerController implements ControllerInterface{
         ArrayList<ShiftTextArea> tempListDay = listOfAssistantLists.get(0);
        // AvailableAssistants AAGlobal = null;
         AAGlobal = av;
-        ArrayList<ArrayList<Assistant>> listDays = AAGlobal.getAvailableAssistantsAtDays();
+        ArrayList<ArrayList<AssistantAvailability>> listDays = AAGlobal.getAvailableAssistantsAtDays();
         for(ShiftTextArea arList: tempListDay ){
                 arList.setAvailableAssistants(listDays.get(i));
                 String output;
-                for(Assistant as: listDays.get(i)){
+                for(AssistantAvailability as: listDays.get(i)){
                      output = arList.getText();
-                    arList.setText(output  + as.getName() +" "+ as.getSurname()+"\n");
+
+                    arList.setText(output  + getNamefFromID(as.getAssistant()) +"\n");
                 }
                 i++;
 
@@ -278,13 +304,13 @@ public class ShiftPickerController implements ControllerInterface{
         i = 0;
         ArrayList<ShiftTextArea> tempListNight = listOfAssistantLists.get(1);
         //AvailableAssistants avAsN = jsom.loadAvailableAssistantInfo(settings);
-        ArrayList<ArrayList<Assistant>> listNights = AAGlobal.getAvailableAssistantsAtNights();
+        ArrayList<ArrayList<AssistantAvailability>> listNights = AAGlobal.getAvailableAssistantsAtNights();
         for(ShiftTextArea sText: tempListNight ){
                 sText.setAvailableAssistants(listNights.get(i));
             String output;
-            for(Assistant as: listNights.get(i)){
+            for(AssistantAvailability as: listNights.get(i)){
                 output = sText.getText();
-                sText.setText(output + as.getName() +" "+ as.getSurname()+"\n");
+                sText.setText(output + getNamefFromID(as.getAssistant())+"\n");
             }
                 i++;
         }
@@ -293,20 +319,23 @@ public class ShiftPickerController implements ControllerInterface{
 
         ListOfAssistants listOfA = Database.loadAssistants();
         AvailableAssistants availableAssistants = new AvailableAssistants();
-        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
-        ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
+        ArrayList<ArrayList<AssistantAvailability>> dayList = new ArrayList<>();
+        ArrayList<ArrayList<AssistantAvailability>> nightList = new ArrayList<>();
         for(int i =0; i < Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear())); i++){
-            ArrayList<Assistant> inputDayList = new ArrayList<>();
-            ArrayList<Assistant> inputNightList = new ArrayList<>();
+            ArrayList<AssistantAvailability> inputDayList = new ArrayList<>();
+            ArrayList<AssistantAvailability> inputNightList = new ArrayList<>();
             dayList.add(inputDayList);
             nightList.add(inputNightList);
             for(Assistant asis : listOfA.getAssistantList()){
+                /*
                 if(asis.getWorkDays()[(LocalDate.of(settings.getCurrentYear(), settings.getCurrentMonth(), i).getDayOfWeek().getValue()-1)] == 1 ){
                     inputDayList.add(asis);
                 }
                 if(asis.getWorkDays()[(LocalDate.of(settings.getCurrentYear(), settings.getCurrentMonth(), i).getDayOfWeek().getValue()+7)] == 1 ){
                     inputNightList.add(asis);
                 }
+                 */
+
 
             }
 
@@ -324,8 +353,8 @@ public class ShiftPickerController implements ControllerInterface{
     public void saveCurrentState() throws IOException {
        // JsonManip jsom = JsonManip.getJsonManip();
         AvailableAssistants availableAssistants = new AvailableAssistants();
-        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
-        ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
+        ArrayList<ArrayList<AssistantAvailability>> dayList = new ArrayList<>();
+        ArrayList<ArrayList<AssistantAvailability>> nightList = new ArrayList<>();
         int shift = 0;
             for(ArrayList<ShiftTextArea> arlist: listOfAssistantLists){
                 for(ShiftTextArea arl: arlist){
@@ -344,8 +373,8 @@ public class ShiftPickerController implements ControllerInterface{
     public void generateEmptyState() throws IOException {
         JsonManip jsom = JsonManip.getJsonManip();
         AvailableAssistants availableAssistants = new AvailableAssistants();
-        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
-        ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
+        ArrayList<ArrayList<AssistantAvailability>> dayList = new ArrayList<>();
+        ArrayList<ArrayList<AssistantAvailability>> nightList = new ArrayList<>();
         int shift = 0;
 
             for(int i =0; i < Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear())); i++){
@@ -362,8 +391,8 @@ public class ShiftPickerController implements ControllerInterface{
        ArrayList<String> acceptableInputs = prepareAcceptableInputs();
         settings = Database.loadSettings();
         AvailableAssistants out = new AvailableAssistants();
-        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<ArrayList<Assistant>>();
-        ArrayList<ArrayList<Assistant>>  nightList = new ArrayList<ArrayList<Assistant>>();
+        ArrayList<ArrayList<AssistantAvailability>> dayList = new ArrayList<ArrayList<AssistantAvailability>>();
+        ArrayList<ArrayList<AssistantAvailability>>  nightList = new ArrayList<ArrayList<AssistantAvailability>>();
         try (FileInputStream fileInputStream = new FileInputStream(new File(path));
              Workbook workbook = new XSSFWorkbook(fileInputStream)) {
             Sheet sheet = workbook.getSheet("availableAssistants");
@@ -371,11 +400,15 @@ public class ShiftPickerController implements ControllerInterface{
                 Row editedRow = sheet.getRow(i);
                 for(int c = 0;c< Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear()));c++){
                     Cell editedCell = editedRow.getCell(c);
+                    /*
+                    TODO redo
                     if(i==1){
                         dayList.add(ExcelOutput.parseCell(acceptableInputs,editedCell, mapOfAssistants));
                     }else{
                         nightList.add(ExcelOutput.parseCell(acceptableInputs,editedCell,mapOfAssistants));
                     }
+                     */
+
                 }
             }
             out.setAvailableAssistantsAtDays(dayList);

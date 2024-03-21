@@ -1,6 +1,7 @@
 package graphics.sorter.Structs;
 
 import graphics.sorter.Assistant;
+import graphics.sorter.AssistantAvailability.AssistantAvailability;
 import javafx.scene.control.TextArea;
 
 import java.util.ArrayList;
@@ -18,15 +19,15 @@ public class ShiftTextArea extends TextArea {
 
 
     //List of All assistants that are signed for working in that specific shift
-    private ArrayList<Assistant> availableAssistants = new ArrayList<>();
+    private ArrayList<AssistantAvailability> availableAssistants = new ArrayList<AssistantAvailability>();
     //0 = day shift
     //1 = night shift
     private int Type;
-    public ArrayList<Assistant> getAvailableAssistants() {
+    public ArrayList<AssistantAvailability> getAvailableAssistants() {
         return availableAssistants;
     }
 
-    public void setAvailableAssistants(ArrayList<Assistant> availableAssistants) {
+    public void setAvailableAssistants(ArrayList<AssistantAvailability> availableAssistants) {
         this.availableAssistants = availableAssistants;
     }
 
