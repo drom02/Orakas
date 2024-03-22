@@ -44,7 +44,7 @@ public class LocationController implements ControllerInterface{
     JsonManip jsoMap;
     Settings set;
     public void initialize() throws IOException {
-        set = Database.loadSettings();
+        set = Settings.getSettings();
        // listOfL = jsoMap.loadLocations(set);
         /*
         CompletableFuture<Void> future = CompletableFuture.runAsync(()-> {listOfL = Database.loadLocations();}).thenAccept( result -> {listOfLoc = listOfL.getListOfLocations();

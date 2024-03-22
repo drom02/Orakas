@@ -21,7 +21,7 @@ public class AttachAssistants {
 
     }
     public void initialize() throws IOException {
-        Settings set = Database.loadSettings();
+        Settings set = Settings.getSettings();
         try {
             availableAssistants = Database.loadAssistantAvailability(set.getCurrentYear(), set.getCurrentMonth());
         }catch(Exception e){

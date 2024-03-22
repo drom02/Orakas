@@ -71,7 +71,7 @@ public class ClientViewController implements ControllerInterface{
     }
     public void initialize() throws IOException {
         listViewofC.setCellFactory(new ClientProfileCellFactory());
-        settings = Database.loadSettings();
+        settings = Settings.getSettings();
         listOfc = Database.loadClientProfiles();
         //listOfc = Database.loadClientProfiles();
         homeLocationBox.getItems().setAll(Database.loadLocations().getListOfLocations());

@@ -120,7 +120,7 @@ public class MainPageController implements ControllerInterface{
         });
         populateClientIndex();
         isMenuVisible = false;
-        settings = Database.loadSettings();
+        settings = Settings.getSettings();
         selectedYearValueVisual.setText(String.valueOf(settings.getCurrentYear()));
         selectedMonthValueVisual.setText(String.valueOf(settings.getCurrentMonth()));
         selectedYearValue = settings.getCurrentYear();

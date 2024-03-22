@@ -37,8 +37,6 @@ public class ShiftAvailability {
         setAvailability(availability);
         setState(state);
     }
-
-
     public Availability getAvailability() {
         return availability;
     }
@@ -54,7 +52,7 @@ public class ShiftAvailability {
         this.state = state;
     }
     public static ArrayList<ShiftAvailability> generateWeek(){
-        Settings set = Database.loadSettings();
+        Settings set = Settings.getSettings();
         ArrayList<ShiftAvailability> output = new ArrayList<>(14);
         if (set != null) {
            int[] start = set.getDeftStart();

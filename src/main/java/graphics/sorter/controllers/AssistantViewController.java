@@ -1,9 +1,9 @@
 package graphics.sorter.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import graphics.sorter.*;
 import graphics.sorter.AssistantAvailability.Availability;
 import graphics.sorter.AssistantAvailability.ShiftAvailability;
+import graphics.sorter.JavaFXCustomComponents.AssistantViewConSetup;
 import graphics.sorter.Structs.HumanCellFactory;
 import graphics.sorter.Structs.ListOfAssistants;
 import graphics.sorter.Structs.ListOfClientsProfiles;
@@ -12,16 +12,15 @@ import graphics.sorter.Vacations.Vacation;
 import graphics.sorter.Vacations.VacationTemp;
 import graphics.sorter.workHoursAllocation.WorkHoursCalcul;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
@@ -30,8 +29,6 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -100,6 +97,7 @@ public class AssistantViewController implements ControllerInterface{
     private Vacation selectedVacation;
     private VacationTemp listOfVacations;
     private ArrayList<AssistantViewConSetup> listDataEntry= new ArrayList<>();
+    private CircularList<AssistantViewConSetup> linkedViewConList = new CircularList<>(Collections.nCopies(14, null));
     //endregion
     Settings set;
     public void deleteAssistant(MouseEvent mouseEvent) throws IOException {
@@ -163,7 +161,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                 });
         listViewofA.setCellFactory(new HumanCellFactory());
         vacationList.setCellFactory(new VacationCellFactory());
-        set = Database.loadSettings();
+        set = Settings.getSettings();
         listOfA = Database.loadAssistants();
         listOfAssist = Database.loadAssistants().getAssistantList();
 
@@ -301,6 +299,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
                 setDayState(dayArea,stateOfDays.get(iRow).getState());
             }
         }
+
         daysInWeekGrid.getChildren().addAll(allAreas);
         daysInWeekGrid.getChildren().addAll(startsAndEnds);
         setGridSize();
@@ -308,11 +307,40 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
     }
     private void positionGrid(ArrayList<GridPane> ar, int iRow, int iCol, ArrayList<AssistantViewConSetup> completeList){
     AssistantViewConSetup temp = new AssistantViewConSetup();
+    //linkedViewConList.set((iCol == 0) ? iRow/2 : iRow/2+7,temp);
+      //  System.out.println(iCol);
+      //  System.out.println(iRow/2+iCol);
+        linkedViewConList.set(iRow+iCol,temp);
     completeList.add(temp);
         GridPane.setConstraints(temp.getLocalGrid(),iCol,iRow+1,1,1);
         ar.add(temp.getLocalGrid());
+        for(Node n : temp.getItemList()){
+            setupSpinnerListener((Spinner<Integer>) n,temp);
+        }
 
     }
+    private void setupSpinnerListener(Spinner<Integer> spiner, AssistantViewConSetup parent){
+        spiner.valueProperty().addListener(new ChangeListener<Integer>() {
+            @Override
+            public void changed(ObservableValue<? extends Integer> observable, Integer oldValue, Integer newValue) {
+                validateIntervalOverlaps(parent);
+            }
+
+        });
+    }
+    private void validateIntervalOverlaps(AssistantViewConSetup parent){
+        AssistantViewConSetup past =linkedViewConList.previous(parent);
+        AssistantViewConSetup next = linkedViewConList.next(parent);
+        if(parent.getEndLocalTime().isAfter(next.getStartLocalTime())){
+            next.getStartHours().getValueFactory().setValue(parent.getEndHours().getValue());
+            next.getStartMinutes().getValueFactory().setValue(parent.getEndMinutes().getValue());
+        }
+        if(parent.getStartLocalTime().isBefore(past.getEndLocalTime())){
+            past.getEndHours().getValueFactory().setValue(parent.getStartHours().getValue());
+            past.getEndMinutes().getValueFactory().setValue(parent.getStartMinutes().getValue());
+        }
+    }
+
     public void setGridSize(){
         ColumnConstraints column1 = new ColumnConstraints();
         column1.setPercentWidth(50);

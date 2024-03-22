@@ -25,4 +25,6 @@ module graphics.sorter {
     opens graphics.sorter.AssistantAvailability to com.fasterxml.jackson.databind;
     opens graphics.sorter.controllers to com.fasterxml.jackson.databind, javafx.fxml;
     opens graphics.sorter.Vacations to com.fasterxml.jackson.databind;
+    exports graphics.sorter.JavaFXCustomComponents;
+    opens graphics.sorter.JavaFXCustomComponents to com.fasterxml.jackson.databind, javafx.fxml;
 }

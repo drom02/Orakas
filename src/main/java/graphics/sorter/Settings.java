@@ -61,6 +61,7 @@ public class Settings {
         if (settings == null) {
             // if instance is null, initialize
             settings = Database.loadSettings();
+            System.out.println("Settings loaded");
         }
         return settings;
     }

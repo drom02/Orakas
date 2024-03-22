@@ -21,7 +21,7 @@ public class JsonManip {
 
     private String path;
     public void initialize() throws IOException {
-        Settings set = Database.loadSettings();
+        Settings set = Settings.getSettings();
         path = set.getFilePath();
         ArrayList<String> directories = new ArrayList<>(Arrays.asList("Assistants","Clients","Settings","Locations","ClientRequirements","AvailableAssistants"));
         for(String st : directories){
@@ -149,7 +149,7 @@ public class JsonManip {
         try {
             jsonData = Files.readAllBytes(Paths.get(path +  "AvailableAssistants\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
         } catch (IOException e) {
-            Settings setTemp = Database.loadSettings();
+            Settings setTemp = Settings.getSettings();
             generateNewMonthsAssistants(setTemp.getCurrentYear(), setTemp.getCurrentMonth());
             jsonData = Files.readAllBytes(Paths.get(path +  "AvailableAssistants\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
         }
