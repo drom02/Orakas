@@ -123,4 +123,9 @@ public class Assistant extends Human{
     public int hashCode() {
         return getID().hashCode();
     }
+    @Override
+    public String toString() {
+        // Customize display logic here
+        return this.getName() + " "+ this.getSurname();
+    }
 }

@@ -1,5 +1,8 @@
 package graphics.sorter.Filters;
 
+import graphics.sorter.Assistant;
+import graphics.sorter.Structs.ListOfAssistants;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -88,6 +91,18 @@ public class HardFilters {
                 }
         }
         input.removeAll(toRemove);
+        return input;
+    }
+    public ArrayList<UUID>  removeByWorkTime(ArrayList<UUID> input, int day, ListOfAssistants asL, AssistantMonthWorks wok){
+        ArrayList<UUID> toRemove = new ArrayList<>();
+        for(UUID id : input){
+           Assistant aTemp = asL.getAssistantFromID(id);
+           if(wok.getWorkedTillDate(day,id) >= aTemp.getContractTime()-11 && !aTemp.getContractType().equals("HPP")){
+                toRemove.add(id);
+           }
+        }
+        input.removeAll(toRemove);
+
         return input;
     }
 }

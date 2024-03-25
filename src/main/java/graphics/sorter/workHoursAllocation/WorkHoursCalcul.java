@@ -22,9 +22,9 @@ public class WorkHoursCalcul {
     //countWorkDays(2025,1,Month.of(1).length(Year.isLeap(2025)));
         //System.out.println(workDaysCalcul(25,1,7.5));
     }
-    public static double workDaysCalcul(int year, int month, double standardWorkDay, UUID assistant ){
+    public static double workDaysCalcul(int year, int month, double standardWorkDay, UUID assistant, double contractLength ){
         int length = Month.of(month).length(Year.isLeap(year));
-        return countWorkDays(year, month,length, assistant) * standardWorkDay;
+        return countWorkDays(year, month,length, assistant) * standardWorkDay* contractLength;
     }
     public static Set<Holiday> getHolidaysOfMonth(int year, int month, int monthLength){
         HolidayManager holidayManager = HolidayManager.getInstance(ManagerParameters.create(CZECH_REPUBLIC));

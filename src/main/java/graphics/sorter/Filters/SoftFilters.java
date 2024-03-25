@@ -1,6 +1,7 @@
 package graphics.sorter.Filters;
 
 import graphics.sorter.Assistant;
+import graphics.sorter.Structs.ListOfAssistants;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -46,8 +47,14 @@ public class SoftFilters {
         availableAssistants.addAll(linkedMapOfLatestWork.keySet());
         System.out.println("End " +availableAssistants);
          */
+    }
+    public void workedHoursHPP(HashMap<UUID,Integer> ratingMap, int day, AssistantMonthWorks workMonth, HashMap<UUID, Double> workHoursOfMonth, ListOfAssistants listOfAssistants){
+        for(UUID id : ratingMap.keySet()){
+            if(listOfAssistants.getAssistantFromID(id).getContractType().equals("HPP")){
+                ratingMap.put(id, (int) (ratingMap.get(id)+((workHoursOfMonth.get(id)/60)- (workMonth.getWorkedTillDate(day,id)/60))));
+            }
 
-
+        }
     }
     public void clientPreference(HashMap<UUID,Integer> ratingMap, UUID client, ArrayList<Assistant> listOfAssistants){
         for(UUID id : ratingMap.keySet()){

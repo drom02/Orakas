@@ -49,7 +49,7 @@ public class ClientDay {
                @JsonProperty("defStarTime") LocalDateTime defStarTime, @JsonProperty("defEndTime")LocalDateTime defEndTime,
                @JsonProperty("Location")Location location, @JsonProperty("isMerged")boolean ismerged, @JsonProperty("isDay")boolean isDay){
         
-        ServiceInterval def = new ServiceInterval(defStarTime, defEndTime, null, null,null,false,false,location.getID());
+        ServiceInterval def = new ServiceInterval(defStarTime, defEndTime, null, null,null,false,false,location.getID(),false);
         this.dayIntervalList.add(def);
         setDay(dayI);
         this.month = monthI;
@@ -84,7 +84,7 @@ public class ClientDay {
             day.getDayIntervalList().remove(serv);
             if (day.getDayIntervalList().isEmpty()) {
                 day.getDayIntervalList().add(new ServiceInterval(startNew
-                        , endNew, as, null, null, false, false, day.getLocation().getID()));
+                        , endNew, as, null, null, false, false, day.getLocation().getID(),false));
                 if (day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)) {
                     System.out.println("Is empty");
                 }
@@ -104,7 +104,7 @@ public class ClientDay {
                 LocalDateTime temp = s.getEnd();
                 s.setEnd(startNew);
                 day.getDayIntervalList().add(new ServiceInterval(endNew
-                        , temp, s.getOverseeingAssistant(), null,null, false, false,day.getLocation().getID()));
+                        , temp, s.getOverseeingAssistant(), null,null, false, false,day.getLocation().getID(),false));
                 System.out.println("Type 3");
                 break;
             }else{
@@ -116,7 +116,7 @@ public class ClientDay {
             }
         }
         day.getDayIntervalList().add(new ServiceInterval(startNew
-                , endNew, day.getDayIntervalList().getFirst().getOverseeingAssistant(), null,null, false, false,day.getLocation().getID()));
+                , endNew, day.getDayIntervalList().getFirst().getOverseeingAssistant(), null,null, false, false,day.getLocation().getID(),false));
         if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
         }
        // day.getDayIntervalListUsefull().get(0).setComment("Testing save logic");

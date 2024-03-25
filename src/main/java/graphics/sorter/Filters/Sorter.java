@@ -9,6 +9,7 @@ import graphics.sorter.Structs.AvailableAssistants;
 import graphics.sorter.Structs.ListOfAssistants;
 import graphics.sorter.Structs.ClientDay;
 import graphics.sorter.Structs.ServiceInterval;
+import graphics.sorter.workHoursAllocation.WorkHoursCalcul;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,9 +28,8 @@ public class Sorter {
     private IntervalProcessing interProc ;
     private HashMap<UUID, DateTimeAssistantAvailability> IDAvailIndex;
     private HashMap<UUID, Assistant> assistantHashMap = new HashMap<>();
-
-
-    AssistantMonthWorks workMonth;
+    private HashMap<UUID, Double> workHoursOfMonth = new HashMap<>();
+    private AssistantMonthWorks workMonth;
     /*
     private ListOfAssistantMonthShifts assistantMonthShifts;
     public Sorter(ListOfAssistants assistList){
@@ -43,16 +43,24 @@ public class Sorter {
     }
      */
     //
+    private void setupWorkHoursOfMonth(ListOfAssistants assistList, int year, int month ){
+        for(Assistant a : assistList.getFullAssistantList()){
+            if(a.getContractType().equals("HPP")){
+                workHoursOfMonth.put(a.getID(), WorkHoursCalcul.workDaysCalcul(year,month,7.5,a.getID(),a.getContractTime()));
+            }
+
+        }
+
+    }
     public AssistantMonthWorks getWorkMonth(){
         return workMonth;
     }
-    public Sorter(ListOfAssistants assistList){
+    public Sorter(ListOfAssistants assistList, int year, int month){
         IDAvailIndex = new HashMap<UUID, DateTimeAssistantAvailability>();
         workMonth = new AssistantMonthWorks(assistList);
-
+        setupWorkHoursOfMonth(assistList,year,month);
         prepareIndex(assistList);
         interProc = new IntervalProcessing(workMonth, Database.loadSettings().getMaxShiftLength(),assistantHashMap);
-
         }
     private HardFilters hardFilters = new HardFilters();
     private SoftFilters softFilters = new SoftFilters();
@@ -63,6 +71,7 @@ public class Sorter {
         ArrayList<UUID> availableAssistantsID = getIdFromList(availableAssistants);
         hardFilters.removePreviousShift(availableAssistantsID,day,workMonth,dayState);
         hardFilters.assureProperPause(availableAssistantsID,workMonth,cl.getDayIntervalListUsefull().getFirst().getStart());
+
         /*
         Soft filters have to be applied after all hard filters.
          */
@@ -110,6 +119,7 @@ public class Sorter {
         ArrayList<UUID> availableAssistantsID = getIdFromDateList(availableAssistants,IDAvailIndex);
         hardFilters.removePreviousShift(availableAssistantsID,day,workMonth,dayState);
         hardFilters.assureProperPause(availableAssistantsID,workMonth,cl.getDayIntervalListUsefull().getFirst().getStart());
+        hardFilters.removeByWorkTime(availableAssistantsID,day,aslList,workMonth);
         /*
         Soft filters have to be applied after all hard filters.
          */
@@ -127,6 +137,7 @@ public class Sorter {
                 softFilters.penalizeRecent(soft,workMonth.getLastWorkedDay(),day,1);
                 softFilters.clientPreference(soft,cl.getClient(),trimmedAssistants);
                 softFilters.emergencyAssistant(soft,trimmedAssistants);
+                softFilters.workedHoursHPP(soft,day,workMonth,workHoursOfMonth,aslList);
                 softFilters.output(availableAssistantsID,soft);
                 ArrayList<DateTimeAssistantAvailability>  ordered = orderedDateTimeAA(availableAssistantsID,availableAssistants);
                 interProc.evaluateInterval(0,0,ordered,cl, new AssistantWorkShift(),dayState,false);

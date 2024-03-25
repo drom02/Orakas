@@ -512,6 +512,6 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
     }
 
     public void testWorkedHours(ActionEvent actionEvent) {
-        System.out.println(WorkHoursCalcul.workDaysCalcul(2024,10,7.5,selectedAssistant.getID()));
+        System.out.println(WorkHoursCalcul.workDaysCalcul(2024,10,7.5,selectedAssistant.getID(),1.0));
     }
 }

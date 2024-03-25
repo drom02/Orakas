@@ -95,6 +95,7 @@ public class Database {
                 + " isNotRequired integer NOT NULL,\n"
                 + " isMerged integer NOT NULL,\n"
                 + " comment text, \n"
+                + " requiresDriver integer NOT NULL,\n"
                 + " FOREIGN KEY (clientDayID) REFERENCES clientDayTable(clientDayID) ON DELETE CASCADE, \n"
                 + " FOREIGN KEY (overseeingAssistantID) REFERENCES assistantTable(assistantID) , \n"
                 + " FOREIGN KEY (location) REFERENCES locationTable(locationID) \n"
@@ -687,7 +688,7 @@ public class Database {
         }
     }
     public static void saveServiceIntervals(ClientDay cl, String dayID, Connection conn){
-        String query = "INSERT OR REPLACE INTO serviceIntervalTable (serviceIntervalID, clientDayID, overseeingAssistantID,assignedAssistant,start, end, location,isNotRequired,isMerged,comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT OR REPLACE INTO serviceIntervalTable (serviceIntervalID, clientDayID, overseeingAssistantID,assignedAssistant,start, end, location,isNotRequired,isMerged,comment,requiresDriver) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try(PreparedStatement stmt = conn.prepareStatement(query)) {
             int inDex = 0;
             int servCount = 0;
@@ -706,6 +707,7 @@ public class Database {
                 stmt.setBoolean(++inDex,serv.getIsNotRequired());
                 stmt.setBoolean(++inDex,serv.isMerged());
                 stmt.setString(++inDex,serv.getComment());
+                stmt.setBoolean(++inDex,serv.isRequiresDriver());
                 servCount++;
                 if(servCount>1){
                    System.out.println();
@@ -736,12 +738,13 @@ public class Database {
                      Boolean isNotRequired = rs.getBoolean("isNotRequired");
                      Boolean isMerged = rs.getBoolean("isMerged");
                      String comment = rs.getString("comment");
+                     Boolean requiresDriver = rs.getBoolean("requiresDriver");
                      Assistant out = null;
                      if((overseeingAssistantID != null)){
                          out = loadAssistant(UUID.fromString(overseeingAssistantID));
                      }
                      UUID outAssigned = (assignedAssistantID == null) ? null : UUID.fromString(assignedAssistantID);
-                     ServiceInterval outputInterval = new ServiceInterval(LocalDateTime.parse(start,formatter),LocalDateTime.parse(end,formatter),out,outAssigned,comment,isNotRequired,isMerged,(location == null) ? null: UUID.fromString(location));
+                     ServiceInterval outputInterval = new ServiceInterval(LocalDateTime.parse(start,formatter),LocalDateTime.parse(end,formatter),out,outAssigned,comment,isNotRequired,isMerged,(location == null) ? null: UUID.fromString(location),requiresDriver);
                      lis.add(outputInterval);
                  }
                  return  lis;

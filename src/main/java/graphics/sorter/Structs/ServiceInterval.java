@@ -19,6 +19,16 @@ public class ServiceInterval {
     private boolean isNotRequired;
     private boolean isMerged;
     private String comment;
+
+    public boolean isRequiresDriver() {
+        return requiresDriver;
+    }
+
+    public void setRequiresDriver(boolean requiresDriver) {
+        this.requiresDriver = requiresDriver;
+    }
+
+    private boolean requiresDriver;
 //Přidat truncate form
     /*
 @JsonCreator
@@ -36,7 +46,8 @@ public class ServiceInterval {
                            @JsonProperty("comment") String comment,
                            @JsonProperty("isNotRequired") boolean isNotRequired,
                            @JsonProperty("isMerged") boolean isMerged,
-                           @JsonProperty("location") UUID location){
+                           @JsonProperty("location") UUID location,
+                             @JsonProperty("requiresDriver") boolean requiresDriver){
         setStart(start);
         this.end = end;
         this.overseeingAssistant = overseeingAssistant != null ? overseeingAssistant : null;
@@ -45,6 +56,7 @@ public class ServiceInterval {
         setMerged(isMerged);
         setAssignedAssistant(assignedAssistant);
         setLocation(location);
+        setRequiresDriver(requiresDriver);
 
     }
 

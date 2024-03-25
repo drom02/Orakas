@@ -10,6 +10,8 @@ import graphics.sorter.Filters.Sorter;
 import graphics.sorter.Structs.*;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -24,9 +26,9 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 
-import java.io.Console;
 import java.io.IOException;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -37,9 +39,9 @@ public class MainPageController implements ControllerInterface{
     @FXML
     private Text tempAssistantText;
     @FXML
-    private ChoiceBox assignedAssistantBox;
+    private ChoiceBox<Assistant> assignedAssistantBox;
     @FXML
-    private ChoiceBox intervalLocationBox;
+    private ChoiceBox<Location> intervalLocationBox;
     //region Graphical components
     @FXML
     private Text selectedYear;
@@ -49,8 +51,8 @@ public class MainPageController implements ControllerInterface{
     private  GridPane sideGrid;
     @FXML
     private Pane basePane;
-    @FXML
-    private ChoiceBox<Location> locationChoiceBox;
+ //   @FXML
+  //  private ChoiceBox<Location> locationChoiceBox;
     @FXML
     private CheckBox isMergedCheckBox;
     @FXML
@@ -105,6 +107,8 @@ public class MainPageController implements ControllerInterface{
     private HashMap<AnchorPane,ServiceInterval> paneServiceIndex = new HashMap<>();
     private HashMap<ServiceInterval,AnchorPane> servicePaneIndex= new HashMap<>();
     private HashMap<UUID,ClientProfile> clientIndex = new HashMap<>();
+    private HashMap<UUID,Assistant> assistantIndex = new HashMap<>();
+    private HashMap<UUID,Location> locationIndex = new HashMap<>();
     private TextFlow selectedTextArea = null;
     private ListOfClientMonths listOfClm = new ListOfClientMonths();
     private ArrayList<Integer> hoursList = new ArrayList<>();
@@ -119,6 +123,8 @@ public class MainPageController implements ControllerInterface{
     private ClientDay pastDay = null;
     private ClientDay futureDay = null;
     private AnchorPane selectedAnchorPane;
+    private AvailableAssistants availableAssistants;
+    private DateTimeFormatter customFormatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy ");
     //endregion
     public void initialize() throws IOException {
         prepareHoursAndMinutes();
@@ -129,19 +135,22 @@ public class MainPageController implements ControllerInterface{
             }
         });
         populateClientIndex();
+        populateAssistantIndex();
+        populateLocationIndex();
         isMenuVisible = false;
         settings = Settings.getSettings();
         selectedYearValueVisual.setText(String.valueOf(settings.getCurrentYear()));
         selectedMonthValueVisual.setText(String.valueOf(settings.getCurrentMonth()));
         selectedYearValue = settings.getCurrentYear();
         selectedMonthValue = settings.getCurrentMonth();
-        locationChoiceBox.setOnAction(this :: selectLocation);
+        //locationChoiceBox.setOnAction(this :: selectLocation);
         ArrayList<Location> lic = Objects.requireNonNull(Database.loadLocations()).getListOfLocations();
         lic.add(null);
-        locationChoiceBox.getItems().setAll(lic);
+       // locationChoiceBox.getItems().setAll(lic);
         populateView(getClientsOfMonth(settings));
         mainGrid.setConstraints(calendarScrollPane,mainGrid.getColumnIndex(calendarScrollPane),mainGrid.getRowIndex(calendarScrollPane),mainGrid.getColumnSpan(calendarScrollPane),mainGrid.getRowSpan(calendarScrollPane)+1);
         attachObservers();
+        availableAssistants = Database.loadAssistantAvailability(settings.getCurrentYear(), settings.getCurrentMonth());
         Platform.runLater(() -> {
         GraphicalFunctions.screenResizing(basePane,mainGrid);
 
@@ -156,6 +165,19 @@ public class MainPageController implements ControllerInterface{
             clientIndex.put(clip.getID(),clip);
         }
     }
+    private void populateAssistantIndex() throws IOException {
+        ListOfAssistants l = Database.loadAssistants();
+        for(Assistant clip : Objects.requireNonNull(l).getFullAssistantList()){
+            assistantIndex.put(clip.getID(),clip);
+        }
+    }
+    private void populateLocationIndex() throws IOException {
+        ListOfLocations l = Database.loadLocations();
+        for(Location clip : Objects.requireNonNull(l).getListOfLocations()){
+            locationIndex.put(clip.getID(),clip);
+        }
+    }
+
     public void graphical(){
         for(TextFlow tex: titleList){
            // Text t = (Text) tex.getChildren().getFirst();
@@ -259,8 +281,6 @@ public class MainPageController implements ControllerInterface{
                     dayGrid.setConstraints(dayTextAr,i,clienMothIter,1,1);
                     i = i+2;
                 }
-
-
             }
             i=0;
             for (int dayIter = 0; dayIter < clm.getClientNightsInMonth().size(); dayIter++){
@@ -302,8 +322,6 @@ public class MainPageController implements ControllerInterface{
                     dayGrid.setConstraints(nightTextAr,i,clienMothIter+1,3,1);
                     i = i+2;
                 }
-
-
             }
             clienMothIter = clienMothIter+2;
             clientIter++;
@@ -313,7 +331,6 @@ public class MainPageController implements ControllerInterface{
         calendarScrollPane.setContent(dayGrid);
        // graphicSetup();
         graphical();
-
     }
     private String getNameOfDay(LocalDate date){
         DayOfWeek dayValue = date.getDayOfWeek();
@@ -339,7 +356,6 @@ public class MainPageController implements ControllerInterface{
                               //  System.out.println(arr.get(finalI).getValue());
                         }
                    }
-
             };
             listOfObserv.add(myListener);
         }
@@ -386,8 +402,6 @@ public class MainPageController implements ControllerInterface{
         }else{
             return  null;
         }
-
-
     }
     private void graphicSetup(){
        // grid.setStyle("-fx-background-color: " + GS.getColors().get("Night")+";");
@@ -448,7 +462,6 @@ public class MainPageController implements ControllerInterface{
             mergedListDay.add(arD);
             mergedListNight.add(arN);
         }
-
         for(ArrayList<ClientDay> cl : mergedListDay){
             List<ClientDay> mergedClientDays = cl.stream()
                     .filter(ClientDay::isMerged)
@@ -529,7 +542,7 @@ public class MainPageController implements ControllerInterface{
     }
     public void findSolutionV2(ActionEvent actionEvent) throws IOException {
         ListOfAssistants asL = Database.loadAssistants();
-        Sorter sorter = new Sorter(asL);
+        Sorter sorter = new Sorter(asL,settings.getCurrentYear(), settings.getCurrentMonth());
         int monthLength;
         AvailableAssistants avAs = null;
         avAs = Database.loadAssistantAvailability(selectedYearValue,selectedMonthValue);
@@ -591,13 +604,29 @@ public class MainPageController implements ControllerInterface{
         sorter.report();
 
     }
+    private void forListOfCLmTrim(ListOfClientMonths cl,AvailableAssistantsLocalDateTime avs){
+        for(ClientMonth clm : cl.getListOfClientMonths()){
+            for(ClientDay cld : clm.getClientDaysInMonth()){
+                for(ServiceInterval serv : cld.getDayIntervalListUsefull()){
+                    trimAvailableAssistants(cld,serv,avs);
+                }
+
+            }
+            for(ClientDay cld : clm.getClientNightsInMonth()){
+                for(ServiceInterval serv : cld.getDayIntervalListUsefull()){
+                    trimAvailableAssistants(cld,serv,avs);
+                }
+            }
+        }
+    }
     public void findSolutionV3(ActionEvent actionEvent) throws IOException {
         clearTable();
         ListOfAssistants asL = Database.loadAssistants();
-        Sorter sorter = new Sorter(asL);
+        Sorter sorter = new Sorter(asL,settings.getCurrentYear(), settings.getCurrentMonth());
         int monthLength;
         AvailableAssistantsLocalDateTime avAs = null;
         AvailableAssistants test = Database.loadAssistantAvailability(selectedYearValue,selectedMonthValue);
+        //Edit avAS to reflect presets
         avAs = Database.loadAssistantAvailability(selectedYearValue,selectedMonthValue).convertToDateTimeAvailability(settings.getCurrentYear(), settings.getCurrentMonth());
 
         ListOfClients listOfClients = Database.loadFullClients(selectedYearValue,selectedMonthValue);
@@ -606,6 +635,7 @@ public class MainPageController implements ControllerInterface{
         for(Client cl : listOfClients.getClientList()){
             listOfClm .getListOfClientMonths().add(cl.getClientsMonth());
         }
+        forListOfCLmTrim(listOfClm,avAs);
         monthLength = listOfClm.getListOfClientMonths().get(0).getClientDaysInMonth().size();
         List<ArrayList<ArrayList<UUID>>> iterList = prepareMergedData(listOfClients,listOfClm,monthLength);
         for (int dayIter = 0; dayIter < monthLength; dayIter++) {
@@ -794,21 +824,37 @@ public class MainPageController implements ControllerInterface{
         dayInfoGrid.getChildren().add(outputText);
         displayIntervalInfoDef(day);
         isMergedCheckBox.setSelected(day.isMerged());
-        locationChoiceBox.setValue(day.getLocation());
+        //locationChoiceBox.setValue(day.getLocation());
         prepareMergeable();
     }
     private String prepareDayInfo(ClientDay day){
-        String outputString = new String();
-        outputString ="Datum : " + day.getDay() +"."+ day.getMonth().getValue()+"."+day.getYear() + "\n";
+        StringBuilder output = new StringBuilder();
+        output.append("Datum : " + day.getDay() +"."+ day.getMonth().getValue()+"."+day.getYear() + "\n");
         String dayName =LocalDate.of(day.getYear(),day.getMonth().getValue(),day.getDay()).getDayOfWeek()
                 .getDisplayName(TextStyle.FULL, new Locale("cs", "CZ"));
         dayName =  dayName.substring(0, 1).toUpperCase() + dayName.substring(1);
-        outputString = outputString + "Den v týdnu : " + dayName+ "\n";
-        outputString = outputString + "Odpovídající asistent : "+printAssistantsOfDay(day)+ "\n";
-        return outputString;
+        output.append( "Den v týdnu : " + dayName+ "\n");
+        int i = 1;
+        for(ServiceInterval serv :day.getDayIntervalList()){
+            output.append("Směna " + i + " začíná v : " + serv.getStart().format(customFormatter) + " a končí v : " + serv.getEnd().format(customFormatter)
+                    + ", zodpovědný asistent : ");
+            output.append(((serv.getOverseeingAssistant() == null) ? (serv.getIsNotRequired() == false) ?  "Nikdo vhodný nebyl nalezen": "Asistent není potřebný" : serv.getOverseeingAssistant().getName() + " " + serv.getOverseeingAssistant().getSurname())+ "\n");
+            if(serv.getComment().length()>1){
+                output.append("Komentář k směně : " + "\n");
+                output.append(serv.getComment()+ "\n");
+            }
+            if(clientIndex.get(day.getClient()).getComment().length()>1){
+                output.append("Poznámky ke klientovi : " + "\n");
+                output.append(clientIndex.get(day.getClient()).getComment()+ "\n");
+            }
+            output.append("--------------------------------------------------------------------------------------------"+"\n");
+            i++;
+        }
+
+        return  output.toString();
     }
     public void selectLocation(ActionEvent actionEvent){
-        textClientIndex.get(selectedTextArea).setLocation(locationChoiceBox.getValue());
+       // textClientIndex.get(selectedTextArea).setLocation(locationChoiceBox.getValue());
         prepareMergeable();
     }
     private ArrayList<Double> calculateBarWidth(ClientDay day){
@@ -875,15 +921,84 @@ public class MainPageController implements ControllerInterface{
 
 
     }
+    private void trimAvailableAssistants(ClientDay cl, ServiceInterval serv, AvailableAssistantsLocalDateTime avAs){
+        if(serv.getAssignedAssistant() != null){
+            UUID assigned = serv.getAssignedAssistant();
+            if(cl.getDayStatus()){
+               ArrayList<DateTimeAssistantAvailability>  tday = avAs.getLocalDateTimeDay().get(cl.getDay());
+                ArrayList<DateTimeAssistantAvailability>  tnight = avAs.getLocalDateTimeNight().get(cl.getDay());
+               ArrayList<DateTimeAssistantAvailability> toBeRemoved = new ArrayList<>();
+               for(DateTimeAssistantAvailability tem : tday){
+                   if(tem.getAssistantAvailability().getAssistant().equals(assigned)){
+                       toBeRemoved.add(tem);
+                   }
+               }
+               //Modify to not completely remove the intervals but instead resize them to fit the 8 hours limit between shifts
+              // tday.removeAll(toBeRemoved);
+                toBeRemoved = new ArrayList<>();
+                for(DateTimeAssistantAvailability tem : tnight){
+                    if(tem.getAssistantAvailability().getAssistant().equals(assigned)){
+                        toBeRemoved.add(tem);
+                    }
+                }
+                tnight.removeAll(toBeRemoved);
+                toBeRemoved = new ArrayList<>();
+              if(avAs.getLocalDateTimeDay().get(cl.getDay()-1) != null){
+                  ArrayList<DateTimeAssistantAvailability>  tnight2 = avAs.getLocalDateTimeNight().get(cl.getDay()-1);
+                  for(DateTimeAssistantAvailability tem : tnight2){
+                      if(tem.getAssistantAvailability().getAssistant().equals(assigned)){
+                          toBeRemoved.add(tem);
+                      }
+                  }
+                  tnight2.removeAll(toBeRemoved);
+              }
+            }else{
+                //TBD
+            }
+        }
+    }
     private void displayIntervalInfo(MouseEvent mouseEvent) {
        ServiceInterval serv = paneServiceIndex.get(mouseEvent.getSource());
-       selectedAnchorPane.getStyleClass().remove("selected-interval");
-       selectedAnchorPane = servicePaneIndex.get(serv);
-       selectedInterval = serv;
-       intervalCommentArea.setText(serv.getComment());
-       isRequiredCheckBox.setSelected(serv.getIsNotRequired());
+       displayIntervalInfoAlg(serv);
+
+    }
+    private void setupAssignedAssistant(ServiceInterval serv) throws IOException {
+        AvailableAssistantsLocalDateTime av = availableAssistants.convertToDateTimeAvailability(settings.getCurrentYear(), settings.getCurrentMonth());
+        ClientDay cl = textClientIndex.get(selectedTextArea);
+        ArrayList<ArrayList<DateTimeAssistantAvailability>> editedList;
+        ArrayList<Assistant> output = new ArrayList<>();
+        if(cl.getDayStatus()){
+            editedList = av.getLocalDateTimeDay();
+        }else{
+            editedList = av.getLocalDateTimeNight();
+        }
+        ArrayList<DateTimeAssistantAvailability> day = editedList.get(cl.getDay()-1);
+        for(DateTimeAssistantAvailability date : day){
+            if(serv.getStart().isAfter(date.getStart())||serv.getStart().isEqual(date.getStart()) && serv.getEnd().isBefore(date.getEnd())||serv.getEnd().isEqual(date.getEnd()) ){
+                output.add(assistantIndex.get(date.getAssistantAvailability().getAssistant()));
+            }
+
+        }
+        if(!output.contains(assistantIndex.get(serv.getAssignedAssistant()))){
+            serv.setAssignedAssistant(null);
+           // saveIntervalAlg();
+        }
+        output.add(null);
+        ObservableList<Assistant> observ = FXCollections.observableList(output);
+        assignedAssistantBox.setItems(observ);
+        assignedAssistantBox.setValue(assistantIndex.get(serv.getAssignedAssistant()));
+
+    }
+    private void displayIntervalInfoAlg(ServiceInterval serv){
+        selectedAnchorPane.getStyleClass().remove("selected-interval");
+        selectedAnchorPane = servicePaneIndex.get(serv);
+        selectedInterval = serv;
+        intervalCommentArea.setText(serv.getComment());
+        isRequiredCheckBox.setSelected(serv.getIsNotRequired());
+        assignedAssistantBox.setValue(assistantIndex.get(serv.getAssignedAssistant()));
         isServiceMergedCheckBox.setSelected(serv.isMerged());
         selectedAnchorPane.getStyleClass().add("selected-interval");
+        intervalLocationBox.setValue(locationIndex.get(serv.getLocation()));
         if(dayList.contains(selectedTextArea)){
             //The interval is in day
             startHoursChoice.getItems().setAll(hoursList.subList(0,25));
@@ -900,45 +1015,25 @@ public class MainPageController implements ControllerInterface{
         startMinutesChoice.setValue(serv.getStart().getMinute());
         endHoursChoice.setValue(serv.getEnd().getHour());
         endMinutesChoice.setValue(serv.getEnd().getMinute());
+        try {
+            setupAssignedAssistant(serv);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         if(selectedInterval.getOverseeingAssistant() != null){
             tempAssistantText.setText( selectedInterval.getOverseeingAssistant().getName()+" " + selectedInterval.getOverseeingAssistant().getSurname());
         }else{
             tempAssistantText.setText("none");
         }
-
-        /*
-        startHoursChoice.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->{
-
-        });
-         */
-
     }
     private void displayIntervalInfoDef(ClientDay day) {
-        if(!day.getDayIntervalList().isEmpty()){
+        if(!day.getDayIntervalList().isEmpty()) {
             ServiceInterval serv = day.getDayIntervalList().get(0);
             selectedInterval = serv;
             intervalCommentArea.setText(serv.getComment());
-            isRequiredCheckBox.setSelected(serv.getIsNotRequired());
             selectedAnchorPane = servicePaneIndex.get(serv);
             selectedAnchorPane.getStyleClass().add("selected-interval");
-            if(dayList.contains(selectedTextArea)){
-                //The interval is in day
-                startHoursChoice.getItems().setAll(hoursList.subList(0,24));
-                endHoursChoice.getItems().setAll(hoursList.subList(0,24));
-                startMinutesChoice.getItems().setAll(minuteList.subList(0,60));
-                endMinutesChoice.getItems().setAll(minuteList.subList(0,60));
-            }else{
-                startHoursChoice.getItems().setAll(hoursList.subList(12,24));
-                endHoursChoice.getItems().setAll(hoursList.subList(0,12));
-                startMinutesChoice.getItems().setAll(minuteList.subList(0,60));
-                endMinutesChoice.getItems().setAll(minuteList.subList(0,60));
-            }
-            startHoursChoice.setValue(serv.getStart().getHour());
-            startMinutesChoice.setValue(serv.getStart().getMinute());
-            endHoursChoice.setValue(serv.getEnd().getHour());
-            endMinutesChoice.setValue(serv.getEnd().getMinute());
-        }else{
-            return;
+            displayIntervalInfoAlg(serv);
         }
 
     }
@@ -1000,6 +1095,7 @@ public class MainPageController implements ControllerInterface{
         }
         setIntervalBars(editedDay);
         Database.saveAllClientMonths(listOfClm);
+        displayIntervalInfoDef(editedDay);
     }
     public void prepareHoursAndMinutes(){
         hoursList = (ArrayList<Integer>) IntStream.rangeClosed(0, 24).boxed().collect(Collectors.toList());
@@ -1036,7 +1132,7 @@ public class MainPageController implements ControllerInterface{
 
             if(day.getDayIntervalList().isEmpty()){
                 day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
-                        , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), as, null,null, false, false,day.getLocation().getID()));
+                        , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), as, null,null, false, false,day.getLocation().getID(),false));
                 if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
                     intervalOverreach(startNew, endNew);
                     System.out.println("Is empty");
@@ -1061,7 +1157,7 @@ public class MainPageController implements ControllerInterface{
                         LocalDateTime temp = s.getEnd();
                         s.setEnd(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
                         day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
-                                , temp, s.getOverseeingAssistant(), null,null, true,false,day.getLocation().getID()));
+                                , temp, s.getOverseeingAssistant(), null,null, true,false,day.getLocation().getID(),false));
                         System.out.println("Type 3");
                         break;
                     }
@@ -1072,7 +1168,7 @@ public class MainPageController implements ControllerInterface{
                 }
             }
             day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
-                    , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), day.getDayIntervalList().get(0).getOverseeingAssistant(), null,null, false, false,day.getLocation().getID()));
+                    , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), day.getDayIntervalList().get(0).getOverseeingAssistant(), null,null, false, false,day.getLocation().getID(),false));
             if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
                 intervalOverreach(startNew, endNew);
             }
@@ -1088,7 +1184,6 @@ public class MainPageController implements ControllerInterface{
         LocalDateTime endNew = setLocalDateTime(endHoursChoice.getValue(), + endMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay());
         ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
         ArrayList<ServiceInterval> toBeResized = new ArrayList<>();
-        boolean alreadyExists = false;
         for(ServiceInterval s : day.getDayIntervalList()){
             LocalDateTime start = s.getStart();
             LocalDateTime end = s.getEnd();
@@ -1109,7 +1204,7 @@ public class MainPageController implements ControllerInterface{
             day.getDayIntervalList().remove(serv);
             if(day.getDayIntervalList().isEmpty()){
                 day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
-                        , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), as, null,null, false, false,day.getLocation().getID()));
+                        , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), as, null,null, false, false,day.getLocation().getID(),false));
                 if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
                     intervalOverreach(startNew, endNew);
                     System.out.println("Is empty");
@@ -1133,7 +1228,7 @@ public class MainPageController implements ControllerInterface{
                 LocalDateTime temp = s.getEnd();
                 s.setEnd(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()));
                 day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
-                        , temp, s.getOverseeingAssistant(), null,null, false, false,day.getLocation().getID()));
+                        , temp, s.getOverseeingAssistant(), null,null, false,false,day.getLocation().getID(),false));
                 System.out.println("Type 3");
                 break;
             }else{
@@ -1145,19 +1240,20 @@ public class MainPageController implements ControllerInterface{
             }
         }
         day.getDayIntervalList().add(new ServiceInterval(setLocalDateTime(startHoursChoice.getValue(), startMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay())
-                , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), day.getDayIntervalList().getFirst().getOverseeingAssistant(), null,null, false, false,day.getLocation().getID()));
+                , setLocalDateTime(endHoursChoice.getValue(), endMinutesChoice.getValue(), textClientIndex.get(selectedTextArea).getDay()), day.getDayIntervalList().getFirst().getOverseeingAssistant(), null,null, false, false,day.getLocation().getID(),false));
         if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
             intervalOverreach(startNew, endNew);
         }
         Database.saveAllClientMonths(listOfClm);
-        day.getDayIntervalListUsefull().get(0).setComment("Testing save logic");
         setIntervalBars(day);
+        displayIntervalInfoDef(day);
     }
     public void saveIntervalAlg() throws IOException {
         ClientDay day = textClientIndex.get(selectedTextArea);
         day.getDayIntervalList().remove(selectedInterval);
         LocalDateTime startNew = setLocalDateTime(startHoursChoice.getValue(),startMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay());
         LocalDateTime endNew = setLocalDateTime(endHoursChoice.getValue(), + endMinutesChoice.getValue(),textClientIndex.get(selectedTextArea).getDay());
+        selectedInterval.setAssignedAssistant((assignedAssistantBox.getValue()!= null)? assignedAssistantBox.getValue().getID(): null);
         selectedInterval.setStart(startNew);
         selectedInterval.setEnd(endNew);
         selectedInterval.setNotRequired(isRequiredCheckBox.isSelected());
@@ -1231,7 +1327,6 @@ public class MainPageController implements ControllerInterface{
     }
     public void createNewInterval(ActionEvent actionEvent) throws IOException {
        createNewIntervalAlg();
-
     }
     public void intervalOverreach( LocalDateTime newStart, LocalDateTime newEnd){
        // LocalDateTime defStart = LocalDateTime.of(settings.getDeftStart()[0],settings.getDeftStart()[1]);
@@ -1500,11 +1595,8 @@ public class MainPageController implements ControllerInterface{
 
     }
      */
-
     public void saveIntervalChanges(ActionEvent actionEvent) throws IOException {
        saveIntervalAlg();
-        System.out.println("Saved");
-
     }
     private void correctInterval(ServiceIntervalArrayList serviceIntervals){
         if(serviceIntervals.size()>1){
@@ -1627,7 +1719,6 @@ public class MainPageController implements ControllerInterface{
         Database.saveAllClientMonths(cliMoth);
        populateView(Database.loadFullClients(selectedYearValue,selectedMonthValue));
     }
-
     private ClientMonth getPastMonths(UUID id){
         int yearIter = 0;
         int month = settings.getCurrentMonth();
@@ -1662,6 +1753,6 @@ public class MainPageController implements ControllerInterface{
     @Override
     public void updateScreen() {
            // populateView(getClientsOfMonth(settings));
-
+        availableAssistants = Database.loadAssistantAvailability(settings.getCurrentYear(), settings.getCurrentMonth());
     }
 }

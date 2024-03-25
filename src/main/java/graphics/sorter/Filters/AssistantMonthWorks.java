@@ -26,6 +26,15 @@ public class AssistantMonthWorks {
     public HashMap<UUID, LocalDateTime> getLastWorkedDayTime() {
         return lastWorkedDayTime;
     }
+    public long getWorkedTillDate(int day, UUID id ){
+        HashMap<Integer, AssistantWorkShift>  map= getFinishedWork().get(id);
+        long output = 0;
+        for(int i = 1; i <= day;i++){
+            output += (map.get(i) != null) ? map.get(i).getWorkedMinutes() : 0;
+            output += (map.get(i+100) != null) ? map.get(i+100).getWorkedMinutes() : 0;
+        }
+        return output;
+    }
 
     public void setLastWorkedDayTime(HashMap<UUID, LocalDateTime> lastWorkedDayTime) {
         this.lastWorkedDayTime = lastWorkedDayTime;
