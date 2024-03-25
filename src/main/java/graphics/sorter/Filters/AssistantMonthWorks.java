@@ -10,16 +10,18 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class AssistantMonthWorks {
-    public HashMap<UUID, ArrayList<AssistantWorkShift>> getFinishedWork() {
+    public HashMap<UUID, HashMap<Integer, AssistantWorkShift>> getFinishedWork() {
         return finishedWork;
     }
 
-    public void setFinishedWork(HashMap<UUID, ArrayList<AssistantWorkShift>> finishedWork) {
+    //den = day int
+    // noc = day int + 100
+    public void setFinishedWork(HashMap<UUID, HashMap<Integer, AssistantWorkShift>> finishedWork) {
         this.finishedWork = finishedWork;
     }
-
-    private HashMap<UUID,ArrayList<AssistantWorkShift>> finishedWork = new HashMap<UUID,ArrayList<AssistantWorkShift>>();
+    private HashMap<UUID,HashMap<Integer, AssistantWorkShift>> finishedWork = new HashMap<UUID,HashMap<Integer, AssistantWorkShift>>();
     private HashMap<UUID, Integer> lastWorkedDay = new HashMap<UUID, Integer>();
+    private HashMap<UUID, LocalDateTime> lastWorkedDayTime = new HashMap<UUID, LocalDateTime>();
 
     public HashMap<UUID, LocalDateTime> getLastWorkedDayTime() {
         return lastWorkedDayTime;
@@ -29,10 +31,10 @@ public class AssistantMonthWorks {
         this.lastWorkedDayTime = lastWorkedDayTime;
     }
 
-    private HashMap<UUID, LocalDateTime> lastWorkedDayTime = new HashMap<UUID, LocalDateTime>();
+
     public AssistantMonthWorks(ListOfAssistants listOfAssistants){
         for(Assistant a : listOfAssistants.getFullAssistantList()){
-            finishedWork.put(a.getID(),new ArrayList<AssistantWorkShift>());
+            finishedWork.put(a.getID(),new HashMap<Integer, AssistantWorkShift>());
             lastWorkedDay.put(a.getID(),0);
         }
     }
@@ -40,7 +42,7 @@ public class AssistantMonthWorks {
         return lastWorkedDay;
     }
     private void addWork(AssistantWorkShift work){
-        finishedWork.get(work.getAssistantID()).add(work);
+        finishedWork.get(work.getAssistantID()).put(work.getDay(),work);
     }
     public int getLastDayInWork(UUID id ) {
         return lastWorkedDay.get(id);
@@ -50,7 +52,7 @@ public class AssistantMonthWorks {
         lastWorkedDay.put(id,lastDayInWork);
     }
     public void registerWorkDay(AssistantWorkShift work){
-        finishedWork.get(work.getAssistantID()).add(work);
+        finishedWork.get(work.getAssistantID()).put((work.isType()== true)?work.getDay() :(work.getDay()+100) ,work);
         lastWorkedDay.put(work.getAssistantID(),work.getDay());
         if(lastWorkedDayTime.get(work.getAssistantID()) != null){
             if(lastWorkedDayTime.get(work.getAssistantID()).isBefore(work.getEnd())){

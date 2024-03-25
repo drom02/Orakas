@@ -2,6 +2,8 @@ package graphics.sorter.Structs;
 
 import graphics.sorter.Assistant;
 import graphics.sorter.AssistantAvailability.AssistantAvailability;
+import graphics.sorter.AssistantAvailability.AvailableAssistantsLocalDateTime;
+import graphics.sorter.AssistantAvailability.DateTimeAssistantAvailability;
 import graphics.sorter.Database;
 import graphics.sorter.JsonManip;
 import graphics.sorter.Settings;
@@ -30,7 +32,31 @@ public class AvailableAssistants implements Saveable {
     public void setAvailableAssistantsAtNights(ArrayList<ArrayList<AssistantAvailability>> availableAssistantsAtNights) {
         this.availableAssistantsAtNights = availableAssistantsAtNights;
     }
-
+    public AvailableAssistantsLocalDateTime convertToDateTimeAvailability(int year, int month){
+        ArrayList<ArrayList<DateTimeAssistantAvailability>> outputDay = new ArrayList<>(31);
+        ArrayList<ArrayList<DateTimeAssistantAvailability>> outputNight = new ArrayList<>(31);
+        int iter = 1;
+        for(ArrayList<AssistantAvailability> arrayAssistant: getAvailableAssistantsAtDays()){
+            ArrayList<DateTimeAssistantAvailability> tempArray = new ArrayList<>(15);
+            for(AssistantAvailability ar : arrayAssistant){
+                DateTimeAssistantAvailability temp = new DateTimeAssistantAvailability(year,month,iter,true,ar);
+                tempArray.add(temp);
+            }
+            iter++;
+            outputDay.add(tempArray);
+        }
+         iter = 1;
+        for(ArrayList<AssistantAvailability> arrayAssistant: getAvailableAssistantsAtNights()){
+            ArrayList<DateTimeAssistantAvailability> tempArray = new ArrayList<>(15);
+            for(AssistantAvailability ar : arrayAssistant){
+                DateTimeAssistantAvailability temp = new DateTimeAssistantAvailability(year,month,iter,false,ar);
+                tempArray.add(temp);
+            }
+            iter++;
+            outputNight.add(tempArray);
+        }
+        return new AvailableAssistantsLocalDateTime(outputDay,outputNight);
+    }
     private ArrayList<ArrayList<AssistantAvailability>> availableAssistantsAtDays = new ArrayList();
     private ArrayList<ArrayList<AssistantAvailability>> availableAssistantsAtNights = new ArrayList();
     public void createNew(JsonManip map) throws IOException {

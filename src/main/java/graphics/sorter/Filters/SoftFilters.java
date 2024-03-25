@@ -67,7 +67,7 @@ public class SoftFilters {
     }
     private Assistant getfromID(ArrayList<Assistant> inp, UUID id){
         for(Assistant as : inp){
-            if(id == as.getID()){
+            if(id.equals(as.getID())){
                 return as;
             }
         }

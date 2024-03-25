@@ -8,8 +8,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 public class AssistantWorkShift {
-
-
     private UUID assistantID;
     private long workedHours;
     private int day;
@@ -23,12 +21,32 @@ public class AssistantWorkShift {
         setAssistantID(id);
         setUpFromDay(cd);
     }
+    public AssistantWorkShift(){
+
+    }
     private void setUpFromDay(ClientDay cd){
         setStart(cd.getDayIntervalList().getFirst().getStart());
         setEnd(cd.getDayIntervalList().getLast().getEnd());
         setDay(cd.getDay());
         setMonth(cd.getMonth().getValue());
         setWorkedHours(calculateWorkLength(cd));
+        setType(cd.getDayStatus());
+    }
+    public void setUpFromInterval(ServiceInterval si, ClientDay cd, UUID id){
+        setAssistantID(id);
+        if(getStart() == null ||si.getStart().isBefore(getStart())){
+            setStart(si.getStart());
+        }
+        if(getEnd()== null ||si.getEnd().isAfter(getEnd())){
+            setEnd(si.getEnd());
+        }
+        if(getMonth() !=0){
+            setDay(cd.getDay());
+            setMonth(cd.getMonth().getValue());
+        }
+        setDay(cd.getDay());
+        setType(cd.getDayStatus());
+        setWorkedHours(workedHours+serviceIntervalLength(si));
     }
     private long calculateWorkLength(ClientDay cd){
         long length =0;
@@ -38,6 +56,9 @@ public class AssistantWorkShift {
             }
         }
         return length;
+    }
+    private long serviceIntervalLength(ServiceInterval s){
+        return ChronoUnit.HOURS.between(s.getStart(),s.getEnd());
     }
     public UUID getAssistantID() {
         return assistantID;

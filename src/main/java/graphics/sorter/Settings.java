@@ -74,7 +74,7 @@ public class Settings {
 
     public static Settings createNewSettingsFile() throws IOException {
         String st =  System.getenv("APPDATA")+"\\Local\\ORAKAS\\";
-        Settings defset = new Settings(12,2024, st,new int[]{8,30},new int[]{20,30},16);
+        Settings defset = new Settings(12,2024, st,new int[]{8,30},new int[]{20,30},12);
        // Database.saveSettings(defset);
         return defset;
 

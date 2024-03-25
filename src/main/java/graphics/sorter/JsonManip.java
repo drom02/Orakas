@@ -3,6 +3,8 @@ package graphics.sorter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import graphics.sorter.AssistantAvailability.AssistantAvailability;
+import graphics.sorter.AssistantAvailability.Availability;
+import graphics.sorter.AssistantAvailability.ShiftAvailability;
 import graphics.sorter.Structs.*;
 
 import java.io.File;
@@ -10,11 +12,13 @@ import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class JsonManip {
     private static JsonManip jsonManip;
@@ -241,21 +245,37 @@ public class JsonManip {
             dayList.add(inputDayList);
             nightList.add(inputNightList);
             for(Assistant asis : listOfA.getAssistantList()){
-                 if(asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue()).getState()){
+                ArrayList<HashMap<DayOfWeek, Availability>> workDayHashMap =  daysOfWeekIndex(asis);
+                LocalDate locDate = LocalDate.of(year,month,i+1);
+                inputDayList.add(new AssistantAvailability(asis.getID(),workDayHashMap.get(0).get(locDate.getDayOfWeek())));
+                inputNightList.add(new AssistantAvailability(asis.getID(),workDayHashMap.get(1).get(locDate.getDayOfWeek())));
+                /*
+                if(asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue()).getState()){
                     inputDayList.add(new AssistantAvailability(asis.getID(),asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue()).getAvailability()));
                 }
                 if(asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue() + 6).getState()){
                     inputNightList.add(new AssistantAvailability(asis.getID(),asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue()+ 6).getAvailability()));
                 }
-
+                 */
 
             }
-
-
         }
         availableAssistants.setAvailableAssistantsAtDays(dayList);
         availableAssistants.setAvailableAssistantsAtNights(nightList);
         Database.saveAssistantAvailability(year, month, availableAssistants);
+    }
+    private ArrayList<HashMap<DayOfWeek, Availability>> daysOfWeekIndex(Assistant asis){
+        ArrayList<HashMap<DayOfWeek, Availability>> outputHash = new ArrayList<>();
+        int dayI = 0;
+        for(int i =0; i<2;i++){
+            outputHash.add(new HashMap<DayOfWeek, Availability>());
+            while(dayI<(7+i*7)){
+                ShiftAvailability sh = asis.getWorkDays().get(dayI);
+                outputHash.get(i).put(sh.getDay(),sh.getAvailability());
+                dayI++;
+            }
+        }
+        return outputHash;
     }
     public void  saveLocations(ListOfLocations lOL) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();

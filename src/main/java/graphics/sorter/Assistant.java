@@ -19,9 +19,6 @@ public class Assistant extends Human{
     private ArrayList<ArrayList<UUID>> clientPreference;
     private ArrayList<ShiftAvailability> workDays;
     private boolean emergencyAssistant;
-
-
-
     private boolean isDriver;
     @JsonCreator
      public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("status")boolean status,@JsonProperty("name")String name, @JsonProperty("surname")String surname,

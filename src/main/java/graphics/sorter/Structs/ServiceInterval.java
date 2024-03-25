@@ -15,8 +15,8 @@ public class ServiceInterval {
     private LocalDateTime start;
     private LocalDateTime end;
     private UUID location;
+    private UUID assignedAssistant;
     private boolean isNotRequired;
-
     private boolean isMerged;
     private String comment;
 //Přidat truncate form
@@ -32,16 +32,26 @@ public class ServiceInterval {
     public ServiceInterval(@JsonProperty("start") LocalDateTime start,
                            @JsonProperty("end") LocalDateTime end,
                            @JsonProperty("overseeingAssistant") Assistant overseeingAssistant,
+                           @JsonProperty("assignedAssistant") UUID assignedAssistant,
                            @JsonProperty("comment") String comment,
-                           @JsonProperty("isNotRequired") boolean isNotRequired,@JsonProperty("isMerged") boolean isMerged){
+                           @JsonProperty("isNotRequired") boolean isNotRequired,
+                           @JsonProperty("isMerged") boolean isMerged,
+                           @JsonProperty("location") UUID location){
         setStart(start);
         this.end = end;
         this.overseeingAssistant = overseeingAssistant != null ? overseeingAssistant : null;
         this.comment = comment == null ? new String() : comment;
         setNotRequired(isNotRequired);
         setMerged(isMerged);
+        setAssignedAssistant(assignedAssistant);
+        setLocation(location);
 
     }
+
+   public  long serviceIntervalLength(){
+            return ChronoUnit.HOURS.between(this.getStart(),this.getEnd());
+        }
+
     public Assistant getOverseeingAssistant() {
         return overseeingAssistant;
     }
@@ -97,6 +107,13 @@ public class ServiceInterval {
 
     public void setNotRequired(boolean notRequired) {
         isNotRequired = notRequired;
+    }
+    public UUID getAssignedAssistant() {
+        return assignedAssistant;
+    }
+
+    public void setAssignedAssistant(UUID assignedAssistant) {
+        this.assignedAssistant = assignedAssistant;
     }
     @JsonIgnore
     public long getIntervalLength(){

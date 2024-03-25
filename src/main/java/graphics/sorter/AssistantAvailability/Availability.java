@@ -1,7 +1,10 @@
 package graphics.sorter.AssistantAvailability;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.time.LocalTime;
 
 public class Availability {
     @JsonCreator
@@ -16,8 +19,15 @@ public class Availability {
 
     }
     private int[] start = new int[2];
-    private int[] end = new int[2];;
-
+    private int[] end = new int[2];
+@JsonIgnore
+public LocalTime getLocalTimeStart(){
+        return LocalTime.of(start[0],start[1]);
+    }
+    @JsonIgnore
+    public LocalTime getLocalTimeEnd(){
+        return LocalTime.of(end[0],end[1]);
+    }
     public void setStartHours(int i){
         if(i<=24 && i >=0){
             this.start[0] = i;

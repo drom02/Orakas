@@ -250,13 +250,14 @@ public class ShiftPickerController implements ControllerInterface{
         }
     }
     private void saveChangesToShift(){
-       Availability av = selectedFlow.getShiftAvailability().getAvailability();
-       av.setStartHours(vac.getStartHours().getValue());
-       av.setStartMinutes(vac.getStartMinutes().getValue());
-       av.setEndHours(vac.getEndHours().getValue());
-       av.setEndMinutes(vac.getEndMinutes().getValue());
-       boolean isDay = assistantsDayList.contains(selectedFlow.getParent());
-       vac.validate(isDay);
+        boolean isDay = assistantsDayList.contains(selectedFlow.getParent());
+        if(vac.validate(isDay)){
+            Availability av = selectedFlow.getAssistantAvailability().getAvailability();
+            av.setStartHours(vac.getStartHours().getValue());
+            av.setStartMinutes(vac.getStartMinutes().getValue());
+            av.setEndHours(vac.getEndHours().getValue());
+            av.setEndMinutes(vac.getEndMinutes().getValue());
+        }
     }
     private void onFlowAreaClicked(MouseEvent mouseEvent) {
         if(!tog.isState()){
@@ -346,7 +347,7 @@ public class ShiftPickerController implements ControllerInterface{
 
 
     private void setupShiftFlowAvailabilityValues(ShiftFlow flow){
-        Availability av = flow.getShiftAvailability().getAvailability();
+        Availability av = flow.getAssistantAvailability().getAvailability();
         vac.getStartHours().getValueFactory().setValue(av.getStart()[0]);
         vac.getStartMinutes().getValueFactory().setValue(av.getStart()[1]);
         vac.getEndHours().getValueFactory().setValue(av.getEnd()[0]);
@@ -409,7 +410,7 @@ public class ShiftPickerController implements ControllerInterface{
                         ArrayList<AssistantAvailability> temp = new ArrayList<>();
                         for(Node n : arl.getChildren()){
                             if(n instanceof ShiftFlow){
-                                temp.add( ((ShiftFlow) n).getShiftAvailability());
+                                temp.add( ((ShiftFlow) n).getAssistantAvailability());
                             }
                         }
                         dayList.add(temp);
@@ -417,15 +418,19 @@ public class ShiftPickerController implements ControllerInterface{
                         ArrayList<AssistantAvailability> temp = new ArrayList<>();
                         for(Node n : arl.getChildren()){
                             if(n instanceof ShiftFlow){
-                                temp.add( ((ShiftFlow) n).getShiftAvailability());
+                                temp.add( ((ShiftFlow) n).getAssistantAvailability());
                             }
                         }
                         nightList.add(temp);
                     }
                 }
             }
-            saveChangesToShift();
-        selectedFlow.displayContent(assistantIndex);
+            if(selectedFlow != null){
+                saveChangesToShift();
+                selectedFlow.displayContent(assistantIndex);
+            }
+
+
         availableAssistants.setAvailableAssistantsAtDays(dayList);
         availableAssistants.setAvailableAssistantsAtNights(nightList);
         Database.saveAssistantAvailability(settings.getCurrentYear(),settings.getCurrentMonth(),availableAssistants);

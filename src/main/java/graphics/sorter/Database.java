@@ -24,6 +24,7 @@ public class Database {
     public static  String databaseName = "jdbc:sqlite:"+ JsonManip.loadRedirect()+ "mainSorter.db";
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     private static ObjectMapper objectMapper = new ObjectMapper();
+
     public static void prepareTables(){
 
         String clientTable = "CREATE TABLE IF NOT EXISTS clientTable (\n"
@@ -87,6 +88,7 @@ public class Database {
                 + " serviceIntervalID text PRIMARY KEY,\n"
                 + " clientDayID text NOT NULL,\n"
                 + " overseeingAssistantID,\n"
+                + " assignedAssistant,\n"
                 + " start text NOT NULL,\n"
                 + " end text NOT NULL,\n"
                 + " location text,\n"
@@ -387,10 +389,11 @@ public class Database {
                     Boolean likesOvertime = rs.getBoolean("likesOvertime");
                     Boolean emergencyAssistant= rs.getBoolean("emergencyAssistant");
                     Boolean isDriver= rs.getBoolean("isDriver");
-                    ShiftAvailabilityArray workDays = objectMapper.readValue(rs.getString("workDays"), ShiftAvailabilityArray.class);
+                   // ShiftAvailabilityArray workDays = objectMapper.readValue(rs.getString("workDays"), ShiftAvailabilityArray.class);
+                    ArrayList<ShiftAvailability> workDays=  objectMapper.readValue(rs.getString("workDays"),new TypeReference<ArrayList<ShiftAvailability>>() {});
                     String comment = rs.getString("comment");
                     ArrayList<ArrayList<UUID>> compatibility = loadCompatibility(assistantID);
-                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays.getMain(),compatibility,emergencyAssistant,isDriver);
+                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility,emergencyAssistant,isDriver);
                     return  outputAssistant;
                 }
             }catch (Exception e) {
@@ -684,7 +687,7 @@ public class Database {
         }
     }
     public static void saveServiceIntervals(ClientDay cl, String dayID, Connection conn){
-        String query = "INSERT OR REPLACE INTO serviceIntervalTable (serviceIntervalID, clientDayID, overseeingAssistantID,start, end, location,isNotRequired,isMerged,comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT OR REPLACE INTO serviceIntervalTable (serviceIntervalID, clientDayID, overseeingAssistantID,assignedAssistant,start, end, location,isNotRequired,isMerged,comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try(PreparedStatement stmt = conn.prepareStatement(query)) {
             int inDex = 0;
             int servCount = 0;
@@ -692,6 +695,7 @@ public class Database {
                 stmt.setString(++inDex, dayID+","+servCount);
                 stmt.setString(++inDex, dayID);
                 stmt.setString(++inDex, (serv.getOverseeingAssistant() == null) ? null :String.valueOf(serv.getOverseeingAssistant().getID()));
+                stmt.setString(++inDex,(serv.getAssignedAssistant() == null) ? null : String.valueOf(serv.getAssignedAssistant()) );
                 stmt.setString(++inDex,serv.getStart().toString());
                 stmt.setString(++inDex,serv.getEnd().toString());
                 if(serv.getLocation()==null){
@@ -725,6 +729,7 @@ public class Database {
                      String serviceIntervalID = rs.getString("serviceIntervalID");
                      String clientDayID = rs.getString("clientDayID");
                      String overseeingAssistantID = rs.getString("overseeingAssistantID");
+                     String assignedAssistantID = rs.getString("assignedAssistant");
                      String start = rs.getString("start");
                      String end = rs.getString("end");
                      String location = rs.getString("location");
@@ -735,10 +740,8 @@ public class Database {
                      if((overseeingAssistantID != null)){
                          out = loadAssistant(UUID.fromString(overseeingAssistantID));
                      }
-                     ServiceInterval outputInterval = new ServiceInterval(LocalDateTime.parse(start,formatter),LocalDateTime.parse(end,formatter),out,comment,isNotRequired,isMerged);
-                     if(!(location != null)){
-                         outputInterval.setLocation(UUID.fromString(location));
-                     }
+                     UUID outAssigned = (assignedAssistantID == null) ? null : UUID.fromString(assignedAssistantID);
+                     ServiceInterval outputInterval = new ServiceInterval(LocalDateTime.parse(start,formatter),LocalDateTime.parse(end,formatter),out,outAssigned,comment,isNotRequired,isMerged,(location == null) ? null: UUID.fromString(location));
                      lis.add(outputInterval);
                  }
                  return  lis;
@@ -832,6 +835,7 @@ public class Database {
             stmt.setString(1, year + "." +month);
             stmt.setInt(2, year);
             stmt.setInt(3,month);
+            objectMapper.registerModule(new JavaTimeModule());
             stmt.setString(4,objectMapper.writeValueAsString(av));
             stmt.execute();
         }catch (Exception e) {
@@ -847,6 +851,7 @@ public class Database {
             try(ResultSet rs = stmt.executeQuery()){
                 if(rs.next()){
                     ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.registerModule(new JavaTimeModule());
                     AvailableAssistants avOut = objectMapper.readValue(rs.getString("jsonContent"),AvailableAssistants.class);
                     avOut.setYear(year);
                     avOut.setMonth(month);

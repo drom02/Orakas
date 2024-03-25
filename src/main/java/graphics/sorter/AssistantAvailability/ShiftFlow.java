@@ -10,23 +10,23 @@ import java.util.UUID;
 
 public class ShiftFlow extends TextFlow {
 
-    public AssistantAvailability getShiftAvailability() {
-        return shiftAvailability;
+    public AssistantAvailability getAssistantAvailability() {
+        return AssistantAvailability;
     }
 
-    public void setShiftAvailability(AssistantAvailability assistantAvailability) {
-        this.shiftAvailability = assistantAvailability;
+    public void setAssistantAvailability(AssistantAvailability assistantAvailability) {
+        this.AssistantAvailability = assistantAvailability;
     }
 
-    private AssistantAvailability shiftAvailability;
+    private AssistantAvailability AssistantAvailability;
 
     public ShiftFlow(AssistantAvailability assistantAvailability){
-        setShiftAvailability(assistantAvailability);
+        setAssistantAvailability(assistantAvailability);
     }
     public void displayContent(HashMap<UUID, Assistant> index){
-        if(getShiftAvailability()!=null){
-            Assistant a = index.get(getShiftAvailability().getAssistant());
-            String time = Arrays.toString(shiftAvailability.getAvailability().getStart()) + " " + Arrays.toString(shiftAvailability.getAvailability().getEnd());
+        if(getAssistantAvailability()!=null){
+            Assistant a = index.get(getAssistantAvailability().getAssistant());
+            String time = Arrays.toString(AssistantAvailability.getAvailability().getStart()) + " " + Arrays.toString(AssistantAvailability.getAvailability().getEnd());
             if(!this.getChildren().isEmpty()){
                 Text t = (Text) this.getChildren().get(0);
                 t.setText(a.getName() + " " + a.getSurname()+ time);
