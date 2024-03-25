@@ -83,7 +83,7 @@ public class HardFilters {
         ArrayList<UUID> toRemove = new ArrayList<>();
         for(UUID id : input){
             LocalDateTime last = workMonth.getLastWorkedDayTime().get(id);
-                if( last != null && ChronoUnit.HOURS.between(last,startOfCurrent) < 8  ){
+                if( last != null && ChronoUnit.MINUTES.between(last,startOfCurrent) < (8*60)  ){
                     toRemove.add(id);
                 }
         }

@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class AssistantWorkShift {
     private UUID assistantID;
-    private long workedHours;
+    private long workedMinutes;
     private int day;
     private int month;
     private LocalDateTime start;
@@ -29,7 +29,7 @@ public class AssistantWorkShift {
         setEnd(cd.getDayIntervalList().getLast().getEnd());
         setDay(cd.getDay());
         setMonth(cd.getMonth().getValue());
-        setWorkedHours(calculateWorkLength(cd));
+        setWorkedMinutes(calculateWorkLength(cd));
         setType(cd.getDayStatus());
     }
     public void setUpFromInterval(ServiceInterval si, ClientDay cd, UUID id){
@@ -46,19 +46,19 @@ public class AssistantWorkShift {
         }
         setDay(cd.getDay());
         setType(cd.getDayStatus());
-        setWorkedHours(workedHours+serviceIntervalLength(si));
+        setWorkedMinutes(workedMinutes +serviceIntervalLength(si));
     }
     private long calculateWorkLength(ClientDay cd){
         long length =0;
         for(ServiceInterval s :cd.getDayIntervalList()){
             if(s.getIsNotRequired() == false){
-                length = length + ChronoUnit.HOURS.between(s.getStart(),s.getEnd());
+                length = length + ChronoUnit.MINUTES.between(s.getStart(),s.getEnd());
             }
         }
         return length;
     }
     private long serviceIntervalLength(ServiceInterval s){
-        return ChronoUnit.HOURS.between(s.getStart(),s.getEnd());
+        return ChronoUnit.MINUTES.between(s.getStart(),s.getEnd());
     }
     public UUID getAssistantID() {
         return assistantID;
@@ -68,12 +68,12 @@ public class AssistantWorkShift {
         this.assistantID = assistantID;
     }
 
-    public long getWorkedHours() {
-        return workedHours;
+    public long getWorkedMinutes() {
+        return workedMinutes;
     }
 
-    public void setWorkedHours(long workedHours) {
-        this.workedHours = workedHours;
+    public void setWorkedMinutes(long workedMinutes) {
+        this.workedMinutes = workedMinutes;
     }
     public int getDay() {
         return day;

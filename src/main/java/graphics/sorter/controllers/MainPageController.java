@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 public class MainPageController implements ControllerInterface{
     @FXML
+    private Text tempAssistantText;
+    @FXML
     private ChoiceBox assignedAssistantBox;
     @FXML
     private ChoiceBox intervalLocationBox;
@@ -898,6 +900,12 @@ public class MainPageController implements ControllerInterface{
         startMinutesChoice.setValue(serv.getStart().getMinute());
         endHoursChoice.setValue(serv.getEnd().getHour());
         endMinutesChoice.setValue(serv.getEnd().getMinute());
+        if(selectedInterval.getOverseeingAssistant() != null){
+            tempAssistantText.setText( selectedInterval.getOverseeingAssistant().getName()+" " + selectedInterval.getOverseeingAssistant().getSurname());
+        }else{
+            tempAssistantText.setText("none");
+        }
+
         /*
         startHoursChoice.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->{
 

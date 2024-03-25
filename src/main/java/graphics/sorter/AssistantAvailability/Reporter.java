@@ -15,7 +15,7 @@ public class Reporter {
                     AssistantWorkShift wok = w.get(in);
                     System.out.println("Den " + wok.getDay() );
                     System.out.println((in>100) ? "noc" : "den");
-                    System.out.println("Odpracováno " + wok.getWorkedHours());
+                    System.out.println("Odpracováno " + wok.getWorkedMinutes());
                 }
             }
 

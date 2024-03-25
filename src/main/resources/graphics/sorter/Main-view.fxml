@@ -172,6 +172,7 @@
                         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Lokace intervalu" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="3" />
                         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Nutný asistent" GridPane.rowIndex="3" />
                         <ChoiceBox fx:id="assignedAssistantBox" prefWidth="150.0" GridPane.rowIndex="4" />
+                        <Text fx:id="tempAssistantText" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" wrappingWidth="95.13671875" />
                      </children>
                   </GridPane>
                   <Pane fx:id="dividerPane" minHeight="1.0" minWidth="1.0" prefHeight="1.0" prefWidth="1.0" style="-fx-background-color: #000000;" GridPane.columnIndex="2" GridPane.rowSpan="3">

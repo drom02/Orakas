@@ -175,7 +175,7 @@ public class ClientDay {
         this.year = year;
     }
     public long shiftLength(){
-        return ChronoUnit.HOURS.between(dayIntervalList.getFirst().getStart(),dayIntervalList.getLast().getEnd());
+        return ChronoUnit.MINUTES.between(dayIntervalList.getFirst().getStart(),dayIntervalList.getLast().getEnd());
     }
 
     @JsonIgnore

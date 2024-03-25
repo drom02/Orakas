@@ -49,7 +49,7 @@ public class ServiceInterval {
     }
 
    public  long serviceIntervalLength(){
-            return ChronoUnit.HOURS.between(this.getStart(),this.getEnd());
+            return ChronoUnit.MINUTES.between(this.getStart(),this.getEnd());
         }
 
     public Assistant getOverseeingAssistant() {
@@ -117,7 +117,7 @@ public class ServiceInterval {
     }
     @JsonIgnore
     public long getIntervalLength(){
-        long hoursBetween = ChronoUnit.HOURS.between(start, end);
+        long hoursBetween = ChronoUnit.MINUTES.between(start, end);
         return  Math.abs(hoursBetween);
     }
     @Override
