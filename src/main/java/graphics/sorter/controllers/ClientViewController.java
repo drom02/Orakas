@@ -77,6 +77,7 @@ public class ClientViewController implements ControllerInterface{
         homeLocationBox.getItems().setAll(Database.loadLocations().getListOfLocations());
         ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
         listViewofC.setItems(observClientList);
+        statusChoiceBox.setSelected(true);
         Platform.runLater(() -> {
             GraphicalFunctions.screenResizing(mainPane,mainGrid);
         });

@@ -127,7 +127,8 @@ public class Database {
                 + " defStart2 integer NOT NULL, \n"
                 + " defEnd1 integer NOT NULL, \n"
                 + " defEnd2 integer NOT NULL, \n"
-                + " maxShiftLength integer NOT NULL \n"
+                + " maxShiftLength integer NOT NULL, \n"
+                + " standardWorkDay real NOT NULL \n"
                 + ");";
         String[] tables = new String[]{clientTable,assistantTable,locationTable,clientMonthTable,
                 compatibilityTable,clientDayTable,serviceIntervalTable,assistantAvailabilityTable,settingsTable,vacationTable };
@@ -386,7 +387,7 @@ public class Database {
                     Boolean status = rs.getBoolean("status");
                     String surname = rs.getString("surname");
                     String contractType = rs.getString("contractType");
-                    Integer contractTime = rs.getInt("contractTime");
+                    double contractTime = rs.getDouble("contractTime");
                     Boolean likesOvertime = rs.getBoolean("likesOvertime");
                     Boolean emergencyAssistant= rs.getBoolean("emergencyAssistant");
                     Boolean isDriver= rs.getBoolean("isDriver");
@@ -518,7 +519,7 @@ public class Database {
                     Boolean status = rs.getBoolean("status");
                     String surname = rs.getString("surname");
                     String contractType = rs.getString("contractType");
-                    Integer contractTime = rs.getInt("contractTime");
+                    double contractTime = rs.getDouble("contractTime");
                     Boolean likesOvertime = rs.getBoolean("likesOvertime");
                     ArrayList<ShiftAvailability> workDays=  objectMapper.readValue(rs.getString("workDays"),new TypeReference<ArrayList<ShiftAvailability>>() {});
                     String comment = rs.getString("comment");
@@ -884,6 +885,7 @@ public class Database {
                     st.setDefEnd(new int[]{rs.getInt("defEnd1"),rs.getInt("defEnd2")});
                     st.setFilePath(rs.getString("filePath"));
                     st.setMaxShiftLength(rs.getInt("maxShiftLength"));
+                    st.setStandardWorkDay(rs.getDouble("standardWorkDay"));
                     return  st;
                 }else{
                     System.out.println("Error");
@@ -899,7 +901,7 @@ public class Database {
     }
     public static void saveSettings(Settings set){
         String query = "INSERT OR REPLACE INTO settingsTable (settingsID, filePath, selectedYear,selectedMonth," +
-                "defStart1,defStart2,defEnd1,defEnd2,maxShiftLength) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?)";
+                "defStart1,defStart2,defEnd1,defEnd2,maxShiftLength,standardWorkDay) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?)";
         try(Connection conn = DriverManager.getConnection(databaseName );
             PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, "settings1");
@@ -912,6 +914,7 @@ public class Database {
             stmt.setInt(7,set.getDefEnd()[0]);
             stmt.setInt(8,set.getDefEnd()[1]);
             stmt.setInt(9,set.getMaxShiftLength());
+            stmt.setDouble(10,set.getStandardWorkDay());
             stmt.execute();
         }catch (Exception e) {
             System.out.println(e.getMessage());

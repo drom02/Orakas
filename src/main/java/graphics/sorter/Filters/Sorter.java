@@ -47,6 +47,8 @@ public class Sorter {
         for(Assistant a : assistList.getFullAssistantList()){
             if(a.getContractType().equals("HPP")){
                 workHoursOfMonth.put(a.getID(), WorkHoursCalcul.workDaysCalcul(year,month,7.5,a.getID(),a.getContractTime()));
+            } else if (a.getContractType().equals("HPP-Vlastní")) {
+                workHoursOfMonth.put(a.getID(), a.getContractTime());
             }
 
         }
@@ -120,6 +122,7 @@ public class Sorter {
         hardFilters.removePreviousShift(availableAssistantsID,day,workMonth,dayState);
         hardFilters.assureProperPause(availableAssistantsID,workMonth,cl.getDayIntervalListUsefull().getFirst().getStart());
         hardFilters.removeByWorkTime(availableAssistantsID,day,aslList,workMonth);
+        hardFilters.removeByCompatibility(availableAssistantsID,aslList,cl);
         /*
         Soft filters have to be applied after all hard filters.
          */

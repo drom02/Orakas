@@ -192,7 +192,7 @@ public class ShiftPickerController implements ControllerInterface{
         assistantList.setItems(observAssistantList);
         populateTable(Month.of(settings.getCurrentMonth()),settings.getCurrentYear());
         loadAvailableAssistants(Database.loadAssistantAvailability(settings.getCurrentYear(),settings.getCurrentMonth()));
-        writeXSLX();
+        //writeXSLX();
         setupViewCon();
         Platform.runLater(() -> {
             GraphicalFunctions.screenResizing(mainPane,mainGrid);

@@ -50,7 +50,7 @@ public class SoftFilters {
     }
     public void workedHoursHPP(HashMap<UUID,Integer> ratingMap, int day, AssistantMonthWorks workMonth, HashMap<UUID, Double> workHoursOfMonth, ListOfAssistants listOfAssistants){
         for(UUID id : ratingMap.keySet()){
-            if(listOfAssistants.getAssistantFromID(id).getContractType().equals("HPP")){
+            if(listOfAssistants.getAssistantFromID(id).getContractType().equals("HPP") || listOfAssistants.getAssistantFromID(id).getContractType().equals("HPP-Vlastní")){
                 ratingMap.put(id, (int) (ratingMap.get(id)+((workHoursOfMonth.get(id)/60)- (workMonth.getWorkedTillDate(day,id)/60))));
             }
 

@@ -1,6 +1,7 @@
 package graphics.sorter.Filters;
 
 import graphics.sorter.Assistant;
+import graphics.sorter.Structs.ClientDay;
 import graphics.sorter.Structs.ListOfAssistants;
 
 import java.time.LocalDateTime;
@@ -97,9 +98,21 @@ public class HardFilters {
         ArrayList<UUID> toRemove = new ArrayList<>();
         for(UUID id : input){
            Assistant aTemp = asL.getAssistantFromID(id);
-           if(wok.getWorkedTillDate(day,id) >= aTemp.getContractTime()-11 && !aTemp.getContractType().equals("HPP")){
+           if(wok.getWorkedTillDate(day,id) >= aTemp.getContractTime()-11 && !aTemp.getContractType().equals("HPP")&& !aTemp.getContractType().equals("HPP-Vlastní")){
                 toRemove.add(id);
            }
+        }
+        input.removeAll(toRemove);
+
+        return input;
+    }
+    public ArrayList<UUID>  removeByCompatibility(ArrayList<UUID> input, ListOfAssistants asL, ClientDay cl){
+        ArrayList<UUID> toRemove = new ArrayList<>();
+        for(UUID id : input){
+            Assistant aTemp = asL.getAssistantFromID(id);
+            if(aTemp.getClientPreference().getLast().contains(cl.getClient())){
+                toRemove.add(id);
+            }
         }
         input.removeAll(toRemove);
 

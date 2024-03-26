@@ -103,7 +103,6 @@ public class Assistant extends Human{
     public void setClientPreference(ArrayList<ArrayList<UUID>> clientPreference) {
         this.clientPreference = clientPreference;
     }
-
     @Override
     public boolean equals(Object o){
         if (o == this) {

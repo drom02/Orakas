@@ -98,6 +98,7 @@ public class AssistantViewController implements ControllerInterface{
     private VacationTemp listOfVacations;
     private ArrayList<AssistantViewConSetup> listDataEntry= new ArrayList<>();
     private CircularList<AssistantViewConSetup> linkedViewConList = new CircularList<>(Collections.nCopies(14, null));
+    private ArrayList<TextField> numericFields = new ArrayList<>(Arrays.asList(workField));
     //endregion
     Settings set;
     public void deleteAssistant(MouseEvent mouseEvent) throws IOException {
@@ -133,7 +134,8 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         selectedAssistant.setActivityStatus(statusCheckBox.isSelected());
         selectedAssistant.setContractType((String) contractField.getValue());
         selectedAssistant.setLikesOvertime(overtimeCheck.isSelected());
-        selectedAssistant.setContractTime(Double.parseDouble(workField.getText()));
+        WorkedHoursCheck.check(Double.parseDouble(workField.getText()),selectedAssistant,workField);
+       // selectedAssistant.setContractTime());
         selectedAssistant.setComment(comments.getText());
         selectedAssistant.setWorkDays(stateOfDays);
         selectedAssistant.setClientPreference(savePreferred());
@@ -141,6 +143,33 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         Database.saveAssistant(selectedAssistant);
         ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getFullAssistantList());
         listViewofA.setItems(observAssistantList);
+
+    }
+    private void setNumericCheck(){
+    TextField tex = workField;
+
+        tex.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*\\.?\\d*")) { // Regular expression for digits with optional decimal dot
+                if (newValue.isEmpty()) {
+                    tex.setText(newValue);
+                } else if (newValue.matches("\\d*\\.")) {
+                    // Allow input value if it's a number followed by a dot (beginning of decimal)
+                    tex.setText(newValue);
+                } else {
+                    // Remove all non-digits and extra dots
+                    String valueWithoutNonDigits = newValue.replaceAll("[^\\d.]", "");
+                    // Handling multiple dots: Keep the first dot, remove the rest
+                    int firstDotIndex = valueWithoutNonDigits.indexOf(".");
+                    if (firstDotIndex != -1) {
+                        String beforeDot = valueWithoutNonDigits.substring(0, firstDotIndex + 1);
+                        String afterDot = valueWithoutNonDigits.substring(firstDotIndex + 1).replaceAll("\\.", "");
+                        tex.setText(beforeDot + afterDot);
+                    } else {
+                        tex.setText(valueWithoutNonDigits);
+                    }
+                }
+            }
+        });
 
     }
     private void setupDatePickers(){
@@ -155,10 +184,11 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
     }
     public void initialize() throws IOException {
         assistantNodes = new ArrayList<>(Arrays.asList(nameField, statusCheckBox, surnameField,overtimeCheck,dayCheck,nightCheck,workField,comments));
-        contractField.getItems().addAll("HPP","DPP","DPČ");
+        contractField.getItems().addAll("HPP","DPP","DPČ","HPP-Vlastní");
         contractField.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->{
                     loadContract();
                 });
+
         listViewofA.setCellFactory(new HumanCellFactory());
         vacationList.setCellFactory(new VacationCellFactory());
         set = Settings.getSettings();
@@ -176,6 +206,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+            setNumericCheck();
             //setupDatePickers();
         });
     }
@@ -227,7 +258,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
 
     }
     public void loadContract(){
-    if(contractField.getValue().equals("HPP") ){
+    if(contractField.getValue().equals("HPP") || contractField.getValue().equals("HPP-Vlastní") ){
         workText.setText("Úvazek");
     }else{
         workText.setText("Počet smluvních hodin v měsíci");
@@ -512,6 +543,6 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
     }
 
     public void testWorkedHours(ActionEvent actionEvent) {
-        System.out.println(WorkHoursCalcul.workDaysCalcul(2024,10,7.5,selectedAssistant.getID(),1.0));
+        System.out.println(WorkHoursCalcul.workDaysCalcul(Settings.getSettings().getCurrentYear(), Settings.getSettings().getCurrentMonth(), 7.5,selectedAssistant.getID(),selectedAssistant.getContractTime()));
     }
 }

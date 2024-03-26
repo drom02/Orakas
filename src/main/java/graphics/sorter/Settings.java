@@ -9,6 +9,13 @@ import java.util.Arrays;
 
 public class Settings {
     private static Settings settings;
+    public double getStandardWorkDay() {
+        return standardWorkDay;
+    }
+
+    public void setStandardWorkDay(double standardWorkDay) {
+        this.standardWorkDay = standardWorkDay;
+    }
     public int getCurrentYear() {
         return currentYear;
     }
@@ -53,6 +60,7 @@ public class Settings {
     private int[] deftStart;
     private int[] defEnd;
     private int maxShiftLength;
+    private double standardWorkDay;
 
     public String getFilePath() {
         return filePath;
@@ -74,19 +82,23 @@ public class Settings {
 
     public static Settings createNewSettingsFile() throws IOException {
         String st =  System.getenv("APPDATA")+"\\Local\\ORAKAS\\";
-        Settings defset = new Settings(12,2024, st,new int[]{8,30},new int[]{20,30},12);
+        Settings defset = new Settings(12,2024, st,new int[]{8,30},new int[]{20,30},12,7.5);
        // Database.saveSettings(defset);
         return defset;
 
     }
 
     @JsonCreator
-    private Settings(@JsonProperty("currentMonth")int currentMonth,@JsonProperty("currentYear")int currentYear,@JsonProperty("filePath")String filePath,@JsonProperty("defStart")int[] defstart,@JsonProperty("defend")int[] defend,@JsonProperty("maxShiftLength")int maxShiftLength){
+    private Settings(@JsonProperty("currentMonth")int currentMonth, @JsonProperty("currentYear")int currentYear,
+                     @JsonProperty("filePath")String filePath,@JsonProperty("defStart")int[] defstart,
+                     @JsonProperty("defend")int[] defend,@JsonProperty("maxShiftLength")int maxShiftLength,
+                     @JsonProperty("standardWorkDay")double standardWorkDay){
             setCurrentMonth(currentMonth);
             setCurrentYear(currentYear);
             setFilePath(filePath);
             setDeftStart(defstart);
             setDefEnd(defend);
             setMaxShiftLength(maxShiftLength);
+            setStandardWorkDay(standardWorkDay);
     }
 }
