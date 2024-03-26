@@ -1,5 +1,6 @@
 package graphics.sorter;
 
+import graphics.sorter.AssistantAvailability.AssistantAvailability;
 import graphics.sorter.Structs.AvailableAssistants;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.*;
@@ -56,11 +57,11 @@ public class ExcelOutput {
         }
         return workbook;
     }
-        private static void cellSetup(XSSFCell cell, ArrayList<Assistant> input){
+        private static void cellSetup(XSSFCell cell, ArrayList<AssistantAvailability> input){
         StringBuilder mainString = new StringBuilder();
-        for(Assistant o : input){
+        for(AssistantAvailability o : input){
            // cell.setCellValue(o.getName()+" "+ o.getSurname()+ "\n");
-            mainString.append(o.getName()+" "+ o.getSurname());
+            mainString.append(o.getAssistant());
             mainString.append( ","+"\n");
         }
             cell.setCellValue(mainString.toString());

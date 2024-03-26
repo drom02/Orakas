@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import graphics.sorter.Structs.DefSettings;
 import graphics.sorter.Structs.ListOfLocations;
 import graphics.sorter.controllers.fizbuzz;
+import graphics.sorter.workHoursAllocation.WorkHoursCalcul;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -28,11 +29,13 @@ public class Start extends Application {
        // jsoM.jsonTest();
         FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("start-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 640, 480);
+        scene.getStylesheets().add(getClass().getResource("/main.css").toExternalForm());
         stage.setTitle("Orakas");
         stage.setScene(scene);
         stage.show();
        // ValidateFiles valid = new ValidateFiles();
        // valid.run();
+        WorkHoursCalcul work = new WorkHoursCalcul();
         Database.prepareTables();
     }
 

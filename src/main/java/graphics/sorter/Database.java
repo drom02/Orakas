@@ -1,7 +1,12 @@
 package graphics.sorter;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import graphics.sorter.AssistantAvailability.ShiftAvailability;
+import graphics.sorter.AssistantAvailability.ShiftAvailabilityArray;
 import graphics.sorter.Structs.*;
+import graphics.sorter.Vacations.Vacation;
+import graphics.sorter.Vacations.VacationTemp;
 import javafx.scene.chart.PieChart;
 
 import java.io.IOException;
@@ -18,6 +23,8 @@ import java.util.stream.Collectors;
 public class Database {
     public static  String databaseName = "jdbc:sqlite:"+ JsonManip.loadRedirect()+ "mainSorter.db";
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+    private static ObjectMapper objectMapper = new ObjectMapper();
+
     public static void prepareTables(){
 
         String clientTable = "CREATE TABLE IF NOT EXISTS clientTable (\n"
@@ -41,7 +48,8 @@ public class Database {
                 + " comment text NOT NULL, \n"
                 + " workDays text NOT NULL,\n"
                 + " isDeleted integer NOT NULL,\n"
-                + " emergencyAssistant integer NOT NULL\n"
+                + " emergencyAssistant integer NOT NULL,\n"
+                + " isDriver integer NOT NULL\n"
                 + ");";
         String locationTable = "CREATE TABLE IF NOT EXISTS locationTable (\n"
                 + " locationID text PRIMARY KEY,\n"
@@ -80,11 +88,14 @@ public class Database {
                 + " serviceIntervalID text PRIMARY KEY,\n"
                 + " clientDayID text NOT NULL,\n"
                 + " overseeingAssistantID,\n"
+                + " assignedAssistant,\n"
                 + " start text NOT NULL,\n"
                 + " end text NOT NULL,\n"
                 + " location text,\n"
                 + " isNotRequired integer NOT NULL,\n"
+                + " isMerged integer NOT NULL,\n"
                 + " comment text, \n"
+                + " requiresDriver integer NOT NULL,\n"
                 + " FOREIGN KEY (clientDayID) REFERENCES clientDayTable(clientDayID) ON DELETE CASCADE, \n"
                 + " FOREIGN KEY (overseeingAssistantID) REFERENCES assistantTable(assistantID) , \n"
                 + " FOREIGN KEY (location) REFERENCES locationTable(locationID) \n"
@@ -103,6 +114,10 @@ public class Database {
                 + " month integer NOT NULL,\n"
                 + " jsonContent text NOT NULL \n"
                 + ");";
+        String vacationTable = "CREATE TABLE IF NOT EXISTS vacationTable (\n"
+                + " assistantID text PRIMARY KEY,\n"
+                + " jsonContent text NOT NULL \n"
+                + ");";
         String settingsTable = "CREATE TABLE IF NOT EXISTS settingsTable (\n"
                 + " settingsID text PRIMARY KEY,\n"
                 + " filePath text NOT NULL,\n"
@@ -112,9 +127,11 @@ public class Database {
                 + " defStart2 integer NOT NULL, \n"
                 + " defEnd1 integer NOT NULL, \n"
                 + " defEnd2 integer NOT NULL, \n"
-                + " maxShiftLength integer NOT NULL \n"
+                + " maxShiftLength integer NOT NULL, \n"
+                + " standardWorkDay real NOT NULL \n"
                 + ");";
-        String[] tables = new String[]{clientTable,assistantTable,locationTable,clientMonthTable,compatibilityTable,clientDayTable,serviceIntervalTable,assistantAvailabilityTable,settingsTable };
+        String[] tables = new String[]{clientTable,assistantTable,locationTable,clientMonthTable,
+                compatibilityTable,clientDayTable,serviceIntervalTable,assistantAvailabilityTable,settingsTable,vacationTable };
         try (Connection conn = DriverManager.getConnection(databaseName);
         Statement stmt = conn.createStatement()) {
             for(String st : tables){
@@ -360,6 +377,7 @@ public class Database {
         String query = "SELECT * FROM assistantTable WHERE assistantID = ?";
         try(Connection conn = DriverManager.getConnection(databaseName);
             PreparedStatement stmt = conn.prepareStatement(query)){
+            ObjectMapper objectMapper = new ObjectMapper();
             stmt.setString(1,String.valueOf(assistantID));
             try(ResultSet rs = stmt.executeQuery()){
                 if(rs.next()){
@@ -369,13 +387,15 @@ public class Database {
                     Boolean status = rs.getBoolean("status");
                     String surname = rs.getString("surname");
                     String contractType = rs.getString("contractType");
-                    Integer contractTime = rs.getInt("contractTime");
+                    double contractTime = rs.getDouble("contractTime");
                     Boolean likesOvertime = rs.getBoolean("likesOvertime");
                     Boolean emergencyAssistant= rs.getBoolean("emergencyAssistant");
-                    int[] workDays = DatabaseUtils.stringToIntArray(rs.getString("workDays"));
+                    Boolean isDriver= rs.getBoolean("isDriver");
+                   // ShiftAvailabilityArray workDays = objectMapper.readValue(rs.getString("workDays"), ShiftAvailabilityArray.class);
+                    ArrayList<ShiftAvailability> workDays=  objectMapper.readValue(rs.getString("workDays"),new TypeReference<ArrayList<ShiftAvailability>>() {});
                     String comment = rs.getString("comment");
                     ArrayList<ArrayList<UUID>> compatibility = loadCompatibility(assistantID);
-                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility,emergencyAssistant);
+                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility,emergencyAssistant,isDriver);
                     return  outputAssistant;
                 }
             }catch (Exception e) {
@@ -431,7 +451,7 @@ public class Database {
         2 =
          */
         String query = "SELECT * FROM compatibilityTable WHERE assistantID =  ?";
-        ArrayList<ArrayList<UUID>> output = new ArrayList<>(Arrays.asList(new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>()));
+        ArrayList<ArrayList<UUID>> output = new ArrayList<>(Arrays.asList(new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>()));
         try(Connection conn = DriverManager.getConnection(databaseName);
             PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1,String.valueOf(assistantID));
@@ -447,27 +467,7 @@ public class Database {
         }
         return null;
     }
-    public static void saveAssistant(Assistant assistant){
-        String query = "INSERT OR REPLACE INTO assistantTable (assistantID, status, name,surname, contractType, contractTime,likesOvertime,comment,workDays,isDeleted,emergencyAssistant) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try(Connection conn = DriverManager.getConnection(databaseName );
-            PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, assistant.getID().toString());
-            stmt.setBoolean(2, assistant.getActivityStatus());
-            stmt.setString(3,assistant.getName());
-            stmt.setString(4,assistant.getSurname());
-            stmt.setString(5,assistant.getContractType());
-            stmt.setDouble(6,assistant.getContractTime());
-            stmt.setBoolean(7,assistant.getLikesOvertime());
-            stmt.setString(8,assistant.getComment());
-            stmt.setString(9,DatabaseUtils.IntArrayToString(assistant.getWorkDays()));
-            stmt.setBoolean(10,false);
-            stmt.setBoolean(11,assistant.isEmergencyAssistant());
-            stmt.execute();
-            saveCompatibility(assistant.getClientPreference(), assistant.getID());
-        }catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
+
     public static void softDeleteAssistant(Assistant assistant){
         String query = "UPDATE assistantTable SET isDeleted = ? WHERE assistantID = ?";
         try(Connection conn = DriverManager.getConnection(databaseName );
@@ -519,13 +519,14 @@ public class Database {
                     Boolean status = rs.getBoolean("status");
                     String surname = rs.getString("surname");
                     String contractType = rs.getString("contractType");
-                    Integer contractTime = rs.getInt("contractTime");
+                    double contractTime = rs.getDouble("contractTime");
                     Boolean likesOvertime = rs.getBoolean("likesOvertime");
-                    int[] workDays = DatabaseUtils.stringToIntArray(rs.getString("workDays"));
+                    ArrayList<ShiftAvailability> workDays=  objectMapper.readValue(rs.getString("workDays"),new TypeReference<ArrayList<ShiftAvailability>>() {});
                     String comment = rs.getString("comment");
                     Boolean emergencyAssistant= rs.getBoolean("emergencyAssistant");
+                    Boolean isDriver= rs.getBoolean("isDriver");
                     ArrayList<ArrayList<UUID>> compatibility = loadCompatibility(UUID.fromString(ID));
-                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility,emergencyAssistant);
+                    Assistant outputAssistant = new Assistant(UUID.fromString(ID),status, name,surname,contractType,contractTime,likesOvertime,comment,workDays,compatibility,emergencyAssistant,isDriver);
                     output.getFullAssistantList().add(outputAssistant);
                 }
                 return  output;
@@ -537,6 +538,29 @@ public class Database {
             System.out.println(e.getMessage());
         }
         return null;
+    }
+    public static void saveAssistant(Assistant assistant){
+        String query = "INSERT OR REPLACE INTO assistantTable (assistantID, status, name,surname, contractType, contractTime,likesOvertime,comment,workDays,isDeleted,emergencyAssistant,isDriver) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            stmt.setString(1, assistant.getID().toString());
+            stmt.setBoolean(2, assistant.getActivityStatus());
+            stmt.setString(3,assistant.getName());
+            stmt.setString(4,assistant.getSurname());
+            stmt.setString(5,assistant.getContractType());
+            stmt.setDouble(6,assistant.getContractTime());
+            stmt.setBoolean(7,assistant.getLikesOvertime());
+            stmt.setString(8,assistant.getComment());
+            stmt.setString(9,objectMapper.writeValueAsString(assistant.getWorkDays()));
+            stmt.setBoolean(10,false);
+            stmt.setBoolean(11,assistant.isEmergencyAssistant());
+            stmt.setBoolean(12,assistant.isDriver());
+            stmt.execute();
+            saveCompatibility(assistant.getClientPreference(), assistant.getID());
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
     public static void saveClientDay(ArrayList<ClientDay> clDA, String monthID,Connection conn){
         String query = "INSERT OR REPLACE INTO clientDayTable (clientDayID, clientID, monthID,isMerged, isDay, " +
@@ -554,6 +578,8 @@ public class Database {
             stmt.setInt(6, clD.getDay());
             stmt.setInt(7, clD.getMonth().getValue());
             stmt.setInt(8,clD.getYear());
+           // stmt.setString(9, String.valueOf(clD.getDefStarTime()));
+            //stmt.setString(10, String.valueOf(clD.getYear()));
             if(clD.getLocation()==null){
                 stmt.setString(9,null);
             }else{
@@ -614,6 +640,8 @@ public class Database {
                     int day = rs.getInt("day");
                     int month = rs.getInt("month");
                     int year = rs.getInt("year");
+                  //  LocalDateTime defStartTime = LocalDateTime.parse(rs.getString("defStartTime"),formatter);
+                   // LocalDateTime defEndTime = LocalDateTime.parse(rs.getString("defEndTime"),formatter);
                     String location = rs.getString("locationID");
                     ClientDay cl = new ClientDay(UUID.fromString(clientID), day, Month.of(month), year,null,null,loadLocation(UUID.fromString(location)),isMerged,isDay);
                     lis.add(cl);
@@ -661,7 +689,7 @@ public class Database {
         }
     }
     public static void saveServiceIntervals(ClientDay cl, String dayID, Connection conn){
-        String query = "INSERT OR REPLACE INTO serviceIntervalTable (serviceIntervalID, clientDayID, overseeingAssistantID,start, end, location,isNotRequired,comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT OR REPLACE INTO serviceIntervalTable (serviceIntervalID, clientDayID, overseeingAssistantID,assignedAssistant,start, end, location,isNotRequired,isMerged,comment,requiresDriver) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try(PreparedStatement stmt = conn.prepareStatement(query)) {
             int inDex = 0;
             int servCount = 0;
@@ -669,6 +697,7 @@ public class Database {
                 stmt.setString(++inDex, dayID+","+servCount);
                 stmt.setString(++inDex, dayID);
                 stmt.setString(++inDex, (serv.getOverseeingAssistant() == null) ? null :String.valueOf(serv.getOverseeingAssistant().getID()));
+                stmt.setString(++inDex,(serv.getAssignedAssistant() == null) ? null : String.valueOf(serv.getAssignedAssistant()) );
                 stmt.setString(++inDex,serv.getStart().toString());
                 stmt.setString(++inDex,serv.getEnd().toString());
                 if(serv.getLocation()==null){
@@ -677,7 +706,9 @@ public class Database {
                     stmt.setString(++inDex,String.valueOf(serv.getLocation()));
                 }
                 stmt.setBoolean(++inDex,serv.getIsNotRequired());
+                stmt.setBoolean(++inDex,serv.isMerged());
                 stmt.setString(++inDex,serv.getComment());
+                stmt.setBoolean(++inDex,serv.isRequiresDriver());
                 servCount++;
                 if(servCount>1){
                    System.out.println();
@@ -701,19 +732,20 @@ public class Database {
                      String serviceIntervalID = rs.getString("serviceIntervalID");
                      String clientDayID = rs.getString("clientDayID");
                      String overseeingAssistantID = rs.getString("overseeingAssistantID");
+                     String assignedAssistantID = rs.getString("assignedAssistant");
                      String start = rs.getString("start");
                      String end = rs.getString("end");
                      String location = rs.getString("location");
                      Boolean isNotRequired = rs.getBoolean("isNotRequired");
+                     Boolean isMerged = rs.getBoolean("isMerged");
                      String comment = rs.getString("comment");
+                     Boolean requiresDriver = rs.getBoolean("requiresDriver");
                      Assistant out = null;
                      if((overseeingAssistantID != null)){
                          out = loadAssistant(UUID.fromString(overseeingAssistantID));
                      }
-                     ServiceInterval outputInterval = new ServiceInterval(LocalDateTime.parse(start,formatter),LocalDateTime.parse(end,formatter),out,comment,isNotRequired);
-                     if(!(location != null)){
-                         outputInterval.setLocation(UUID.fromString(location));
-                     }
+                     UUID outAssigned = (assignedAssistantID == null) ? null : UUID.fromString(assignedAssistantID);
+                     ServiceInterval outputInterval = new ServiceInterval(LocalDateTime.parse(start,formatter),LocalDateTime.parse(end,formatter),out,outAssigned,comment,isNotRequired,isMerged,(location == null) ? null: UUID.fromString(location),requiresDriver);
                      lis.add(outputInterval);
                  }
                  return  lis;
@@ -792,7 +824,6 @@ public class Database {
         }
         return loc;
     }
-
     public static void saveAllClientMonths(ListOfClientMonths licmo){
             for(ClientMonth clm : licmo.getListOfClientMonths()){
                 saveClientMonth(clm);
@@ -804,10 +835,11 @@ public class Database {
         String query = "INSERT OR REPLACE INTO AssistantAvailabilityTable (availabilityID, month, year,jsonContent) VALUES (?, ?, ?, ?)";
         try(Connection conn = DriverManager.getConnection(databaseName );
             PreparedStatement stmt = conn.prepareStatement(query)) {
-            ObjectMapper objectMapper = new ObjectMapper();
+
             stmt.setString(1, year + "." +month);
             stmt.setInt(2, year);
             stmt.setInt(3,month);
+            objectMapper.registerModule(new JavaTimeModule());
             stmt.setString(4,objectMapper.writeValueAsString(av));
             stmt.execute();
         }catch (Exception e) {
@@ -823,6 +855,7 @@ public class Database {
             try(ResultSet rs = stmt.executeQuery()){
                 if(rs.next()){
                     ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.registerModule(new JavaTimeModule());
                     AvailableAssistants avOut = objectMapper.readValue(rs.getString("jsonContent"),AvailableAssistants.class);
                     avOut.setYear(year);
                     avOut.setMonth(month);
@@ -852,6 +885,7 @@ public class Database {
                     st.setDefEnd(new int[]{rs.getInt("defEnd1"),rs.getInt("defEnd2")});
                     st.setFilePath(rs.getString("filePath"));
                     st.setMaxShiftLength(rs.getInt("maxShiftLength"));
+                    st.setStandardWorkDay(rs.getDouble("standardWorkDay"));
                     return  st;
                 }else{
                     System.out.println("Error");
@@ -867,7 +901,7 @@ public class Database {
     }
     public static void saveSettings(Settings set){
         String query = "INSERT OR REPLACE INTO settingsTable (settingsID, filePath, selectedYear,selectedMonth," +
-                "defStart1,defStart2,defEnd1,defEnd2,maxShiftLength) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?)";
+                "defStart1,defStart2,defEnd1,defEnd2,maxShiftLength,standardWorkDay) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?)";
         try(Connection conn = DriverManager.getConnection(databaseName );
             PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, "settings1");
@@ -880,10 +914,46 @@ public class Database {
             stmt.setInt(7,set.getDefEnd()[0]);
             stmt.setInt(8,set.getDefEnd()[1]);
             stmt.setInt(9,set.getMaxShiftLength());
+            stmt.setDouble(10,set.getStandardWorkDay());
             stmt.execute();
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
+    public static void saveVacation(VacationTemp vac){
+        String query = "INSERT OR REPLACE INTO vacationTable (assistantID, jsonContent) VALUES (?, ?)";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            stmt.setString(1, String.valueOf(vac.getAssistantID()));
+            stmt.setString(2, objectMapper.writeValueAsString(vac));
+            stmt.execute();
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    public static VacationTemp loadVacation(UUID assistant){
+        String query = "SELECT * FROM vacationTable WHERE assistantID = ?";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)){
+            stmt.setString(1, String.valueOf(assistant));
+            try(ResultSet rs = stmt.executeQuery()){
+                if(rs.next()){
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.registerModule(new JavaTimeModule());
+                    VacationTemp avOut = objectMapper.readValue(rs.getString("jsonContent"),VacationTemp.class);
+                    return avOut;
+                }else{
+                    VacationTemp out = new VacationTemp(new ArrayList<Vacation>(),assistant);
+                    saveVacation(out);
+                    return out;
+                }
+            }
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return new VacationTemp(new ArrayList<>(),null);
     }
 
 }

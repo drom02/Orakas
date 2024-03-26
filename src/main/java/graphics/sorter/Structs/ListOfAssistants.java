@@ -34,7 +34,7 @@ public class ListOfAssistants implements Saveable {
     @JsonIgnore
     public Assistant getAssistantFromID(UUID id){
         for(Assistant as : assistantList){
-            if(id == as.getID()){
+            if(id.equals(as.getID())){
                return as;
                 }
             }

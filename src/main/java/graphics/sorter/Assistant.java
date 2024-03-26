@@ -3,6 +3,7 @@ package graphics.sorter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import graphics.sorter.AssistantAvailability.ShiftAvailability;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -16,13 +17,14 @@ public class Assistant extends Human{
     private boolean likesOvertime;
     //Seznam klientů a vztahu s nimi
     private ArrayList<ArrayList<UUID>> clientPreference;
-    private int[] workDays;
+    private ArrayList<ShiftAvailability> workDays;
     private boolean emergencyAssistant;
+    private boolean isDriver;
     @JsonCreator
      public Assistant(@JsonProperty("ID" )UUID ID,@JsonProperty("status")boolean status,@JsonProperty("name")String name, @JsonProperty("surname")String surname,
                       @JsonProperty("contract")String contract, @JsonProperty("work")double work, @JsonProperty("overtime")boolean overtime,
-                      @JsonProperty("comments")String comments, @JsonProperty("workDays")int[] workDays,
-                      @JsonProperty("clientPreference") ArrayList<ArrayList<UUID>> clientpreference,@JsonProperty("emergencyAssistant")boolean emergencyAssistant){
+                      @JsonProperty("comments")String comments, @JsonProperty("workDays")ArrayList<ShiftAvailability> workDays,
+                      @JsonProperty("clientPreference") ArrayList<ArrayList<UUID>> clientpreference,@JsonProperty("emergencyAssistant")boolean emergencyAssistant,@JsonProperty("isDriver")boolean isDriver){
         setID(ID);
         setActivityStatus(status);
         setName(name);
@@ -33,11 +35,19 @@ public class Assistant extends Human{
         setComment(comments);
         setClientPreference(clientpreference);
         setEmergencyAssistant(emergencyAssistant);
+        setDriver(isDriver);
         if( (workDays == null)){
-            setWorkDays(new int[]{1,1,1,1,1,0,0,1,1,1,1,1,0,0});
+            setWorkDays(ShiftAvailability.generateWeek());
         }else{
             setWorkDays(workDays);
         }
+    }
+    public boolean isDriver() {
+        return isDriver;
+    }
+
+    public void setDriver(boolean driver) {
+        isDriver = driver;
     }
     public boolean isEmergencyAssistant() {
         return emergencyAssistant;
@@ -78,11 +88,11 @@ public class Assistant extends Human{
         this.likesOvertime = likesOvertime;
     }
 
-    public int[] getWorkDays() {
+    public ArrayList<ShiftAvailability> getWorkDays() {
         return workDays;
     }
 
-    public void setWorkDays(int[] workDays) {
+    public void setWorkDays(ArrayList<ShiftAvailability> workDays) {
         this.workDays = workDays;
     }
 
@@ -93,7 +103,6 @@ public class Assistant extends Human{
     public void setClientPreference(ArrayList<ArrayList<UUID>> clientPreference) {
         this.clientPreference = clientPreference;
     }
-
     @Override
     public boolean equals(Object o){
         if (o == this) {
@@ -112,5 +121,10 @@ public class Assistant extends Human{
     @Override
     public int hashCode() {
         return getID().hashCode();
+    }
+    @Override
+    public String toString() {
+        // Customize display logic here
+        return this.getName() + " "+ this.getSurname();
     }
 }

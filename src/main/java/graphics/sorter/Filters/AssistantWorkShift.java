@@ -8,10 +8,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 public class AssistantWorkShift {
-
-
     private UUID assistantID;
-    private long workedHours;
+    private long workedMinutes;
     private int day;
     private int month;
     private LocalDateTime start;
@@ -23,21 +21,44 @@ public class AssistantWorkShift {
         setAssistantID(id);
         setUpFromDay(cd);
     }
+    public AssistantWorkShift(){
+
+    }
     private void setUpFromDay(ClientDay cd){
         setStart(cd.getDayIntervalList().getFirst().getStart());
         setEnd(cd.getDayIntervalList().getLast().getEnd());
         setDay(cd.getDay());
         setMonth(cd.getMonth().getValue());
-        setWorkedHours(calculateWorkLength(cd));
+        setWorkedMinutes(calculateWorkLength(cd));
+        setType(cd.getDayStatus());
+    }
+    public void setUpFromInterval(ServiceInterval si, ClientDay cd, UUID id){
+        setAssistantID(id);
+        if(getStart() == null ||si.getStart().isBefore(getStart())){
+            setStart(si.getStart());
+        }
+        if(getEnd()== null ||si.getEnd().isAfter(getEnd())){
+            setEnd(si.getEnd());
+        }
+        if(getMonth() !=0){
+            setDay(cd.getDay());
+            setMonth(cd.getMonth().getValue());
+        }
+        setDay(cd.getDay());
+        setType(cd.getDayStatus());
+        setWorkedMinutes(workedMinutes +serviceIntervalLength(si));
     }
     private long calculateWorkLength(ClientDay cd){
         long length =0;
         for(ServiceInterval s :cd.getDayIntervalList()){
             if(s.getIsNotRequired() == false){
-                length = length + ChronoUnit.HOURS.between(s.getStart(),s.getEnd());
+                length = length + ChronoUnit.MINUTES.between(s.getStart(),s.getEnd());
             }
         }
         return length;
+    }
+    private long serviceIntervalLength(ServiceInterval s){
+        return ChronoUnit.MINUTES.between(s.getStart(),s.getEnd());
     }
     public UUID getAssistantID() {
         return assistantID;
@@ -47,12 +68,12 @@ public class AssistantWorkShift {
         this.assistantID = assistantID;
     }
 
-    public long getWorkedHours() {
-        return workedHours;
+    public long getWorkedMinutes() {
+        return workedMinutes;
     }
 
-    public void setWorkedHours(long workedHours) {
-        this.workedHours = workedHours;
+    public void setWorkedMinutes(long workedMinutes) {
+        this.workedMinutes = workedMinutes;
     }
     public int getDay() {
         return day;

@@ -3,11 +3,14 @@ package graphics.sorter.Structs;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import graphics.sorter.Assistant;
+import graphics.sorter.Database;
 import graphics.sorter.Location;
 
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class ClientDay {
@@ -46,7 +49,7 @@ public class ClientDay {
                @JsonProperty("defStarTime") LocalDateTime defStarTime, @JsonProperty("defEndTime")LocalDateTime defEndTime,
                @JsonProperty("Location")Location location, @JsonProperty("isMerged")boolean ismerged, @JsonProperty("isDay")boolean isDay){
         
-        ServiceInterval def = new ServiceInterval(defStarTime, defEndTime, null, null,false);
+        ServiceInterval def = new ServiceInterval(defStarTime, defEndTime, null, null,null,false,false,location.getID(),false);
         this.dayIntervalList.add(def);
         setDay(dayI);
         this.month = monthI;
@@ -56,7 +59,68 @@ public class ClientDay {
         setDayStatus(isDay);
         setClient(client);
     }
-
+    public void addInterval(LocalDateTime startNew,LocalDateTime endNew) {
+        ClientDay day = this;
+        ArrayList<ServiceInterval> toBeRemoved = new ArrayList<>();
+        ArrayList<ServiceInterval> toBeResized = new ArrayList<>();
+        boolean alreadyExists = false;
+        for (ServiceInterval s : day.getDayIntervalList()) {
+            LocalDateTime start = s.getStart();
+            LocalDateTime end = s.getEnd();
+            if (start.isEqual(startNew) && end.isEqual(endNew)) {
+                return;
+            }
+            if ((startNew.isAfter(start) || startNew.isEqual(start)) && (startNew.isBefore(end) || startNew.isEqual(end)) ||
+                    (endNew.isAfter(start) || endNew.isEqual(start)) && (endNew.isBefore(end) || endNew.isEqual(end))) {
+                toBeResized.add(s);
+            }
+            if ((start.isAfter(startNew) && end.isBefore(endNew)) || start.isEqual(startNew) && end.isBefore(endNew) || start.isAfter(startNew) && end.isEqual(endNew)) {
+                //   System.out.println("toBeRemoved");
+                toBeRemoved.add(s);
+            }
+        }
+        for (ServiceInterval serv : toBeRemoved) {
+            Assistant as = serv.getOverseeingAssistant();
+            day.getDayIntervalList().remove(serv);
+            if (day.getDayIntervalList().isEmpty()) {
+                day.getDayIntervalList().add(new ServiceInterval(startNew
+                        , endNew, as, null, null, false, false, day.getLocation().getID(),false));
+                if (day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)) {
+                    System.out.println("Is empty");
+                }
+                return;
+            }
+        }
+        for (ServiceInterval s : toBeResized) {
+            LocalDateTime start = s.getStart();
+            LocalDateTime end = s.getEnd();
+            if ((startNew.isAfter(start) && startNew.isBefore(end)) & (endNew.isAfter(end) || endNew.isEqual(end))) {
+                s.setEnd(startNew);
+                System.out.println("Type 1");
+            } else if ((startNew.isBefore(start) || startNew.isEqual(start)) & (endNew.isAfter(start) || endNew.isEqual(start) && endNew.isBefore(end) || endNew.isEqual(end))) {
+                s.setStart(endNew);
+                System.out.println("Type 2");
+            } else if(start.isBefore(startNew) && end.isAfter(endNew)) {
+                LocalDateTime temp = s.getEnd();
+                s.setEnd(startNew);
+                day.getDayIntervalList().add(new ServiceInterval(endNew
+                        , temp, s.getOverseeingAssistant(), null,null, false, false,day.getLocation().getID(),false));
+                System.out.println("Type 3");
+                break;
+            }else{
+                System.out.println("Type Error");
+                System.out.println("start " + start);
+                System.out.println("end " + end);
+                System.out.println("newStart " + startNew);
+                System.out.println("newEnd " + endNew);
+            }
+        }
+        day.getDayIntervalList().add(new ServiceInterval(startNew
+                , endNew, day.getDayIntervalList().getFirst().getOverseeingAssistant(), null,null, false, false,day.getLocation().getID(),false));
+        if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
+        }
+       // day.getDayIntervalListUsefull().get(0).setComment("Testing save logic");
+    }
     public boolean isMerged() {
         return isMerged;
     }
@@ -111,7 +175,7 @@ public class ClientDay {
         this.year = year;
     }
     public long shiftLength(){
-        return ChronoUnit.HOURS.between(dayIntervalList.getFirst().getStart(),dayIntervalList.getLast().getEnd());
+        return ChronoUnit.MINUTES.between(dayIntervalList.getFirst().getStart(),dayIntervalList.getLast().getEnd());
     }
 
     @JsonIgnore

@@ -25,6 +25,10 @@
     -fx-border-color:  #75228c;
     -fx-border-width: 7.5px;
 }
+.selected-interval{
+    -fx-border-color:  #75228c;
+    -fx-border-width: 4.5px;
+}
 .day-title-card{
     -fx-font-size: 18px;
     -fx-font-weight: bold;
@@ -75,12 +79,16 @@
 .day-Area{
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-control-inner-background: #e6e3e3;
+    -fx-background-color:  #e6e3e3;
+    -fx-border-color:  #000000;
+     -fx-border-width: 2px;
 }
 .night-Area{
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-control-inner-background:  #454343;
+    -fx-background-color: #454343;
+    -fx-border-color:  #000000;
+    -fx-border-width: 2px;
 }
 .list-cell:filled:odd {
     -fx-background-color: lightgrey; /* Color for odd rows */
@@ -113,6 +121,10 @@
 .day-info-text{
     -fx-font-size: 16px;
 
+}
+.selected-ShiftFlow{
+-fx-border-color:  #75228c;
+    -fx-border-width: 1.5px;
 }
 /*
 .grid-pane{

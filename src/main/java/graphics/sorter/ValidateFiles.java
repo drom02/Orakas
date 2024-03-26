@@ -11,7 +11,7 @@ public class ValidateFiles {
 
     Settings set;
     {
-            set = Database.loadSettings();
+            set = Settings.getSettings();
 
     }
     public void run(){

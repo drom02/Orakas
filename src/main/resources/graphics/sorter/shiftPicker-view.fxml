@@ -18,21 +18,22 @@
         </columnConstraints>
         <rowConstraints>
             <RowConstraints maxHeight="319.0" minHeight="10.0" percentHeight="1.0" prefHeight="319.0" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" percentHeight="80.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" percentHeight="60.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" percentHeight="20.0" prefHeight="30.0" vgrow="SOMETIMES" />
           <RowConstraints minHeight="10.0" percentHeight="19.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <ScrollPane fx:id="TestScrollPane" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.rowSpan="2">
+            <ScrollPane fx:id="TestScrollPane" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.rowSpan="3">
                <GridPane.margin>
                   <Insets bottom="20.0" />
                </GridPane.margin>
             </ScrollPane>
             <ListView fx:id="assistantList" onMouseClicked="#selectAssistant" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" />
-            <Button fx:id="saveCurrentStateButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#saveCurrentState" text="Uložit změny" GridPane.rowIndex="2">
+            <Button fx:id="saveCurrentStateButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#saveCurrentState" text="Uložit změny" GridPane.rowIndex="3">
                <GridPane.margin>
                   <Insets top="15.0" />
                </GridPane.margin></Button>
-            <Button fx:id="fromCsvButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#loadCsv" text="z csv" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+            <Button fx:id="fromCsvButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#loadCsv" text="z csv" GridPane.rowIndex="3" GridPane.valignment="TOP" />
          </children>
       </GridPane>
    </children>

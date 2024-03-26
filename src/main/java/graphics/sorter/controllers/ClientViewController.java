@@ -71,12 +71,13 @@ public class ClientViewController implements ControllerInterface{
     }
     public void initialize() throws IOException {
         listViewofC.setCellFactory(new ClientProfileCellFactory());
-        settings = Database.loadSettings();
+        settings = Settings.getSettings();
         listOfc = Database.loadClientProfiles();
         //listOfc = Database.loadClientProfiles();
         homeLocationBox.getItems().setAll(Database.loadLocations().getListOfLocations());
         ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
         listViewofC.setItems(observClientList);
+        statusChoiceBox.setSelected(true);
         Platform.runLater(() -> {
             GraphicalFunctions.screenResizing(mainPane,mainGrid);
         });
@@ -108,6 +109,6 @@ public class ClientViewController implements ControllerInterface{
 
     @Override
     public void updateScreen() {
-
+        homeLocationBox.getItems().setAll(Database.loadLocations().getListOfLocations());
     }
 }

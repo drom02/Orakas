@@ -2,6 +2,9 @@ package graphics.sorter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import graphics.sorter.AssistantAvailability.AssistantAvailability;
+import graphics.sorter.AssistantAvailability.Availability;
+import graphics.sorter.AssistantAvailability.ShiftAvailability;
 import graphics.sorter.Structs.*;
 
 import java.io.File;
@@ -9,18 +12,20 @@ import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class JsonManip {
     private static JsonManip jsonManip;
 
     private String path;
     public void initialize() throws IOException {
-        Settings set = Database.loadSettings();
+        Settings set = Settings.getSettings();
         path = set.getFilePath();
         ArrayList<String> directories = new ArrayList<>(Arrays.asList("Assistants","Clients","Settings","Locations","ClientRequirements","AvailableAssistants"));
         for(String st : directories){
@@ -148,7 +153,8 @@ public class JsonManip {
         try {
             jsonData = Files.readAllBytes(Paths.get(path +  "AvailableAssistants\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
         } catch (IOException e) {
-            generateNewMonthsAssistants(Database.loadSettings());
+            Settings setTemp = Settings.getSettings();
+            generateNewMonthsAssistants(setTemp.getCurrentYear(), setTemp.getCurrentMonth());
             jsonData = Files.readAllBytes(Paths.get(path +  "AvailableAssistants\\AvailableAssistants."+ set.getCurrentMonth() +"."+set.getCurrentYear() +".json"));
         }
         AvailableAssistants listOfA = objectMapper.readValue(jsonData, AvailableAssistants.class );
@@ -214,8 +220,8 @@ public class JsonManip {
     }
     public static void generateEmptyState(Settings settings) throws IOException {
         AvailableAssistants availableAssistants = new AvailableAssistants();
-        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
-        ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
+        ArrayList<ArrayList<AssistantAvailability>> dayList = new ArrayList<>();
+        ArrayList<ArrayList<AssistantAvailability>> nightList = new ArrayList<>();
         int shift = 0;
         for(int i = 0; i < Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear())); i++){
             dayList.add(new ArrayList<>());
@@ -227,60 +233,49 @@ public class JsonManip {
         availableAssistants.setAvailableAssistantsAtNights(nightList);
         Database.saveAssistantAvailability(settings.getCurrentYear(),settings.getCurrentMonth(),availableAssistants);
     }
-    public void  generateNewMonthsAssistants(Settings settings) throws IOException {
-        //JsonManip jsom = new JsonManip();
-        ListOfAssistants listOfA = Database.loadAssistants();
-        AvailableAssistants availableAssistants = new AvailableAssistants();
-        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
-        ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
-        for(int i =0; i < Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear())); i++){
-            ArrayList<Assistant> inputDayList = new ArrayList<>();
-            ArrayList<Assistant> inputNightList = new ArrayList<>();
-            dayList.add(inputDayList);
-            nightList.add(inputNightList);
-            for(Assistant asis : listOfA.getAssistantList()){
-                if(asis.getWorkDays()[(LocalDate.of(settings.getCurrentYear(), settings.getCurrentMonth(), i+1).getDayOfWeek().getValue()-1)] == 1 ){
-                    inputDayList.add(asis);
-                }
-                if(asis.getWorkDays()[(LocalDate.of(settings.getCurrentYear(), settings.getCurrentMonth(), i+1).getDayOfWeek().getValue()+6)] == 1 ){
-                    inputNightList.add(asis);
-                }
-
-            }
-
-
-        }
-
-        availableAssistants.setAvailableAssistantsAtDays(dayList);
-        availableAssistants.setAvailableAssistantsAtNights(nightList);
-        Database.saveAssistantAvailability(settings.getCurrentYear(), settings.getCurrentMonth(), availableAssistants);
-    }
     public void  generateNewMonthsAssistants(int year,int month) throws IOException {
         //JsonManip jsom = new JsonManip();
         ListOfAssistants listOfA = Database.loadAssistants();
         AvailableAssistants availableAssistants = new AvailableAssistants();
-        ArrayList<ArrayList<Assistant>> dayList = new ArrayList<>();
-        ArrayList<ArrayList<Assistant>> nightList = new ArrayList<>();
+        ArrayList<ArrayList<AssistantAvailability>> dayList = new ArrayList<>(31);
+        ArrayList<ArrayList<AssistantAvailability>> nightList = new ArrayList<>(31);
         for(int i =0; i < Month.of(month).length(Year.isLeap(year)); i++){
-            ArrayList<Assistant> inputDayList = new ArrayList<>();
-            ArrayList<Assistant> inputNightList = new ArrayList<>();
+            ArrayList<AssistantAvailability> inputDayList = new ArrayList<>();
+            ArrayList<AssistantAvailability> inputNightList = new ArrayList<>();
             dayList.add(inputDayList);
             nightList.add(inputNightList);
             for(Assistant asis : listOfA.getAssistantList()){
-                if(asis.getWorkDays()[(LocalDate.of(year, month, i+1).getDayOfWeek().getValue()-1)] == 1 ){
-                    inputDayList.add(asis);
+                ArrayList<HashMap<DayOfWeek, Availability>> workDayHashMap =  daysOfWeekIndex(asis);
+                LocalDate locDate = LocalDate.of(year,month,i+1);
+                inputDayList.add(new AssistantAvailability(asis.getID(),workDayHashMap.get(0).get(locDate.getDayOfWeek())));
+                inputNightList.add(new AssistantAvailability(asis.getID(),workDayHashMap.get(1).get(locDate.getDayOfWeek())));
+                /*
+                if(asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue()).getState()){
+                    inputDayList.add(new AssistantAvailability(asis.getID(),asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue()).getAvailability()));
                 }
-                if(asis.getWorkDays()[(LocalDate.of(year, month, i+1).getDayOfWeek().getValue()+6)] == 1 ){
-                    inputNightList.add(asis);
+                if(asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue() + 6).getState()){
+                    inputNightList.add(new AssistantAvailability(asis.getID(),asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue()+ 6).getAvailability()));
                 }
+                 */
 
             }
-
-
         }
         availableAssistants.setAvailableAssistantsAtDays(dayList);
         availableAssistants.setAvailableAssistantsAtNights(nightList);
         Database.saveAssistantAvailability(year, month, availableAssistants);
+    }
+    private ArrayList<HashMap<DayOfWeek, Availability>> daysOfWeekIndex(Assistant asis){
+        ArrayList<HashMap<DayOfWeek, Availability>> outputHash = new ArrayList<>();
+        int dayI = 0;
+        for(int i =0; i<2;i++){
+            outputHash.add(new HashMap<DayOfWeek, Availability>());
+            while(dayI<(7+i*7)){
+                ShiftAvailability sh = asis.getWorkDays().get(dayI);
+                outputHash.get(i).put(sh.getDay(),sh.getAvailability());
+                dayI++;
+            }
+        }
+        return outputHash;
     }
     public void  saveLocations(ListOfLocations lOL) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
