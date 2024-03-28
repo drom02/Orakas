@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.Arrays;
 
 public class Settings {
     private static Settings settings;
@@ -32,7 +30,7 @@ public class Settings {
         this.currentMonth = currentMonth;
     }
 
-    public int[] getDeftStart() {
+    public int[] getDefStart() {
         return deftStart;
     }
 
@@ -56,7 +54,6 @@ public class Settings {
     }
     private int currentYear;
     private int currentMonth;
-
     private int[] deftStart;
     private int[] defEnd;
     private int maxShiftLength;

@@ -140,4 +140,9 @@ public class LocationController implements ControllerInterface{
     public void updateScreen() {
 
     }
+
+    @Override
+    public void loadAndUpdateScreen() {
+
+    }
 }

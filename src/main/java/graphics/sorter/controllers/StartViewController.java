@@ -47,7 +47,6 @@ public class StartViewController  {
             @Override
             public void changed(ObservableValue<? extends Tab> observable, Tab oldTab, Tab newTab) {
                 if (newTab != null) {
-
                     onTabSelected(newTab);
                 }
             }

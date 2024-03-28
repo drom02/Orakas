@@ -1,6 +1,7 @@
 package graphics.sorter.controllers;
 
 import graphics.sorter.*;
+import graphics.sorter.Mediator.InternalController;
 import graphics.sorter.Structs.ClientProfileCellFactory;
 import graphics.sorter.Structs.HumanCellFactory;
 import graphics.sorter.Structs.ListOfClientsProfiles;
@@ -44,6 +45,7 @@ public class ClientViewController implements ControllerInterface{
     private Settings settings;
     private ListOfClientsProfiles listOfc;
     private ClientProfile selectedClient;
+    private InternalController internalController = new InternalController(this);
     //endregion
     public void saveClient(MouseEvent mouseEvent) throws IOException {
         if(selectedClient != null){
@@ -96,7 +98,7 @@ public class ClientViewController implements ControllerInterface{
         comments.clear();
         ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
         listViewofC.setItems(observClientList);
-
+        internalController.send("Assistant");
     }
     public void saveNewClient(ActionEvent actionEvent) {
         ClientProfile clip = new ClientProfile(UUID.randomUUID(),statusChoiceBox.isSelected(), nameField.getText(),surnameField.getText(), homeLocationBox.getValue() ,comments.getText());
@@ -105,10 +107,16 @@ public class ClientViewController implements ControllerInterface{
         ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
        // ListOfClientsProfiles asdasd = jsoMap.loadClientProfileInfo();
         listViewofC.setItems(observClientList);
+        internalController.send("Assistant");
     }
 
     @Override
     public void updateScreen() {
         homeLocationBox.getItems().setAll(Database.loadLocations().getListOfLocations());
+    }
+
+    @Override
+    public void loadAndUpdateScreen() {
+
     }
 }

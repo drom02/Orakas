@@ -2,7 +2,6 @@ package graphics.sorter.AssistantAvailability;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import graphics.sorter.Database;
 import graphics.sorter.Settings;
 
 import java.time.DayOfWeek;
@@ -55,7 +54,7 @@ public class ShiftAvailability {
         Settings set = Settings.getSettings();
         ArrayList<ShiftAvailability> output = new ArrayList<>(14);
         if (set != null) {
-           int[] start = set.getDeftStart();
+           int[] start = set.getDefStart();
            int[] end =  set.getDefEnd();
            for(int i =1; i<=7;i++){
                output.add(new ShiftAvailability(DayOfWeek.of(i),true, true,new Availability(start[0],start[1],end[0],end[1])));

@@ -7,6 +7,7 @@ import graphics.sorter.AssistantAvailability.DateTimeAssistantAvailability;
 import graphics.sorter.AssistantAvailability.Reporter;
 import graphics.sorter.Filters.AssistantMonthWorks;
 import graphics.sorter.Filters.Sorter;
+import graphics.sorter.Mediator.InternalController;
 import graphics.sorter.Structs.*;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -14,18 +15,14 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
-
 import java.io.IOException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -125,6 +122,7 @@ public class MainPageController implements ControllerInterface{
     private AnchorPane selectedAnchorPane;
     private AvailableAssistants availableAssistants;
     private DateTimeFormatter customFormatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy ");
+    private InternalController internalController = new InternalController(this);
     //endregion
     public void initialize() throws IOException {
         prepareHoursAndMinutes();
@@ -153,9 +151,6 @@ public class MainPageController implements ControllerInterface{
         availableAssistants = Database.loadAssistantAvailability(settings.getCurrentYear(), settings.getCurrentMonth());
         Platform.runLater(() -> {
         GraphicalFunctions.screenResizing(basePane,mainGrid);
-
-
-
         });
         // barGrid.maxWidthProperty().bind(dayInfoGrid.widthProperty());
     }
@@ -164,6 +159,7 @@ public class MainPageController implements ControllerInterface{
         for(ClientProfile clip : Objects.requireNonNull(l).getFullClientList()){
             clientIndex.put(clip.getID(),clip);
         }
+
     }
     private void populateAssistantIndex() throws IOException {
         ListOfAssistants l = Database.loadAssistants();
@@ -221,13 +217,16 @@ public class MainPageController implements ControllerInterface{
         }
         //vytahnout y klientu m2s9c2
         editedMonth = Month.of(settings.getCurrentMonth());
-         areaList = new ArrayList<TextFlow>();
-         titleList.clear();
+        areaList = new ArrayList<TextFlow>();
+        titleList.clear();
+        dayList.clear();
+        clientCardList.clear();
+
         /*
         Vytvoří nadpisy pro jednotlivé dny
          */
         int i = 0;
-        while (i <= editedMonth.length(false)){
+        while (i <= editedMonth.length(Year.isLeap(settings.getCurrentYear()))){
             String inputText;
             if(i == 0){
                 inputText = "Jméno Klienta";
@@ -431,19 +430,6 @@ public class MainPageController implements ControllerInterface{
                 }
             });
         }
-    }
-    public void switchPage(ActionEvent actionEvent) throws IOException {
-       Scene scen = calendarScrollPane.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("assistant-view.fxml"));
-        Parent rot = fxmlLoader.load();
-        scen.setRoot(rot);
-
-    }
-    public void switchPageToShift(ActionEvent actionEvent) throws IOException {
-        Scene scen = calendarScrollPane.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("shiftPicker-view.fxml"));
-        Parent rot = fxmlLoader.load();
-        scen.setRoot(rot);
     }
     public List<ArrayList<ArrayList<UUID>>>prepareMergedData(ListOfClients listOfClients,ListOfClientMonths listOfClm, int length) {
         ArrayList<ArrayList<ClientDay>> mergedListDay = new ArrayList<>();
@@ -714,29 +700,9 @@ public class MainPageController implements ControllerInterface{
         selectedMonthValue= Integer.parseInt(parts[1]);
         settings.setCurrentYear(selectedYearValue);
         settings.setCurrentMonth(selectedMonthValue);
-        System.out.println("Selected year" + selectedYearValue);
-        System.out.println("Selected month" + selectedMonthValue);
-       // settings = Database.loadSettings();
         Database.saveSettings(settings);
         populateView(getClientsOfMonth(settings));
-        /*
-        for( Node ce : grid.getChildren()){
-            if( ce instanceof TextArea){
-                TextArea textArea = (TextArea) ce;
-                System.out.println("Text " +textArea.getText());
-                System.out.println("Column index " +grid.getColumnIndex(textArea));
-                System.out.println("Column span " + grid.getColumnSpan(textArea));
-                System.out.println(textArea.getWidth());
-                System.out.println("------------------------------------------------------------");
-            }
-
-            ColumnConstraints col1 = new ColumnConstraints();
-            col1.setMaxWidth(125);
-            col1.setMinWidth(125);
-            col1.setPrefWidth(125);
-            grid.getColumnConstraints().addAll(col1);
-             */
-
+        internalController.send("Assistant");
         }
     private void setTextArea(TextFlow textArea, String inputText, Boolean isDescrip, ArrayList<TextFlow> arList){
         textArea.getChildren().add(new Text(inputText));
@@ -953,7 +919,33 @@ public class MainPageController implements ControllerInterface{
                   tnight2.removeAll(toBeRemoved);
               }
             }else{
-                //TBD
+                ArrayList<DateTimeAssistantAvailability>  tday = avAs.getLocalDateTimeDay().get(cl.getDay());
+                ArrayList<DateTimeAssistantAvailability>  tnight = avAs.getLocalDateTimeNight().get(cl.getDay());
+                ArrayList<DateTimeAssistantAvailability> toBeRemoved = new ArrayList<>();
+                for(DateTimeAssistantAvailability tem : tday){
+                    if(tem.getAssistantAvailability().getAssistant().equals(assigned)){
+                        toBeRemoved.add(tem);
+                    }
+                }
+                //Modify to not completely remove the intervals but instead resize them to fit the 8 hours limit between shifts
+                // tday.removeAll(toBeRemoved);
+                toBeRemoved = new ArrayList<>();
+                for(DateTimeAssistantAvailability tem : tnight){
+                    if(tem.getAssistantAvailability().getAssistant().equals(assigned)){
+                        toBeRemoved.add(tem);
+                    }
+                }
+                tnight.removeAll(toBeRemoved);
+                toBeRemoved = new ArrayList<>();
+                if(avAs.getLocalDateTimeDay().get(cl.getDay()+1) != null){
+                    ArrayList<DateTimeAssistantAvailability>  tnight2 = avAs.getLocalDateTimeNight().get(cl.getDay()+1);
+                    for(DateTimeAssistantAvailability tem : tnight2){
+                        if(tem.getAssistantAvailability().getAssistant().equals(assigned)){
+                            toBeRemoved.add(tem);
+                        }
+                    }
+                    tnight2.removeAll(toBeRemoved);
+                }
             }
         }
     }
@@ -1754,5 +1746,24 @@ public class MainPageController implements ControllerInterface{
     public void updateScreen() {
            // populateView(getClientsOfMonth(settings));
         availableAssistants = Database.loadAssistantAvailability(settings.getCurrentYear(), settings.getCurrentMonth());
+    }
+
+    @Override
+    public void loadAndUpdateScreen() {
+        System.out.println("Main");
+        ListOfClients loc = Database.loadFullClients(selectedYearValue,selectedMonthValue);
+        Platform.runLater(() -> {
+            populateView(loc);
+        });
+        try {
+            populateLocationIndex();
+            populateClientIndex();
+            populateAssistantIndex();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+
     }
 }

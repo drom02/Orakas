@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import graphics.sorter.Structs.DefSettings;
 import graphics.sorter.Structs.ListOfLocations;
-import graphics.sorter.controllers.fizbuzz;
 import graphics.sorter.workHoursAllocation.WorkHoursCalcul;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -37,6 +36,7 @@ public class Start extends Application {
        // valid.run();
         WorkHoursCalcul work = new WorkHoursCalcul();
         Database.prepareTables();
+        ExcelOutput.writeXSLX();
     }
 
     public static void main(String[] args) {

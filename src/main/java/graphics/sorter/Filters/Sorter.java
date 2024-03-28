@@ -126,7 +126,6 @@ public class Sorter {
         /*
         Soft filters have to be applied after all hard filters.
          */
-        //TODO problem is with availableAssistants and availableAssistantsID
         HashMap<UUID,Integer> soft;
         ArrayList<Assistant> trimmedAssistants = new ArrayList<>();
         for(Assistant a : aslList.getFullAssistantList()){
@@ -134,7 +133,6 @@ public class Sorter {
                 trimmedAssistants.add(a);
             }
         }
-       // ArrayList<ArrayList<UUID>> tempList = past.get(String.valueOf(day));
         if(!availableAssistantsID.isEmpty()){
                 soft = softFilters.prepare(availableAssistantsID);
                 softFilters.penalizeRecent(soft,workMonth.getLastWorkedDay(),day,1);
@@ -143,35 +141,9 @@ public class Sorter {
                 softFilters.workedHoursHPP(soft,day,workMonth,workHoursOfMonth,aslList);
                 softFilters.output(availableAssistantsID,soft);
                 ArrayList<DateTimeAssistantAvailability>  ordered = orderedDateTimeAA(availableAssistantsID,availableAssistants);
-                interProc.evaluateInterval(0,0,ordered,cl, new AssistantWorkShift(),dayState,false);
-                return availableAssistantsID.get(0);
-
-            /*
-
-           // tempList.get(dayState).add(availableAssistantsID.get(0));
-           // past.put(String.valueOf(day),tempList);
-            Assistant pickedForDay = trimmedAssistants.stream()
-                    .filter(c -> c.getID().equals(availableAssistantsID.get(0)))
-                    .findFirst()
-                    .orElse(null);
-            //removed Interval assistant assignment
-
-             long lenghtOfShift = 0;
-            for (ServiceInterval sevInt : cl.getDayIntervalListUsefull()) {
-                sevInt.setOverseeingAssistant(pickedForDay);
-                lenghtOfShift = lenghtOfShift + sevInt.getIntervalLength();
-            }
-             */
-
-            //Here is the work registration done. Add method that will assign only to the interval and check
-
+                interProc.mainLoop(0,0,ordered,cl, new AssistantWorkShift(),dayState,false);
+                return availableAssistantsID.getFirst();
         }else{
-            //removed Interval assistant assignment
-            /*
-            for (ServiceInterval sevInt : cl.getDayIntervalListUsefull()) {
-                sevInt.setOverseeingAssistant(null);
-            }
-             */
             return  null;
         }
     }

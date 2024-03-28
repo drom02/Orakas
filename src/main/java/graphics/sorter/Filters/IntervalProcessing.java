@@ -46,13 +46,7 @@ public class IntervalProcessing {
         }
         return false;
     }
-    private AssistantWorkShift workShiftCheck(int AAIter, ArrayList<DateTimeAssistantAvailability> av,int dayState,ClientDay cl, AssistantWorkShift workShift){
-        AssistantWorkShift check = workMonth.getFinishedWork().get(av.get(AAIter).getAssistantAvailability().getAssistant()).get((dayState == 0) ? cl.getDay(): cl.getDay()+100 );
-        if(check!= null){
-            workShift = check;
-        }
-        return workShift;
-    }
+
     public void evaluateInterval(int intervalIter , int AAIter, ArrayList<DateTimeAssistantAvailability> av, ClientDay cl,AssistantWorkShift workShift, int dayState, boolean secondRun){
         boolean solutionFound = false;
         //Various stop conditions and preparatory operations
@@ -65,7 +59,6 @@ public class IntervalProcessing {
             workShiftCheck(AAIter,av,dayState,cl,workShift);
             //
             ServiceInterval activeInterval = cl.getDayIntervalListUsefull().get(intervalIter);
-
             if(workShift.getWorkedMinutes()+activeInterval.getIntervalLength()<= maxShiftLength ) {
                 solutionFound = singleRun(intervalIter,AAIter,av,cl,workShift,dayState,secondRun);
             }else if (AAIter+1 != av.size()){
@@ -75,7 +68,6 @@ public class IntervalProcessing {
                 //If end of assistants is reached, split to fit .
                 splitToFit(intervalIter,AAIter,av,cl,new AssistantWorkShift(),dayState,secondRun);
             }
-
             lastRun(intervalIter,0,av,cl,new AssistantWorkShift(),dayState,secondRun);
         }
         if(AAIter+1 == av.size()){
@@ -112,14 +104,14 @@ public class IntervalProcessing {
         AAIter = findMostTimeAvailable(activeInterval,AAIter,av,cl,workShift,dayState);
         DateTimeAssistantAvailability activeAA = av.get(AAIter);
         workShiftCheck(AAIter,av,dayState,cl,workShift);
-        if(activeInterval.getStart().isBefore(activeAA.getEnd())){
+        if(activeInterval.getStart().isBefore(activeAA.getStart())&& activeInterval.getEnd().isAfter(activeAA.getStart())){
             cl.addInterval(activeAA.getStart(), activeInterval.getEnd());
         }else{
             cl.addInterval(activeAA.getEnd(), activeInterval.getEnd());
         }
 
         if(cl.getDayIntervalListUsefull().size()< intervalIter){
-            singleRun(intervalIter, AAIter, av, cl, new AssistantWorkShift(), dayState, secondRun);
+            singleRun(intervalIter+1, AAIter, av, cl, new AssistantWorkShift(), dayState, secondRun);
         }
 
     }
@@ -202,12 +194,9 @@ public class IntervalProcessing {
         }
         return null;
     }
-
     private boolean assignedAssistant(int AAIter, int intervalIter, AssistantWorkShift workShift,ServiceInterval activeInterval,ArrayList<DateTimeAssistantAvailability> av,ClientDay cl, int dayState ){
-
         if(activeInterval.getAssignedAssistant() != null){
             System.out.println("assigned assistant");
-            //DateTimeAssistantAvailability activeAA = getDateTimeAssis(activeInterval.getAssignedAssistant(),av);
             workShiftCheck(AAIter,av,dayState,cl,workShift);
             if(workShift.getAssistantID()==null ){
                 workShift.setUpFromInterval(activeInterval,cl,activeInterval.getAssignedAssistant());
@@ -252,5 +241,124 @@ public class IntervalProcessing {
         }else{
             return false;
         }
+    }
+    private void save(AssistantWorkShift workShift,ServiceInterval activeInterval,DateTimeAssistantAvailability activeAA, ClientDay cl){
+            if (workShift.getAssistantID() == null || !workShift.getAssistantID().equals(activeAA.getAssistantAvailability().getAssistant())) {
+                workShift.setUpFromInterval(activeInterval, cl, activeAA.getAssistantAvailability().getAssistant());
+                workMonth.registerWorkDay(workShift);
+            }
+            AssistantWorkShift tempWork = workMonth.getFinishedWork().get(activeAA.getAssistantAvailability().getAssistant()).get((cl.getDayStatus()) ? cl.getDay() : (cl.getDay() + 100));
+            if (tempWork != null && tempWork.getStart() != activeInterval.getStart() && tempWork.getEnd() != activeInterval.getEnd()) {
+                workShift.setUpFromInterval(activeInterval, cl, activeAA.getAssistantAvailability().getAssistant());
+            }
+            activeInterval.setOverseeingAssistant(assistantHashMap.get(activeAA.getAssistantAvailability().getAssistant()));
+
+           // evaluateInterval(intervalIter + 1, AAIter, av, cl, workShift, dayState, secondRun);
+    }
+    private void splitToFitLoop(int intervalIter, int AAIter, ArrayList<DateTimeAssistantAvailability> av, ClientDay cl,AssistantWorkShift workShift, int dayState,boolean tooLong){
+        ServiceInterval activeInterval = cl.getDayIntervalListUsefull().get(intervalIter);
+        AAIter = findMostTimeAvailable(activeInterval,AAIter,av,cl,workShift,dayState);
+        DateTimeAssistantAvailability activeAA = av.get(AAIter);
+        workShiftCheck(AAIter,av,dayState,cl,workShift);
+        if(activeInterval.getStart().isBefore(activeAA.getStart())&& activeInterval.getEnd().isAfter(activeAA.getStart())){
+            cl.addInterval(activeAA.getStart(), activeInterval.getEnd());
+        }else {
+            cl.addInterval(activeInterval.getStart(), activeAA.getEnd());
+        }
+        if(tooLong==true){
+            mainLoop(intervalIter,AAIter,av,cl,workShift,dayState,true);
+        }else{
+            mainLoop(intervalIter+1,AAIter,av,cl,workShift,dayState,true);
+        }
+
+    }
+    private boolean lastLoop(int targetAAiter, int intervalIter, int AAIter, ArrayList<DateTimeAssistantAvailability> av, ClientDay cl,AssistantWorkShift workShift, int dayState){
+        if(AAIter==targetAAiter){
+            return false;
+        }
+        workShiftCheck(AAIter,av,dayState,cl,workShift);
+        ServiceInterval activeInterval = cl.getDayIntervalListUsefull().get(intervalIter);
+        DateTimeAssistantAvailability activeAA = av.get(AAIter);
+        if(workShift.getWorkedMinutes()+activeInterval.getIntervalLength()<= maxShiftLength ) {
+            if (checkComplete(activeInterval, activeAA)) {
+                save(workShift, activeInterval, activeAA, cl);
+                return true;
+            }
+        }
+        if(AAIter+1 != av.size() ){
+            return lastLoop(targetAAiter,intervalIter,AAIter+1,av,cl,workShift,dayState);
+        }else{
+            return false;
+        }
+    }
+    public boolean mainLoop(int intervalIter , int AAIter, ArrayList<DateTimeAssistantAvailability> av, ClientDay cl,AssistantWorkShift workShift, int dayState, boolean splitRun){
+        int startOfLoopAssistant = AAIter;
+        boolean tooLong = false;
+        if(endOfIntervals(intervalIter,cl)){
+            return false;
+        }
+        workShiftCheck(AAIter,av,dayState,cl,workShift);
+        ServiceInterval activeInterval = cl.getDayIntervalListUsefull().get(intervalIter);
+        DateTimeAssistantAvailability activeAA = av.get(AAIter);
+        if(assignedAssistantMain(intervalIter, AAIter, workShift, activeInterval, av, cl, dayState)){
+            return true;
+        }
+        if(workShift.getWorkedMinutes()+activeInterval.getIntervalLength()<= maxShiftLength ){
+            if (checkComplete(activeInterval, activeAA)) {
+                save(workShift,activeInterval,activeAA,cl);
+                return true;
+            }
+        }else{
+            tooLong =true;
+            splitRun =false;
+        }
+        if (av.size() != AAIter+1) {
+            if(mainLoop(intervalIter,AAIter+1,av,cl,workShift,dayState,splitRun)){
+                return  true;
+            }else{
+                if(lastLoop(startOfLoopAssistant,intervalIter,AAIter,av,cl,workShift,dayState)){
+                    return true;
+                }
+            }
+        }
+        if(splitRun==false){
+            splitToFitLoop(intervalIter,AAIter,av,cl,new AssistantWorkShift(),dayState,tooLong);
+        }else{
+            mainLoop(intervalIter+1,AAIter,av,cl,workShift,dayState,false);
+        }
+        return false;
+    }
+    private boolean assignedAssistantMain(int AAIter, int intervalIter, AssistantWorkShift workShift,ServiceInterval activeInterval,ArrayList<DateTimeAssistantAvailability> av,ClientDay cl, int dayState ){
+        if(activeInterval.getAssignedAssistant() != null){
+            System.out.println("assigned assistant");
+            workShiftCheckAssigned(activeInterval.getAssignedAssistant(),av,dayState,cl,workShift);
+            if(workShift.getAssistantID()==null ){
+                workShift.setUpFromInterval(activeInterval,cl,activeInterval.getAssignedAssistant());
+                workMonth.registerWorkDay(workShift);
+            }
+            AssistantWorkShift tempWork = workMonth.getFinishedWork().get(activeInterval.getAssignedAssistant()).get((dayState== 0)? cl.getDay() :(cl.getDay()+100));
+            if(tempWork!=null && tempWork.getStart() != activeInterval.getStart() &&tempWork.getEnd() != activeInterval.getEnd()){
+                workShift.setUpFromInterval(activeInterval,cl,activeInterval.getAssignedAssistant());
+            }
+            activeInterval.setOverseeingAssistant(assistantHashMap.get(activeInterval.getAssignedAssistant()));
+            mainLoop(intervalIter+1,AAIter,av,cl,workShift,dayState,false);
+            return true;
+        }else{
+            return false;
+        }
+    }
+    private AssistantWorkShift workShiftCheck(int AAIter, ArrayList<DateTimeAssistantAvailability> av,int dayState,ClientDay cl, AssistantWorkShift workShift){
+        AssistantWorkShift check = workMonth.getFinishedWork().get(av.get(AAIter).getAssistantAvailability().getAssistant()).get((dayState == 0) ? cl.getDay(): cl.getDay()+100 );
+        if(check!= null){
+            workShift = check;
+        }
+        return workShift;
+    }
+    private AssistantWorkShift workShiftCheckAssigned(UUID assignedAssistant, ArrayList<DateTimeAssistantAvailability> av,int dayState,ClientDay cl, AssistantWorkShift workShift){
+        AssistantWorkShift check = workMonth.getFinishedWork().get(assignedAssistant).get((dayState == 0) ? cl.getDay(): cl.getDay()+100 );
+        if(check!= null){
+            workShift = check;
+        }
+        return workShift;
     }
 }

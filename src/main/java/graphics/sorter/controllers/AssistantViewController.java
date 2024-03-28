@@ -4,6 +4,7 @@ import graphics.sorter.*;
 import graphics.sorter.AssistantAvailability.Availability;
 import graphics.sorter.AssistantAvailability.ShiftAvailability;
 import graphics.sorter.JavaFXCustomComponents.AssistantViewConSetup;
+import graphics.sorter.Mediator.InternalController;
 import graphics.sorter.Structs.HumanCellFactory;
 import graphics.sorter.Structs.ListOfAssistants;
 import graphics.sorter.Structs.ListOfClientsProfiles;
@@ -99,6 +100,7 @@ public class AssistantViewController implements ControllerInterface{
     private ArrayList<AssistantViewConSetup> listDataEntry= new ArrayList<>();
     private CircularList<AssistantViewConSetup> linkedViewConList = new CircularList<>(Collections.nCopies(14, null));
     private ArrayList<TextField> numericFields = new ArrayList<>(Arrays.asList(workField));
+    private InternalController internalController = new InternalController(this);
     //endregion
     Settings set;
     public void deleteAssistant(MouseEvent mouseEvent) throws IOException {
@@ -505,6 +507,11 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
             throw new RuntimeException(e);
         }
 
+    }
+
+    @Override
+    public void loadAndUpdateScreen() {
+        System.out.println("Assistant");
     }
 
     public void createVacation(ActionEvent actionEvent) {

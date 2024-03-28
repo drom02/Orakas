@@ -3,22 +3,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import graphics.sorter.AssistantAvailability.ShiftAvailability;
-import graphics.sorter.AssistantAvailability.ShiftAvailabilityArray;
 import graphics.sorter.Structs.*;
 import graphics.sorter.Vacations.Vacation;
 import graphics.sorter.Vacations.VacationTemp;
-import javafx.scene.chart.PieChart;
 
-import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class Database {
     public static  String databaseName = "jdbc:sqlite:"+ JsonManip.loadRedirect()+ "mainSorter.db";
@@ -909,8 +904,8 @@ public class Database {
             JsonManip.saveRedirect(set.getFilePath());
             stmt.setInt(3,set.getCurrentYear());
             stmt.setInt(4,set.getCurrentMonth());
-            stmt.setInt(5,set.getDeftStart()[0]);
-            stmt.setInt(6,set.getDeftStart()[1]);
+            stmt.setInt(5,set.getDefStart()[0]);
+            stmt.setInt(6,set.getDefStart()[1]);
             stmt.setInt(7,set.getDefEnd()[0]);
             stmt.setInt(8,set.getDefEnd()[1]);
             stmt.setInt(9,set.getMaxShiftLength());
