@@ -25,6 +25,15 @@ public class ListOfClients {
     public ListOfClients() {
         this.clientList = new ArrayList<Client>();
     }
+    public ArrayList<Client> getActiveClients(){
+        ArrayList<Client> output = new ArrayList<>();
+        for(Client c : getClientList()){
+            if(c.getActivityStatus()){
+                output.add(c);
+            }
+        }
+        return  output;
+    }
 
 
     public ListOfClientsProfiles convertToListOfClientProfiles(){

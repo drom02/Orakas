@@ -22,6 +22,7 @@ module graphics.sorter {
     opens graphics.sorter.Structs to com.fasterxml.jackson.databind, javafx.fxml;
     exports graphics.sorter.controllers;
     exports graphics.sorter.AssistantAvailability;
+    exports graphics.sorter.Filters to com.fasterxml.jackson.databind;
     opens graphics.sorter.AssistantAvailability to com.fasterxml.jackson.databind;
     opens graphics.sorter.controllers to com.fasterxml.jackson.databind, javafx.fxml;
     opens graphics.sorter.Vacations to com.fasterxml.jackson.databind;

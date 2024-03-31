@@ -169,7 +169,7 @@ public class ExcelOutput {
     }
     public static AvailableAssistants  parseIndividual(HashMap<String,Assistant> mapOfAssistants, String path, int year, int month){
         ArrayList<String> acceptableInputs = ShiftPickerController.prepareAcceptableInputs(mapOfAssistants);
-        AvailableAssistants out = new AvailableAssistants();
+        AvailableAssistants out = new AvailableAssistants(year,month);
         ArrayList<ArrayList<AssistantAvailability>> dayList = new ArrayList<ArrayList<AssistantAvailability>>();
         ArrayList<ArrayList<AssistantAvailability>>  nightList = new ArrayList<ArrayList<AssistantAvailability>>();
         try (FileInputStream fileInputStream = new FileInputStream(new File(path));

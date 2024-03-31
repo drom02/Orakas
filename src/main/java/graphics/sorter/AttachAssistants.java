@@ -33,7 +33,7 @@ public class AttachAssistants {
     }
     private ArrayList<ClientDay> extractClientsForDay(int day ){
         ArrayList<ClientDay> extractedDays = new ArrayList<ClientDay>();
-        for(Client cl : listOfClients.getClientList()){
+        for(Client cl : listOfClients.getActiveClients()){
 
             extractedDays.add(cl.getClientsMonth().getClientDaysInMonth().get(day));
         }

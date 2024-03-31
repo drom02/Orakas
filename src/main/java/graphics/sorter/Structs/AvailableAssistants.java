@@ -1,5 +1,7 @@
 package graphics.sorter.Structs;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import graphics.sorter.Assistant;
 import graphics.sorter.AssistantAvailability.AssistantAvailability;
 import graphics.sorter.AssistantAvailability.AvailableAssistantsLocalDateTime;
@@ -17,6 +19,22 @@ import java.util.ArrayList;
 public class AvailableAssistants implements Saveable {
     private int year;
     private int month;
+@JsonIgnore
+public AvailableAssistants(int year, int month ){
+        int size = Month.of(month).length(Year.isLeap(year));
+        setAvailableAssistantsAtDays(new ArrayList<ArrayList<AssistantAvailability>>(size));
+        setAvailableAssistantsAtNights(new ArrayList<ArrayList<AssistantAvailability>>(size));
+        for(int i =0; i< size;i++){
+            ArrayList<AssistantAvailability> day = new ArrayList<>();
+            ArrayList<AssistantAvailability> night = new ArrayList<>();
+            getAvailableAssistantsAtDays().add(day);
+            getAvailableAssistantsAtNights().add(night);
+        }
+    }
+    @JsonCreator
+    public AvailableAssistants(){
+
+    }
     public ArrayList<ArrayList<AssistantAvailability>> getAvailableAssistantsAtDays() {
         return availableAssistantsAtDays;
     }
@@ -62,7 +80,7 @@ public class AvailableAssistants implements Saveable {
     public void createNew(JsonManip map) throws IOException {
         Settings settings =Settings.getSettings();
         ListOfAssistants listOfA = Database.loadAssistants();
-        AvailableAssistants availableAssistants = new AvailableAssistants();
+        AvailableAssistants availableAssistants = new AvailableAssistants(settings.getCurrentYear(),settings.getCurrentMonth());
         ArrayList<ArrayList<AssistantAvailability>> dayList = new ArrayList<>();
         ArrayList<ArrayList<AssistantAvailability>> nightList = new ArrayList<>();
         for(int i = 0; i < Month.of(settings.getCurrentMonth()).length(Year.isLeap(settings.getCurrentYear())); i++){

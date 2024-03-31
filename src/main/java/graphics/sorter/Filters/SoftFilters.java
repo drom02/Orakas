@@ -31,27 +31,12 @@ public class SoftFilters {
                 if (mapOfLatestWork.get(id) != null) {
                     input.put(id, (penalty * Math.abs(mapOfLatestWork.get(id) - day)));
                 }
-            //linkedMapOfLatestWork.put(id,(penaly*Math.abs(mapOfLatestWork.get(id)-day)));
-          //  System.out.println(id + " "+(penaly*Math.abs(mapOfLatestWork.get(id)-day)));
-
-        }
-        /*
-        linkedMapOfLatestWork = linkedMapOfLatestWork.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1, // Merge function, in case of duplicate keys (should not happen in this context)
-                        LinkedHashMap::new));
-        availableAssistants.clear();
-        availableAssistants.addAll(linkedMapOfLatestWork.keySet());
-        System.out.println("End " +availableAssistants);
-         */
+            }
     }
-    public void workedHoursHPP(HashMap<UUID,Integer> ratingMap, int day, AssistantMonthWorks workMonth, HashMap<UUID, Double> workHoursOfMonth, ListOfAssistants listOfAssistants){
+    public void workedHoursHPP(HashMap<UUID,Integer> ratingMap, int day, AssistantMonthWorks workMonth, HashMap<UUID, Double> workHoursOfMonth, ListOfAssistants listOfAssistants, int penalty){
         for(UUID id : ratingMap.keySet()){
             if(listOfAssistants.getAssistantFromID(id).getContractType().equals("HPP") || listOfAssistants.getAssistantFromID(id).getContractType().equals("HPP-Vlastní")){
-                ratingMap.put(id, (int) (ratingMap.get(id)+((workHoursOfMonth.get(id)/60)- (workMonth.getWorkedTillDate(day,id)/60))));
+                ratingMap.put(id, (int) (ratingMap.get(id)+(((workHoursOfMonth.get(id)/60)- (workMonth.getWorkedTillDate(day,id)/60))*penalty)));
             }
 
         }
@@ -64,10 +49,10 @@ public class SoftFilters {
         }
 
     }
-    public void emergencyAssistant(HashMap<UUID,Integer> ratingMap,ArrayList<Assistant> listOfAssistants){
+    public void emergencyAssistant(HashMap<UUID,Integer> ratingMap,ArrayList<Assistant> listOfAssistants, int penalty){
         for(Assistant a : listOfAssistants){
             if(a.isEmergencyAssistant()){
-                ratingMap.put(a.getID(), -999999999);
+                ratingMap.put(a.getID(), penalty);
             }
         }
 
@@ -84,11 +69,11 @@ public class SoftFilters {
     private int getPenalty(Assistant as, UUID client){
         switch (getCategory(as,client)){
             case 0:
-                return 2;
+                return Scores.getScores().getScoresMap().get("neutral");
             case 1:
-                return 4;
+                return Scores.getScores().getScoresMap().get("positive");
             case 2:
-                return 1;
+                return Scores.getScores().getScoresMap().get("negative");
         }
         return 1;
     }

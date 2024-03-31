@@ -12,7 +12,7 @@ import javafx.scene.control.TextArea;
 
 import java.io.IOException;
 
-public class AssistantListController {
+public class ScoreValuesController {
     @FXML
     private MenuBar menu;
     @FXML

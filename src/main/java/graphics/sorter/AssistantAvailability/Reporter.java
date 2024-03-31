@@ -24,5 +24,17 @@ public class Reporter {
             }
 
         }
-
+    public static  HashMap<UUID,Double> totalWorked(AssistantMonthWorks workedMonth){
+        HashMap<UUID,Double>  output = new HashMap<UUID,Double>();
+        for(UUID id : workedMonth.getFinishedWork().keySet()){
+            HashMap<Integer, AssistantWorkShift> w = workedMonth.getFinishedWork().get(id);
+            Double totaWorked = 0.0;
+            for(Integer in :workedMonth.getFinishedWork().get(id).keySet() ){
+                AssistantWorkShift wok = w.get(in);
+                totaWorked += wok.getWorkedMinutes();
+            }
+            output.put(id,totaWorked/60);
+        }
+        return output;
+    }
 }

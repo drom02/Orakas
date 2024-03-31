@@ -3,6 +3,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import graphics.sorter.AssistantAvailability.ShiftAvailability;
+import graphics.sorter.Filters.Scores;
+import graphics.sorter.Filters.WorkOfMonth;
 import graphics.sorter.Structs.*;
 import graphics.sorter.Vacations.Vacation;
 import graphics.sorter.Vacations.VacationTemp;
@@ -125,8 +127,17 @@ public class Database {
                 + " maxShiftLength integer NOT NULL, \n"
                 + " standardWorkDay real NOT NULL \n"
                 + ");";
+        String scoreTable = "CREATE TABLE IF NOT EXISTS scoreTable (\n"
+                + " scoreID text PRIMARY KEY,\n"
+                + " jsonScores text NOT NULL\n"
+
+                + ");";
+        String lastMonthWorkTable = "CREATE TABLE IF NOT EXISTS lastMonthWorkTable (\n"
+                + " lastMonthWorkID text PRIMARY KEY,\n"
+                + " jsonLastMonth text NOT NULL\n"
+                + ");";
         String[] tables = new String[]{clientTable,assistantTable,locationTable,clientMonthTable,
-                compatibilityTable,clientDayTable,serviceIntervalTable,assistantAvailabilityTable,settingsTable,vacationTable };
+                compatibilityTable,clientDayTable,serviceIntervalTable,assistantAvailabilityTable,settingsTable,vacationTable,scoreTable,lastMonthWorkTable };
         try (Connection conn = DriverManager.getConnection(databaseName);
         Statement stmt = conn.createStatement()) {
             for(String st : tables){
@@ -462,7 +473,6 @@ public class Database {
         }
         return null;
     }
-
     public static void softDeleteAssistant(Assistant assistant){
         String query = "UPDATE assistantTable SET isDeleted = ? WHERE assistantID = ?";
         try(Connection conn = DriverManager.getConnection(databaseName );
@@ -950,5 +960,73 @@ public class Database {
         }
         return new VacationTemp(new ArrayList<>(),null);
     }
-
+    public static void saveMonthWorkResult(int year,int month,WorkOfMonth av ){
+        String query = "INSERT OR REPLACE INTO lastMonthWorkTable (lastMonthWorkID,jsonLastMonth) VALUES (?, ?)";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, year + "." +month);
+            objectMapper.registerModule(new JavaTimeModule());
+            stmt.setString(2,objectMapper.writeValueAsString(av));
+            stmt.execute();
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    public static WorkOfMonth loadMonthWorkResult(int year,int month ){
+        String query = "SELECT * FROM lastMonthWorkTable WHERE lastMonthWorkID = ?";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)){
+            stmt.setString(1,year + "." +month);
+            try(ResultSet rs = stmt.executeQuery()){
+                if(rs.next()){
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.registerModule(new JavaTimeModule());
+                    WorkOfMonth avOut = objectMapper.readValue(rs.getString("jsonLastMonth"), WorkOfMonth.class);
+                    return avOut;
+                }else{
+                    return null;
+                }
+            }
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+    public static void saveScoreValues(String id,Scores av ){
+        String query = "INSERT OR REPLACE INTO scoreTable (scoreID,jsonScores) VALUES (?, ?)";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, id);
+            objectMapper.registerModule(new JavaTimeModule());
+            stmt.setString(2,objectMapper.writeValueAsString(av));
+            stmt.execute();
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    public static Scores loadScoreValues(String id){
+        String query = "SELECT * FROM scoreTable WHERE scoreID = ?";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)){
+            stmt.setString(1,id);
+            try(ResultSet rs = stmt.executeQuery()){
+                if(rs.next()){
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.registerModule(new JavaTimeModule());
+                    Scores avOut = objectMapper.readValue(rs.getString("jsonScores"), Scores.class);
+                    return avOut;
+                }else{
+                    Scores scores = new Scores();
+                    scores.defValues();
+                    Database.saveScoreValues("default",scores);
+                    return scores;
+                }
+            }
+        }catch (Exception e) {
+            Scores scores = new Scores();
+            scores.defValues();
+            Database.saveScoreValues("default",scores);
+            return scores;
+        }
+    }
 }

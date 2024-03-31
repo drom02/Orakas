@@ -58,6 +58,7 @@ public class ClientViewController implements ControllerInterface{
             Database.saveClientProfile(selectedClient);
             ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
             listViewofC.setItems(observClientList);
+            internalController.send("Assistant");
         }
     }
     public void loadClient(MouseEvent mouseEvent) throws IOException {

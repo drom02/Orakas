@@ -4,6 +4,7 @@ import graphics.sorter.Assistant;
 import graphics.sorter.AssistantAvailability.AssistantAvailability;
 import graphics.sorter.AssistantAvailability.DateTimeAssistantAvailability;
 import graphics.sorter.Database;
+import graphics.sorter.Mediator.ReferentialBoolean;
 import graphics.sorter.Settings;
 import graphics.sorter.Structs.AvailableAssistants;
 import graphics.sorter.Structs.ListOfAssistants;
@@ -11,6 +12,7 @@ import graphics.sorter.Structs.ClientDay;
 import graphics.sorter.Structs.ServiceInterval;
 import graphics.sorter.workHoursAllocation.WorkHoursCalcul;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,18 +46,26 @@ public class Sorter {
      */
     //
     private void setupWorkHoursOfMonth(ListOfAssistants assistList, int year, int month ){
+        LocalDate tempDate = LocalDate.of(year,month,1).plusMonths(-1);
+        WorkOfMonth wok = Database.loadMonthWorkResult(tempDate.getYear(),tempDate.getMonthValue());
         for(Assistant a : assistList.getFullAssistantList()){
             if(a.getContractType().equals("HPP")){
-                workHoursOfMonth.put(a.getID(), WorkHoursCalcul.workDaysCalcul(year,month,7.5,a.getID(),a.getContractTime()));
+                double addedValue = 0;
+                if(wok != null && null != wok.retrieveValue(a.getID())){
+                    addedValue = wok.retrieveValue(a.getID());
+                }
+                workHoursOfMonth.put(a.getID(), WorkHoursCalcul.workDaysCalcul(year,month,7.5,a.getID(),a.getContractTime())+addedValue);
             } else if (a.getContractType().equals("HPP-Vlastní")) {
                 workHoursOfMonth.put(a.getID(), a.getContractTime());
             }
-
         }
-
     }
+
     public AssistantMonthWorks getWorkMonth(){
         return workMonth;
+    }
+    public HashMap<UUID, Double> getWorkHoursOfMonth(){
+        return workHoursOfMonth;
     }
     public Sorter(ListOfAssistants assistList, int year, int month){
         IDAvailIndex = new HashMap<UUID, DateTimeAssistantAvailability>();
@@ -69,6 +79,9 @@ public class Sorter {
 
 
     public UUID sort(ArrayList<AssistantAvailability> availableAssistants, int day, int dayState, ClientDay cl, ListOfAssistants aslList){
+        /*
+
+         */
         //cl.getClient();
         ArrayList<UUID> availableAssistantsID = getIdFromList(availableAssistants);
         hardFilters.removePreviousShift(availableAssistantsID,day,workMonth,dayState);
@@ -89,7 +102,7 @@ public class Sorter {
             soft = softFilters.prepare(availableAssistantsID);
             softFilters.penalizeRecent(soft,workMonth.getLastWorkedDay(),day,1);
             softFilters.clientPreference(soft,cl.getClient(),trimmedAssistants);
-            softFilters.emergencyAssistant(soft,trimmedAssistants);
+            softFilters.emergencyAssistant(soft,trimmedAssistants,5);
             softFilters.output(availableAssistantsID,soft);
         }
         ArrayList<ArrayList<UUID>> tempList = past.get(String.valueOf(day));
@@ -137,11 +150,11 @@ public class Sorter {
                 soft = softFilters.prepare(availableAssistantsID);
                 softFilters.penalizeRecent(soft,workMonth.getLastWorkedDay(),day,1);
                 softFilters.clientPreference(soft,cl.getClient(),trimmedAssistants);
-                softFilters.emergencyAssistant(soft,trimmedAssistants);
-                softFilters.workedHoursHPP(soft,day,workMonth,workHoursOfMonth,aslList);
+                softFilters.emergencyAssistant(soft,trimmedAssistants,Scores.getScores().getScoresMap().get("emergency"));
+                softFilters.workedHoursHPP(soft,day,workMonth,workHoursOfMonth,aslList,Scores.getScores().getScoresMap().get("HppHour"));
                 softFilters.output(availableAssistantsID,soft);
                 ArrayList<DateTimeAssistantAvailability>  ordered = orderedDateTimeAA(availableAssistantsID,availableAssistants);
-                interProc.mainLoop(0,0,ordered,cl, new AssistantWorkShift(),dayState,false);
+                interProc.start(ordered,cl,dayState);
                 return availableAssistantsID.getFirst();
         }else{
             return  null;
@@ -177,7 +190,6 @@ public class Sorter {
             UUID id = as.getAssistantAvailability().getAssistant();
             output.add(id);
             IDAvailIndex.put(id,as);
-
         }
         return  output;
     }
@@ -185,7 +197,6 @@ public class Sorter {
         for(Assistant a : assistants.getFullAssistantList()){
             assistantHashMap.put(a.getID(),a);
         }
-
     }
     public void report(){
         //TODO repair

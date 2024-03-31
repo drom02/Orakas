@@ -17,7 +17,7 @@ public class ValidateFiles {
     public void run(){
         JsonManip jsom = JsonManip.getJsonManip();
         String[] st = {"Assistants\\Assistants.json","Locations\\Locations.json","Clients\\Clients.json","AvailableAssistants"};
-        ArrayList<Saveable> save = new ArrayList<>(Arrays.asList(new ListOfAssistants(null), new ListOfLocations(), new ListOfClientsProfiles(null),new AvailableAssistants()));
+        ArrayList<Saveable> save = new ArrayList<>(Arrays.asList(new ListOfAssistants(null), new ListOfLocations(), new ListOfClientsProfiles(null),new AvailableAssistants(set.getCurrentYear(),set.getCurrentMonth())));
         int i = 0;
         for(String s:st){
             try {

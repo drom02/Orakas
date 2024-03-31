@@ -219,7 +219,7 @@ public class JsonManip {
         objectMapper.writeValue(new File(".\\Settings.json"),lias);
     }
     public static void generateEmptyState(Settings settings) throws IOException {
-        AvailableAssistants availableAssistants = new AvailableAssistants();
+        AvailableAssistants availableAssistants = new AvailableAssistants(settings.getCurrentYear(),settings.getCurrentMonth());
         ArrayList<ArrayList<AssistantAvailability>> dayList = new ArrayList<>();
         ArrayList<ArrayList<AssistantAvailability>> nightList = new ArrayList<>();
         int shift = 0;
@@ -236,7 +236,7 @@ public class JsonManip {
     public void  generateNewMonthsAssistants(int year,int month) throws IOException {
         //JsonManip jsom = new JsonManip();
         ListOfAssistants listOfA = Database.loadAssistants();
-        AvailableAssistants availableAssistants = new AvailableAssistants();
+        AvailableAssistants availableAssistants = new AvailableAssistants(year,month);
         ArrayList<ArrayList<AssistantAvailability>> dayList = new ArrayList<>(31);
         ArrayList<ArrayList<AssistantAvailability>> nightList = new ArrayList<>(31);
         for(int i =0; i < Month.of(month).length(Year.isLeap(year)); i++){
