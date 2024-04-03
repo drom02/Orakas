@@ -1,0 +1,11 @@
+.result-default{
+}
+.result-positive{
+   -fx-background-color: green;
+}
+.result-negative{
+   -fx-background-color: red;
+}
+.result-partial{
+   -fx-background-color: orange;
+}
