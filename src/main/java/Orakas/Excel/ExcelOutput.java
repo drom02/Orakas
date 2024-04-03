@@ -1,9 +1,12 @@
-package Orakas;
+package Orakas.Excel;
 
 import Orakas.AssistantAvailability.AssistantAvailability;
 import Orakas.AssistantAvailability.Availability;
+import Orakas.AssistantAvailability.DayReport;
+import Orakas.AssistantAvailability.MonthReport;
 import Orakas.Database.Database;
 import Orakas.Humans.Assistant;
+import Orakas.Settings;
 import Orakas.Structs.Availability.AvailableAssistants;
 import Orakas.Structs.ListOfAssistants;
 import Orakas.controllers.ShiftPickerController;
@@ -106,58 +109,64 @@ public class ExcelOutput {
     public static XSSFWorkbook generateXSSFTemplate(String name, int year, int month){
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet("availableAssistants");
+        sheet.protectSheet("heslo");
+        workbook.lockStructure();
         ArrayList<XSSFRow> rows = new ArrayList<>();
         for(int i =0; i <4;i++){
             rows.add(sheet.createRow(i));
         }
-
-        XSSFCellStyle cellStyle = workbook.createCellStyle();
+        XSSFCellStyle cellStyleUnlocked = workbook.createCellStyle();
+        XSSFCellStyle cellStyleLocked = workbook.createCellStyle();
         DataFormat format = workbook.createDataFormat();
-        cellStyle.setDataFormat(format.getFormat("@"));
-        cellStyle.setWrapText(true);
+        cellStyleUnlocked.setLocked(false);
+        cellStyleUnlocked.setDataFormat(format.getFormat("@"));
+        cellStyleUnlocked.setWrapText(true);
+        cellStyleLocked.setDataFormat(format.getFormat("@"));
+        cellStyleLocked.setWrapText(true);
+        cellStyleLocked.setAlignment(HorizontalAlignment.CENTER);
         DataValidationHelper dvHelper = sheet.getDataValidationHelper();
         DataValidationConstraint hours = dvHelper.createExplicitListConstraint(generateHours());
         DataValidationConstraint minutes = dvHelper.createExplicitListConstraint(generateMinutes());
         CellRangeAddressList addressListHours = new CellRangeAddressList();
         CellRangeAddressList addressListMinutes = new CellRangeAddressList();
         int maxWidth = 256 * 50;
-        createCellWithContent(0,0,"Denní směna "+"-" + name,cellStyle,rows,2);
-        createCellWithContent(0,0,"Noční směna "+"-" + name ,cellStyle,rows,3);
+        createCellWithContent(0,0,"Denní směna "+"-" + name,cellStyleLocked,rows,2);
+        createCellWithContent(0,0,"Noční směna "+"-" + name ,cellStyleLocked,rows,3);
         ArrayList<String> startedValues = new ArrayList<>();
         startedValues.add(String.valueOf(Settings.getSettings().getDefStart()[0]));
         startedValues.add(String.valueOf(Settings.getSettings().getDefStart()[1]));
         startedValues.add(String.valueOf(Settings.getSettings().getDefEnd()[0]));
         startedValues.add(String.valueOf(Settings.getSettings().getDefEnd()[1]));
+
         for(int i = 0; i< Month.of(month).length(Year.isLeap(year)); i++){
             CellRangeAddress cellRangeAddress = new CellRangeAddress(0, 0, i*4+1, i*4+4);
             sheet.addMergedRegion(cellRangeAddress);
-            createCellWithContent(i,1,year+"."+month+ "."+ (i+1) ,cellStyle,rows,0);
-            createCellWithContent(i,1,"Hodiny začátku" ,cellStyle,rows,1);
-            createCellWithContent(i,2,"Minuty začátku" ,cellStyle,rows,1);
-            createCellWithContent(i,3,"Hodiny konce" ,cellStyle,rows,1);
-            createCellWithContent(i,4,"Minuty konce" ,cellStyle,rows,1);
+            createCellWithContent(i,1,year+"."+month+ "."+ (i+1) ,cellStyleLocked,rows,0);
+            createCellWithContent(i,1,"Hodiny začátku" ,cellStyleLocked,rows,1);
+            createCellWithContent(i,2,"Minuty začátku" ,cellStyleLocked,rows,1);
+            createCellWithContent(i,3,"Hodiny konce" ,cellStyleLocked,rows,1);
+            createCellWithContent(i,4,"Minuty konce" ,cellStyleLocked,rows,1);
             for(int iInter =0; iInter <4;iInter++){
-                createCellWithContent(i,iInter+1,startedValues.get(iInter),cellStyle,rows,2);
-                createCellWithContent(i,iInter+1,startedValues.get(((iInter>1)? (iInter-2):(iInter+2))),cellStyle,rows,3);
+                createCellWithContent(i,iInter+1,startedValues.get(iInter),cellStyleUnlocked,rows,2);
+                createCellWithContent(i,iInter+1,startedValues.get(((iInter>1)? (iInter-2):(iInter+2))),cellStyleUnlocked,rows,3);
             }
             addressListHours.addCellRangeAddress(new CellRangeAddress(2, 3, i*4+1, i*4+1));
             addressListMinutes.addCellRangeAddress(new CellRangeAddress(2, 3, i*4+2, i*4+2));
             addressListHours.addCellRangeAddress(new CellRangeAddress(2, 3, i*4+1, i*4+3));
             addressListMinutes.addCellRangeAddress(new CellRangeAddress(2, 3, i*4+2, i*4+4));
-            /*
-            XSSFCell cellDay = day.createCell(i);
-            cellDay.setCellStyle(cellStyle);
-            XSSFCell cellNight = night.createCell(i);
-            cellNight .setCellStyle(cellStyle);
-            cellSetup(cellDay, avs.getAvailableAssistantsAtDays().get(i));
-            cellSetup(cellNight, avs.getAvailableAssistantsAtNights().get(i));
-            cellTitle.setCellValue((i+1)+"."+month+"."+year);
-             */
-            sheet.autoSizeColumn(i);
-            if (sheet.getColumnWidth(i) > maxWidth) {
-                sheet.setColumnWidth(i, maxWidth);
+            for(int ii =1; ii<5;ii++){
+                int editedColumn = i*4+ii;
+                sheet.autoSizeColumn(editedColumn);
+                if (sheet.getColumnWidth(editedColumn) > maxWidth) {
+                    sheet.setColumnWidth(editedColumn, maxWidth);
+                }
             }
 
+        }
+        int editedColumn = 0;
+        sheet.autoSizeColumn(editedColumn);
+        if (sheet.getColumnWidth(editedColumn) > maxWidth) {
+            sheet.setColumnWidth(editedColumn, maxWidth);
         }
         DataValidation hourValidation = dvHelper.createValidation(hours, addressListHours);
         DataValidation minuteValidation = dvHelper.createValidation(minutes, addressListMinutes);
@@ -247,17 +256,106 @@ public class ExcelOutput {
         cellTitle.setCellValue(content);
         cellTitle.setCellStyle(cellStyle);
     }
-    public static void writeXSLX(){
-        XSSFWorkbook workbook = generateXSSFTemplate("a a",2024,12);
-        try (FileOutputStream fos = new FileOutputStream("C:\\Users\\matej\\VSE\\delete\\"+"individual assistant test"+".xlsx")) {
-            workbook.write(fos);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                workbook.close();
+    private static  void createCellWithContent(int columnIndex, String content, CellStyle cellStyle, ArrayList<XSSFRow> rows, int rowIter){
+        Cell cellTitle = rows.get(rowIter).createCell(columnIndex); // Create a cell in the first column of the current row
+        cellTitle.setCellValue(content);
+        cellTitle.setCellStyle(cellStyle);
+    }
+    public static void saveReports(ArrayList<MonthReport> reports,HashMap<UUID,Assistant> assistantHashMap){
+        String userHome = System.getProperty("user.home");
+        String desktopPath = userHome + System.getProperty("file.separator") + "Desktop";
+        Workbook workbook = composeReport(reports,assistantHashMap);
+            try (FileOutputStream fos = new FileOutputStream(desktopPath +System.getProperty("file.separator")  + "Report for " +reports.getFirst().getMonth()+"."+reports.getFirst().getYear()+".xlsx")) {
+                workbook.write(fos);
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+    }
+    private static Workbook composeReport(ArrayList<MonthReport> reports,HashMap<UUID,Assistant> assistantHashMap){
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFCellStyle cellStyle = workbook.createCellStyle();
+        ArrayList<String> titles = new ArrayList<>(Arrays.asList("Datum","Odpracováno přes den","Odpracováno v noci", "Odpracováno o víkendu"));
+        for(MonthReport rep : reports){
+            Assistant assistant= assistantHashMap.get(rep.getID());
+            XSSFSheet sheet = workbook.createSheet(assistant.getName()+" " + assistant.getSurname());
+            ArrayList<XSSFRow> rows = new ArrayList<>();
+            for(int i =0; i <12;i++){
+                rows.add(sheet.createRow(i));
+            }
+            createCellWithContent(0,"Jméno : " ,cellStyle,rows,0);
+            createCellWithContent(0,"Typ úvazku : " ,cellStyle,rows,1);
+            createCellWithContent(0,"Délka úvazku : " ,cellStyle,rows,2);
+            createCellWithContent(0,"Měsíc : " ,cellStyle,rows,3);
+            createCellWithContent(0,"Fond práce : " ,cellStyle,rows,4);
+
+            createCellWithContent(1, assistant.getName()+" " +assistant.getSurname(),cellStyle,rows,0);
+            createCellWithContent(1, assistant.getContractType(),cellStyle,rows,1);
+            createCellWithContent(1, String.valueOf(assistant.getContractTime()),cellStyle,rows,2);
+            createCellWithContent(1,  rep.getMonth()+"."+rep.getYear(),cellStyle,rows,3);
+            createCellWithContent(1, String.valueOf(rep.getWorkFund()),cellStyle,rows,4);
+            int i =0;
+            for(DayReport report : rep.getDailyReports()){
+                if(i==0){
+                    int rowIter = 6;
+                    for(String s :titles){
+                        createCellWithContent(i, s,cellStyle,rows,rowIter);
+                        rowIter++;
+                    }
+                    reportDay(report,rep,cellStyle,rows,assistant,6);
+                }else{
+                   reportDay(report,rep,cellStyle,rows,assistant,6);
+                    // createCellWithContent(report.getDay(),String.valueOf(report.getWorkedAtDay()),cellStyle,rows,9);
+                }
+                i++;
+            }
+            int maxWidth = 256 * 50;
+            for(int col=0;col<31;col++){
+                createCellWithContent(col+1, col+1+"."+ rep.getMonth()+"."+rep.getYear(),cellStyle,rows,6);
+                sheet.autoSizeColumn(col);
+                if (sheet.getColumnWidth(col) > maxWidth) {
+                    sheet.setColumnWidth(col, maxWidth);
+                }
+            }
+        }
+        DataFormat format = workbook.createDataFormat();
+        cellStyle.setLocked(false);
+        cellStyle.setDataFormat(format.getFormat("@"));
+        cellStyle.setWrapText(true);
+        /*
+        sheet.autoSizeColumn(editedColumn);
+        if (sheet.getColumnWidth(editedColumn) > maxWidth) {
+            sheet.setColumnWidth(editedColumn, maxWidth);
+        }
+         */
+        return workbook;
+    }
+    private static void reportDay(DayReport report,MonthReport rep, CellStyle cellStyle,ArrayList<XSSFRow> rows, Assistant assistant, int start){
+        createCellWithContent(report.getDay(), report.getDay()+"."+ rep.getMonth()+"."+rep.getYear(),cellStyle,rows,start);
+        createCellWithContent(report.getDay(), String.valueOf((report.getWorkedAtDay()/60)),cellStyle,rows,start+1);
+        createCellWithContent(report.getDay(),String.valueOf(report.getWorkedAtNight()/60),cellStyle,rows,start+2);
+        createCellWithContent(report.getDay(),String.valueOf(report.getWorkedAtWeekend()/60),cellStyle,rows,start+3);
+    }
+
+    public static void writeAllAssistantTemplatesFor(ArrayList<Assistant> assistantList, int year, int month, String path){
+        for(Assistant a : assistantList){
+            XSSFWorkbook workbook = generateXSSFTemplate(a.getName()+" "+a.getSurname(),year,month);
+            try (FileOutputStream fos = new FileOutputStream(path+"\\" + a.getName()+" "+a.getSurname() +"."+month+ " " + year+".xlsx")) {
+
+                workbook.write(fos);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

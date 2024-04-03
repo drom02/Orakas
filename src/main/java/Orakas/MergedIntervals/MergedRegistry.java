@@ -22,15 +22,10 @@ public class MergedRegistry {
             mergedRegistry.get(i).get(dayState).put(locationID,mergedRecord);
     }
     public void addIntervalToMergedRecord(Integer i, ServiceInterval serviceInterval, UUID locationID, boolean dayState){
-        if(mergedRegistry.get(i).get(dayState).get(locationID)!=null){
-            mergedRegistry.get(i).get(dayState).get(locationID).addMergedIntervals(serviceInterval);
-        }else{
             mergedRegistry.putIfAbsent(i,new HashMap<>());
             mergedRegistry.get(i).putIfAbsent(dayState,new HashMap<>());
             mergedRegistry.get(i).get(dayState).putIfAbsent(locationID,new MergedRecord());
             mergedRegistry.get(i).get(dayState).get(locationID).addMergedIntervals(serviceInterval);
-        }
-
     }
     public MergedRecord checkExistence(ClientDay cl, ServiceInterval serviceInterval) {
         HashMap<Boolean, HashMap<UUID, MergedRecord>> dayMap = mergedRegistry.get(cl.getDay());

@@ -2,15 +2,9 @@ package Orakas.Structs;
 
 import Orakas.ClientProfile;
 import Orakas.Structs.TimeStructs.ClientDay;
+import Orakas.Structs.TimeStructs.ServiceInterval;
 
 public class LocationRepresentative {
-    public ClientDay getClDay() {
-        return clDay;
-    }
-
-    public void setClDay(ClientDay clDay) {
-        this.clDay = clDay;
-    }
 
     public ClientProfile getClp() {
         return clp;
@@ -21,7 +15,26 @@ public class LocationRepresentative {
     }
 
     private ClientProfile clp;
-    private ClientDay clDay;
+
+    public ServiceInterval getServiceInterval() {
+        return serviceInterval;
+    }
+
+    public void setServiceInterval(ServiceInterval serviceInterval) {
+        this.serviceInterval = serviceInterval;
+    }
+
+    private ServiceInterval serviceInterval;
+
+    public ClientDay getCld() {
+        return cld;
+    }
+
+    public void setCld(ClientDay cld) {
+        this.cld = cld;
+    }
+
+    private ClientDay cld;
 @Override
 public String toString(){
     if(clp==null){

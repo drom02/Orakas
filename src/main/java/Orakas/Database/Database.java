@@ -23,7 +23,9 @@ import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 public class Database {
@@ -684,8 +686,12 @@ public class Database {
                     String location = rs.getString("locationID");
                     ClientDay cl = new ClientDay(UUID.fromString(clientID), day, Month.of(month), year,null,null,loadLocation(UUID.fromString(location)),isMerged,isDay);
                     cl.setDayIntervalList(loadServiceInterval(cl));
+                    if(cl.getDay() ==1 && cl.getDayStatus()==true){
+                        System.out.println(" ");
+                    }
                     lis.add(cl);
                 }
+                lis = lis.stream().sorted(Comparator.comparingInt(day -> day.getDay())).collect(Collectors.toCollection(ArrayList::new));
                 return  lis;
             }
         }catch (Exception e) {
@@ -758,8 +764,8 @@ public class Database {
                      if((overseeingAssistantID != null)){
                          out = loadAssistant(UUID.fromString(overseeingAssistantID));
                      }
-                     UUID outAssigned = (assignedAssistantID == null) ? null : UUID.fromString(assignedAssistantID);
-                     ServiceInterval outputInterval = new ServiceInterval(LocalDateTime.parse(start,formatter),LocalDateTime.parse(end,formatter),out,outAssigned,comment,isNotRequired,isMerged,(location == null) ? null: UUID.fromString(location),requiresDriver);
+                     UUID outAssigned = (assignedAssistantID == null ||assignedAssistantID.equals("null") ) ? null : UUID.fromString(assignedAssistantID);
+                     ServiceInterval outputInterval = new ServiceInterval(LocalDateTime.parse(start,formatter),LocalDateTime.parse(end,formatter),out,outAssigned,comment,isNotRequired,isMerged,(location == null || location.equals("null")) ? null: UUID.fromString(location),requiresDriver);
                      lis.add(outputInterval);
                  }
                  return  lis;

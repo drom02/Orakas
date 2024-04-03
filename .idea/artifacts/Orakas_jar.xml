@@ -1,8 +1,8 @@
 <component name="ArtifactManager">
-  <artifact type="jar" name="Sorter:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/Sorter_jar</output-path>
+  <artifact type="jar" name="Orakas:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Orakas_jar</output-path>
     <root id="archive" name="Sorter.jar">
-      <element id="module-output" name="Sorter" />
+      <element id="module-output" name="Orakas" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/github/almasb/fxgl/17.3/fxgl-17.3.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/eu/hansolo/tilesfx/11.48/tilesfx-11.48.jar" path-in-jar="/" />
@@ -121,6 +121,7 @@
       <element id="file-copy" path="$PROJECT_DIR$/../../../../../../Program Files/javaFX/javafx-sdk-21.0.2/bin/ucrtbase.dll" />
       <element id="file-copy" path="$PROJECT_DIR$/../../../../../../Program Files/javaFX/javafx-sdk-21.0.2/bin/vcruntime140.dll" />
       <element id="file-copy" path="$PROJECT_DIR$/../../../../../../Program Files/javaFX/javafx-sdk-21.0.2/bin/vcruntime140_1.dll" />
+      <element id="library" level="project" name="Maven: de.focus-shift:jollyday-jackson:0.27.0" />
     </root>
   </artifact>
 </component>

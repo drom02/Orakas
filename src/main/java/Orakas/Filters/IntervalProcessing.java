@@ -52,7 +52,7 @@ public class IntervalProcessing {
     private boolean checkMergedAssistants(MergedRegistry mergedRegistry,ClientDay cl, ServiceInterval serv){
         MergedRecord merg = mergedRegistry.checkExistence(cl,serv);
         if(merg !=null && merg.getMergedIntervals().contains(serv)){
-            if(serv.equals(merg.getPrimaryInterval())){
+            if(serv ==(merg.getPrimaryInterval())){
                 return false;
             }else{
                 return true;
@@ -121,17 +121,22 @@ public class IntervalProcessing {
         if(mostAvailable[1] <= (Settings.getSettings().getMaxShiftLength()* 60L)) {
             if(TimeComparator.beforeOrE(activeInterval.getStart(),activeAA.getStart()) && TimeComparator.afterOrE(activeAA.getEnd(),activeInterval.getEnd())&&TimeComparator.afterOrE(activeInterval.getEnd(),activeAA.getStart())){
                 cl.addInterval(activeAA.getStart(), activeInterval.getEnd());
+                return true;
             }else if (TimeComparator.afterOrE(activeAA.getEnd(),activeInterval.getStart()) && activeInterval.getEnd().isAfter(activeAA.getEnd())){
                 cl.addInterval(activeInterval.getStart(), activeAA.getEnd());
+                return true;
+
             }
         }else{
             if(TimeComparator.beforeOrE(activeInterval.getStart(),activeAA.getStart())&& TimeComparator.afterOrE(activeInterval.getEnd(),activeAA.getStart()) && activeAA.getStart().plusHours(Settings.getSettings().getMaxShiftLength()).isBefore(activeAA.getEnd())){
                 cl.addInterval(activeAA.getStart(), activeAA.getStart().plusHours(Settings.getSettings().getMaxShiftLength()));
+                return true;
             }else if (activeAA.getEnd().isAfter(activeInterval.getStart()) && activeInterval.getEnd().isAfter(activeAA.getEnd())){
                 cl.addInterval(activeInterval.getStart(), activeAA.getEnd());
+                return true;
             }
         }
-        return true;
+        return false;
     }
     private boolean lastLoop(int targetAAiter, int intervalIter, int AAIter, ArrayList<DateTimeAssistantAvailability> av, ClientDay cl,AssistantWorkShift workShift, int dayState,ReferentialBoolean solutionFound){
         if(AAIter==targetAAiter){
@@ -142,8 +147,13 @@ public class IntervalProcessing {
         DateTimeAssistantAvailability activeAA = av.get(AAIter);
         if(workShift.getWorkedMinutes()+activeInterval.getIntervalLength()<= maxShiftLength ) {
             if (checkComplete(activeInterval, activeAA)) {
-                save(workShift, activeInterval, activeAA, cl);
-                solutionFound.setValue(2);
+                if (intervalRequirements(activeInterval, activeAA)) {
+                    save(workShift, activeInterval, activeAA, cl);
+                    solutionFound.setValue(2);
+                } else if (AAIter+1==targetAAiter || AAIter+1 != av.size()) {
+                    solutionFound.setValue(2);
+                }
+
                 return true;
             }
         }
@@ -151,6 +161,13 @@ public class IntervalProcessing {
              lastLoop(targetAAiter,intervalIter,AAIter+1,av,cl,workShift,dayState,solutionFound);
         }
         return  false;
+    }
+    private boolean intervalRequirements(ServiceInterval serviceInterval, DateTimeAssistantAvailability activeAA){
+        if(serviceInterval.isRequiresDriver() && !assistantHashMap.get(activeAA.getAssistantAvailability().getAssistant()).isDriver()){
+            return false;
+        }else{
+            return  true;
+        }
     }
     private boolean mainLoop(int startOfLoopAssistant, int intervalIter , int AAIter, ArrayList<DateTimeAssistantAvailability> av, ClientDay cl, int dayState, ReferentialBoolean solutionFound){
         //If interval iterator points out of bounds, exit.
@@ -176,8 +193,11 @@ public class IntervalProcessing {
             //if assistants availability covers entire service interval and any other assistant was not assigned.
             if (checkComplete(activeInterval, activeAA) && solutionFound.getValue()!=2) {
                 //Assign current assistant as overseeing assistant and set solution as found
-                save(workShift,activeInterval,activeAA,cl);
-                solutionFound.setValue(2);
+                if (intervalRequirements(activeInterval, activeAA)) {
+                    save(workShift,activeInterval,activeAA,cl);
+                    solutionFound.setValue(2);
+                }
+
             }
         }
         //If the solution wasn't found and the assistant currently used isn't last
@@ -198,9 +218,10 @@ public class IntervalProcessing {
             //Attempt to split the interval into more manageable size.
             if(splitToFitLoop(intervalIter,AAIter,av,cl,new AssistantWorkShift(),dayState))
             //if split was successful, try again for newly created interval
-            {mainLoop(AAIter, (intervalIter-1>=0)? intervalIter-1: intervalIter,AAIter,av,cl, dayState,solutionFound);}
+            {mainLoop(AAIter, intervalIter,AAIter,av,cl, dayState,solutionFound);}
             //if no solution was found.
-        }else if(solutionFound.getValue()!=1){
+        }
+        if(solutionFound.getValue()!=1){
             //Continue with another interval.
                 mainLoop(AAIter,intervalIter+1,AAIter,av,cl, dayState,new ReferentialBoolean(0));
             }

@@ -1,6 +1,7 @@
 package Orakas;
 
 import Orakas.Database.Database;
+import Orakas.Excel.ExcelOutput;
 import Orakas.workHoursAllocation.WorkHoursCalcul;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -12,6 +13,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 public class Start extends Application {
     @Override
@@ -19,14 +21,13 @@ public class Start extends Application {
 
         FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("start-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 640, 480);
-        scene.getStylesheets().add(getClass().getResource("/main.css").toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/main.css")).toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/resultDisplay.css")).toExternalForm());
         stage.setTitle("Orakas");
         stage.setScene(scene);
         stage.show();
         WorkHoursCalcul work = new WorkHoursCalcul();
         Database.prepareTables();
-        ExcelOutput.writeXSLX();
-
     }
 
     public static void main(String[] args) {

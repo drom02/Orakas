@@ -10,8 +10,10 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -21,9 +23,10 @@ import javafx.scene.layout.Pane;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
-public class LocationController implements ControllerInterface{
+public class LocationController extends SaveableControllerInterface implements ControllerInterface{
     @FXML
     private GridPane mainGrid;
     @FXML
@@ -41,25 +44,23 @@ public class LocationController implements ControllerInterface{
     private ListOfLocations listOfL;
     private UUID selectedID;
     private Location selectedLocationGlobal;
+    private ArrayList<Node> requiredNodes = new ArrayList<>(Arrays.asList(nameField,addressField));
     JsonManip jsoMap;
     Settings set;
     public void initialize() throws IOException {
         set = Settings.getSettings();
-       // listOfL = jsoMap.loadLocations(set);
-        /*
-        CompletableFuture<Void> future = CompletableFuture.runAsync(()-> {listOfL = Database.loadLocations();}).thenAccept( result -> {listOfLoc = listOfL.getListOfLocations();
-            ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
-         */
         listOfL = Database.loadLocations();
         listOfLoc = listOfL.getListOfLocations();
         ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
-            listViewofL.setItems(observLocationList);
-            listViewofL.setCellFactory(new LocationCellFactory());
-       // future.the
+        listViewofL.setItems(observLocationList);
+        listViewofL.setCellFactory(new LocationCellFactory());
         Platform.runLater(() -> {
             GraphicalFunctions.screenResizing(basePane,mainGrid);
         });
-
+        if(!listViewofL.getItems().isEmpty()) {
+            listViewofL.getSelectionModel().select(0);
+            loadLocation(null);
+        }
     }
     public void switchPage(ActionEvent actionEvent) throws IOException {
         Scene scen = listViewofL.getScene();
@@ -84,16 +85,24 @@ public class LocationController implements ControllerInterface{
         }
 
     }
+    @Override
+    public void save() {
+        if(verifyRequired()){
+            selectedLocationGlobal.setAddress(addressField.getText());
+            selectedLocationGlobal.setCasualName(nameField.getText());
+            selectedLocationGlobal.setComments(comments.getText());
+            Database.saveLocation(selectedLocationGlobal);
+        }else{
 
+        }
+
+    }
     public void saveLocation(MouseEvent mouseEvent) {
-      //  Database.dataTest();
-       // Database.testUser();
-       // Database.testLoad();
-        selectedLocationGlobal.setAddress(addressField.getText());
-        selectedLocationGlobal.setCasualName(nameField.getText());
-        selectedLocationGlobal.setComments(comments.getText());
-        Database.saveLocation(selectedLocationGlobal);
-       // Database.loadLocation(selectedLocationGlobal.getID());
+        save();
+    }
+
+    public void saveNewLocation(MouseEvent mouseEvent) {
+        saveNew();
     }
 
     public void loadLocation(MouseEvent mouseEvent) {
@@ -103,11 +112,10 @@ public class LocationController implements ControllerInterface{
         comments.setText(selectedLocation.getComments());
         selectedID=selectedLocation.getID();
         selectedLocationGlobal = selectedLocation;
-
     }
-
-    public void saveNewLocation(ActionEvent actionEvent) throws IOException {
-        if(!(addressField.getText().isEmpty()) & !(nameField.getText().isEmpty())){
+    @Override
+    public void saveNew() {
+        if(verifyRequired()){
             if(listOfL.getListOfLocations().isEmpty()){
                 selectedLocationGlobal = new Location(UUID.randomUUID(), addressField.getText(),nameField.getText());
                 selectedLocationGlobal.setComments(comments.getText());
@@ -121,19 +129,22 @@ public class LocationController implements ControllerInterface{
             for(Location loc: listOfL.getListOfLocations()){
                 name.add(loc.getCasualName());
             }
-                if(!(name.contains(nameField.getText()))){
-                    selectedLocationGlobal = new Location(UUID.randomUUID(), addressField.getText(),nameField.getText());
-                    selectedLocationGlobal.setComments(comments.getText());
-                    listOfLoc.add(selectedLocationGlobal);
-                    Database.saveLocation(selectedLocationGlobal);
-                    ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
-                    listViewofL.setItems(observLocationList);
-                }else{
-                    System.out.println("Lokace už existuje");
-                }
+            if(!(name.contains(nameField.getText()))){
+                selectedLocationGlobal = new Location(UUID.randomUUID(), addressField.getText(),nameField.getText());
+                selectedLocationGlobal.setComments(comments.getText());
+                listOfLoc.add(selectedLocationGlobal);
+                Database.saveLocation(selectedLocationGlobal);
+                ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
+                listViewofL.setItems(observLocationList);
+            }else{
+                System.out.println("Lokace už existuje");
+            }
+
         }else{
-            System.out.println("Vyplntě povinné údaje");
+
         }
+
+
     }
 
     @Override
@@ -145,4 +156,36 @@ public class LocationController implements ControllerInterface{
     public void loadAndUpdateScreen() {
 
     }
+    @Override
+    public void addToRequiredFields(Node item) {
+        requiredNodes.add(item);
+    }
+
+    @Override
+    public Object getRequiredFields(int index) {
+        return requiredNodes.get(index);
+    }
+
+    @Override
+    public ArrayList<Node> getRequiredFields() {
+        return requiredNodes;
+    }
+    @Override
+    boolean verifyRequired() {
+        for(Node n : getRequiredFields()){
+            if(n instanceof TextField){
+                if(((TextField) n).getText().isEmpty()){
+                    return false;
+                }
+            } else if (n instanceof ChoiceBox<?>) {
+                if(((ChoiceBox<?>) n).getValue() ==null){
+                    return false;
+                }
+
+            }
+        }
+        return true;
+    }
+
+
 }

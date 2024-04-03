@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class AssistantViewController implements ControllerInterface{
+public class AssistantViewController extends SaveableControllerInterface implements ControllerInterface{
 
 
     //region graphical components
@@ -104,8 +104,9 @@ public class AssistantViewController implements ControllerInterface{
     private CircularList<AssistantViewConSetup> linkedViewConList = new CircularList<>(Collections.nCopies(14, null));
     private ArrayList<TextField> numericFields = new ArrayList<>(Arrays.asList(workField));
     private InternalController internalController = new InternalController(this);
+    private ArrayList<Node> requiredNodes ;
     //endregion
-    Settings set;
+    
     public void deleteAssistant(MouseEvent mouseEvent) throws IOException {
         if(!(selectedAssistant == null)){
             Database.softDeleteAssistant(selectedAssistant);
@@ -133,22 +134,8 @@ public class AssistantViewController implements ControllerInterface{
    /*
    @TODO Add how to deal with somebody changing name and surname, check that it is still unique.
     */
-public void saveAssistant(MouseEvent mouseEvent) throws IOException {
-        selectedAssistant.setName(nameField.getText());
-        selectedAssistant.setSurname(surnameField.getText());
-        selectedAssistant.setActivityStatus(statusCheckBox.isSelected());
-        selectedAssistant.setContractType((String) contractField.getValue());
-        selectedAssistant.setLikesOvertime(overtimeCheck.isSelected());
-        WorkedHoursCheck.check(Double.parseDouble(workField.getText()),selectedAssistant,workField);
-       // selectedAssistant.setContractTime());
-        selectedAssistant.setComment(comments.getText());
-        selectedAssistant.setWorkDays(stateOfDays);
-        selectedAssistant.setClientPreference(savePreferred());
-        saveLoadTimes();
-        Database.saveAssistant(selectedAssistant);
-        ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getFullAssistantList());
-        listViewofA.setItems(observAssistantList);
-
+    public void saveAssistant(MouseEvent mouseEvent) throws IOException {
+        save();
     }
     private void setNumericCheck(){
     TextField tex = workField;
@@ -193,10 +180,8 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         contractField.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->{
                     loadContract();
                 });
-
         listViewofA.setCellFactory(new HumanCellFactory());
         vacationList.setCellFactory(new VacationCellFactory());
-        set = Settings.getSettings();
         listOfA = Database.loadAssistants();
         listOfAssist = Database.loadAssistants().getAssistantList();
 
@@ -213,7 +198,15 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
             }
             setNumericCheck();
             //setupDatePickers();
+            if(listViewofA.getItems().isEmpty()){
+                selectedAssistant = null;
+            }else{
+                listViewofA.getSelectionModel().select(0);
+                loadAssistant(null);
+            }
+            requiredNodes = new ArrayList<>(Arrays.asList(nameField,surnameField,contractField,workField));
         });
+
     }
     public void loadAssistant(MouseEvent mouseEvent) {
         selectedAssistant = (Assistant) listViewofA.getSelectionModel().getSelectedItem();
@@ -223,6 +216,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         statusCheckBox.setSelected(selectedAssistant.getActivityStatus());
         contractField.setValue(selectedAssistant.getContractType());
         overtimeCheck.setSelected(selectedAssistant.getLikesOvertime());
+        isDriverCheck.setSelected(selectedAssistant.isDriver());
         loadContract();
         workField.setText(String.valueOf(selectedAssistant.getContractTime()));
         comments.setText(selectedAssistant.getComment());
@@ -269,7 +263,7 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
         workText.setText("Počet smluvních hodin v měsíci");
     }
 }
- private ArrayList<ArrayList<UUID>> savePreferred() throws IOException {
+    private ArrayList<ArrayList<UUID>> savePreferred() throws IOException {
      ArrayList<ArrayList<UUID>> output = new ArrayList<ArrayList<UUID>>(Arrays.asList(new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>(),new ArrayList<UUID>()));
      for(ClientProfile cl : Database.loadClientProfiles().getFullClientList()){
         // ArrayList<RadioButton>
@@ -285,25 +279,10 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
      return output;
  }
     public void saveNewAssistant(ActionEvent actionEvent) throws IOException {
-        if(!(nameField.getText().isEmpty()) & !(surnameField.getText().isEmpty())){
-            if(listOfA.getFullAssistantList().isEmpty()){
-                genericAssistant();
-                return;
-            }
-            ArrayList<String> nameAndSurname = new ArrayList<>();
-            for(Assistant loc: listOfA.getFullAssistantList()){
-                nameAndSurname.add(loc.getName() +" "+ loc.getSurname());}
-                if(!( nameAndSurname.contains(nameField.getText() +" "+ surnameField.getText()))){
-                    genericAssistant();
-                }else{
-                    System.out.println("Asistent už existuje");
-                }
-        }else{
-            System.out.println("Vyplntě povinné údaje");
-        }
+        saveNew();
     }
     private void genericAssistant() throws IOException {
-        Assistant temp = new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), comments.getText(),stateOfDays, savePreferred(),emergencyAssistantCheck.isSelected(),isDriverCheck.isSelected());
+        Assistant temp = new Assistant(UUID.randomUUID(), statusCheckBox.isSelected(),nameField.getText(), surnameField.getText(), (String) contractField.getValue(),Double.parseDouble(workField.getText()),overtimeCheck.isSelected(), comments.getText(),null, savePreferred(),emergencyAssistantCheck.isSelected(),isDriverCheck.isSelected());
         listOfA.getFullAssistantList().add(temp);
         Database.saveAssistant(temp);
         selectedAssistant = temp;
@@ -504,11 +483,14 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
 
     @Override
     public void updateScreen() {
+        /*
         try {
             populateClientOpinion();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+         */
+
 
     }
 
@@ -554,5 +536,85 @@ public void saveAssistant(MouseEvent mouseEvent) throws IOException {
 
     public void testWorkedHours(ActionEvent actionEvent) {
         System.out.println(WorkHoursCalcul.workDaysCalcul(Settings.getSettings().getCurrentYear(), Settings.getSettings().getCurrentMonth(), 7.5,selectedAssistant.getID(),selectedAssistant.getContractTime()));
+    }
+
+    @Override
+    public void addToRequiredFields(Node item) {
+        requiredNodes.add(item);
+    }
+
+    @Override
+    public Object getRequiredFields(int index) {
+       return requiredNodes.get(index);
+    }
+
+    @Override
+    public ArrayList<Node> getRequiredFields() {
+        return requiredNodes;
+    }
+    @Override
+    boolean verifyRequired() {
+    for(Node n : getRequiredFields()){
+        if(n instanceof TextField){
+            if(((TextField) n).getText().isEmpty()){
+                return false;
+            }
+        } else if (n instanceof ChoiceBox<?>) {
+          if(((ChoiceBox<?>) n).getValue() ==null){
+              return false;
+          }
+        }
+    }
+    return true;
+    }
+
+    @Override
+    void save() {
+        if(verifyRequired()){
+            selectedAssistant.setName(nameField.getText());
+            selectedAssistant.setSurname(surnameField.getText());
+            selectedAssistant.setActivityStatus(statusCheckBox.isSelected());
+            selectedAssistant.setContractType((String) contractField.getValue());
+            selectedAssistant.setLikesOvertime(overtimeCheck.isSelected());
+            WorkedHoursCheck.check(Double.parseDouble(workField.getText()),selectedAssistant,workField);
+            selectedAssistant.setComment(comments.getText());
+            selectedAssistant.setWorkDays(stateOfDays);
+            selectedAssistant.setDriver(isDriverCheck.isSelected());
+            try {
+                selectedAssistant.setClientPreference(savePreferred());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            saveLoadTimes();
+            Database.saveAssistant(selectedAssistant);
+            ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getFullAssistantList());
+            listViewofA.setItems(observAssistantList);
+        }
+    }
+
+    @Override
+    void saveNew() {
+        if(verifyRequired()){
+                if(listOfA.getFullAssistantList().isEmpty()){
+                    try {
+                        genericAssistant();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return;
+                }
+                ArrayList<String> nameAndSurname = new ArrayList<>();
+                for(Assistant loc: listOfA.getFullAssistantList()){
+                    nameAndSurname.add(loc.getName() +" "+ loc.getSurname());}
+                if(!( nameAndSurname.contains(nameField.getText() +" "+ surnameField.getText()))){
+                    try {
+                        genericAssistant();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }else{
+                    System.out.println("Asistent už existuje");
+                }
+        }
     }
 }

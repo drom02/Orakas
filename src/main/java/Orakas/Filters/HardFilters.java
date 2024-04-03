@@ -3,6 +3,7 @@ package Orakas.Filters;
 import Orakas.Humans.Assistant;
 import Orakas.Structs.TimeStructs.ClientDay;
 import Orakas.Structs.ListOfAssistants;
+import Orakas.Structs.TimeStructs.ServiceIntervalArrayList;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -82,15 +83,18 @@ public class HardFilters {
         input.removeAll(toRemove);
         return  input;
     }
-    public ArrayList<UUID>  assureProperPause(ArrayList<UUID> input, AssistantMonthWorks workMonth, LocalDateTime startOfCurrent){
-        ArrayList<UUID> toRemove = new ArrayList<>();
-        for(UUID id : input){
-            LocalDateTime last = workMonth.getLastWorkedDayTime().get(id);
-                if( last != null && ChronoUnit.MINUTES.between(last,startOfCurrent) < (8*60)  ){
+    public ArrayList<UUID>  assureProperPause(ArrayList<UUID> input, AssistantMonthWorks workMonth, ServiceIntervalArrayList currentUsefull){
+        if(!currentUsefull.isEmpty()){
+            LocalDateTime startOfCurrent = currentUsefull.getFirst().getStart();
+            ArrayList<UUID> toRemove = new ArrayList<>();
+            for(UUID id : input){
+                LocalDateTime last = workMonth.getLastWorkedDayTime().get(id);
+                if( last != null && ChronoUnit.MINUTES.between(last,startOfCurrent) < (11*60)  ){
                     toRemove.add(id);
                 }
+            }
+            input.removeAll(toRemove);
         }
-        input.removeAll(toRemove);
         return input;
     }
     public ArrayList<UUID>  removeByWorkTime(ArrayList<UUID> input, int day, ListOfAssistants asL, AssistantMonthWorks wok){
@@ -111,6 +115,19 @@ public class HardFilters {
             Assistant aTemp = asL.getAssistantFromID(id);
             if(aTemp.getClientPreference().getLast().contains(cl.getClient())){
                 toRemove.add(id);
+            }
+        }
+        input.removeAll(toRemove);
+
+        return input;
+    }
+    public ArrayList<UUID>  removeByTooFrequent(ArrayList<UUID> input, AssistantMonthWorks workMonth, ClientDay cl){
+        ArrayList<UUID> toRemove = new ArrayList<>();
+        for(UUID id : input){
+            if(workMonth.getFinishedWork().get(id)!=null){
+                if(workMonth.getFinishedWork().get(id).get(cl.getDay()-1)!=null && workMonth.getFinishedWork().get(id).get(cl.getDay()-2)!=null&& workMonth.getFinishedWork().get(id).get(cl.getDay()-3)!=null){
+                    toRemove.add(id);
+                }
             }
         }
         input.removeAll(toRemove);

@@ -38,4 +38,6 @@ module Orakas {
     opens Orakas.Structs.TimeStructs to com.fasterxml.jackson.databind, javafx.fxml;
     exports Orakas.Humans;
     opens Orakas.Humans to com.fasterxml.jackson.databind, javafx.fxml;
+    exports Orakas.Excel;
+    opens Orakas.Excel to com.fasterxml.jackson.databind, javafx.fxml;
 }

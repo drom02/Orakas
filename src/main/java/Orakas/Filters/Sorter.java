@@ -18,7 +18,6 @@ import java.util.UUID;
 
 
 public class Sorter {
-    //private ArrayList<ArrayList<UUID>> past = new ArrayList<ArrayList<UUID>>();
     private HashMap<String, ArrayList<ArrayList<UUID>>> past = new HashMap<>();
     /*
     Used for record keeping.
@@ -29,19 +28,6 @@ public class Sorter {
     private HashMap<UUID, Assistant> assistantHashMap = new HashMap<>();
     private HashMap<UUID, Double> workHoursOfMonth = new HashMap<>();
     private AssistantMonthWorks workMonth;
-    /*
-    private ListOfAssistantMonthShifts assistantMonthShifts;
-    public Sorter(ListOfAssistants assistList){
-        for(int i=0;i<31;i++){
-            past.put(String.valueOf(i), new ArrayList<ArrayList<UUID>>(List.of(new ArrayList<UUID>(),new ArrayList<UUID>() )));
-        }
-       assistantMonthShifts = new ListOfAssistantMonthShifts(assistList);
-        public ListOfAssistantMonthShifts getAssistantMonthShifts() {
-        return assistantMonthShifts;
-    }
-    }
-     */
-    //
     private void setupWorkHoursOfMonth(ListOfAssistants assistList, int year, int month ){
         LocalDate tempDate = LocalDate.of(year,month,1).plusMonths(-1);
         WorkOfMonth wok = Database.loadMonthWorkResult(tempDate.getYear(),tempDate.getMonthValue());
@@ -73,66 +59,13 @@ public class Sorter {
         }
     private HardFilters hardFilters = new HardFilters();
     private SoftFilters softFilters = new SoftFilters();
-
-
-    public UUID sort(ArrayList<AssistantAvailability> availableAssistants, int day, int dayState, ClientDay cl, ListOfAssistants aslList){
-        /*
-
-         */
-        //cl.getClient();
-        ArrayList<UUID> availableAssistantsID = getIdFromList(availableAssistants);
-        hardFilters.removePreviousShift(availableAssistantsID,day,workMonth,dayState);
-        hardFilters.assureProperPause(availableAssistantsID,workMonth,cl.getDayIntervalListUsefull().getFirst().getStart());
-
-        /*
-        Soft filters have to be applied after all hard filters.
-         */
-        //TODO problem is with availableAssistants and availableAssistantsID
-        HashMap<UUID,Integer> soft;
-        ArrayList<Assistant> trimmedAssistants = new ArrayList<>();
-        for(Assistant a : aslList.getFullAssistantList()){
-            if(availableAssistantsID.contains(a.getID())){
-                trimmedAssistants.add(a);
-            }
-        }
-        if(!availableAssistantsID.isEmpty()) {
-            soft = softFilters.prepare(availableAssistantsID);
-            softFilters.penalizeRecent(soft,workMonth.getLastWorkedDay(),day,1);
-            softFilters.clientPreference(soft,cl.getClient(),trimmedAssistants);
-            softFilters.emergencyAssistant(soft,trimmedAssistants,5);
-            softFilters.output(availableAssistantsID,soft);
-        }
-        ArrayList<ArrayList<UUID>> tempList = past.get(String.valueOf(day));
-        if(!availableAssistantsID.isEmpty()){
-            tempList.get(dayState).add(availableAssistantsID.get(0));
-            past.put(String.valueOf(day),tempList);
-            Assistant pickedForDay = trimmedAssistants.stream()
-                    .filter(c -> c.getID().equals(availableAssistantsID.get(0)))
-                    .findFirst()
-                    .orElse(null);
-            long lenghtOfShift = 0;
-            for (ServiceInterval sevInt : cl.getDayIntervalListUsefull()) {
-                sevInt.setOverseeingAssistant(pickedForDay);
-                lenghtOfShift = lenghtOfShift + sevInt.getIntervalLength();
-            }
-            AssistantWorkShift workShift= new AssistantWorkShift(availableAssistantsID.get(0),cl);
-            workMonth.registerWorkDay(workShift);
-            return availableAssistantsID.get(0);
-        }else{
-            for (ServiceInterval sevInt : cl.getDayIntervalListUsefull()) {
-                sevInt.setOverseeingAssistant(null);
-            }
-            return  null;
-        }
-
-
-    }
     public UUID sortDate(ArrayList<DateTimeAssistantAvailability> availableAssistants, int day, int dayState, ClientDay cl, ListOfAssistants aslList){
         ArrayList<UUID> availableAssistantsID = getIdFromDateList(availableAssistants,IDAvailIndex);
         hardFilters.removePreviousShift(availableAssistantsID,day,workMonth,dayState);
-        hardFilters.assureProperPause(availableAssistantsID,workMonth,cl.getDayIntervalListUsefull().getFirst().getStart());
+        hardFilters.assureProperPause(availableAssistantsID,workMonth,cl.getDayIntervalListUsefull());
         hardFilters.removeByWorkTime(availableAssistantsID,day,aslList,workMonth);
         hardFilters.removeByCompatibility(availableAssistantsID,aslList,cl);
+        hardFilters.removeByTooFrequent(availableAssistantsID,workMonth,cl);
         /*
         Soft filters have to be applied after all hard filters.
          */
@@ -157,7 +90,6 @@ public class Sorter {
             return  null;
         }
     }
-
     private ArrayList<DateTimeAssistantAvailability> orderedDateTimeAA (ArrayList<UUID> availableAssistantsID,ArrayList<DateTimeAssistantAvailability> availableAssistants ){
         ArrayList<DateTimeAssistantAvailability> temp = new ArrayList<>();
         for(UUID id : availableAssistantsID){

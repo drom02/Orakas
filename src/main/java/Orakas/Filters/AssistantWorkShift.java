@@ -5,6 +5,7 @@ import Orakas.Structs.TimeStructs.ServiceInterval;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class AssistantWorkShift {
@@ -15,6 +16,10 @@ public class AssistantWorkShift {
     private LocalDateTime start;
     private LocalDateTime end;
     private boolean type;
+
+
+
+    private ArrayList<WorkShiftSubInterval> workedIntervals = new ArrayList<>();
 
 
     public AssistantWorkShift(UUID id, ClientDay cd){
@@ -44,6 +49,7 @@ public class AssistantWorkShift {
             setDay(cd.getDay());
             setMonth(cd.getMonth().getValue());
         }
+        workedIntervals.add(new WorkShiftSubInterval(si.getStart(),si.getEnd()));
         setDay(cd.getDay());
         setType(cd.getDayStatus());
         setWorkedMinutes(workedMinutes +serviceIntervalLength(si));
@@ -113,5 +119,12 @@ public class AssistantWorkShift {
 
     public void setType(boolean type) {
         this.type = type;
+    }
+    public ArrayList<WorkShiftSubInterval> getWorkedIntervals() {
+        return workedIntervals;
+    }
+
+    public void setWorkedIntervals(ArrayList<WorkShiftSubInterval> workedIntervals) {
+        this.workedIntervals = workedIntervals;
     }
 }

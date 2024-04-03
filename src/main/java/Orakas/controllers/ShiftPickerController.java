@@ -6,7 +6,7 @@ import Orakas.Humans.Assistant;
 import Orakas.JavaFXCustomComponents.ShiftFlow;
 import Orakas.JavaFXCustomComponents.ShiftGrid;
 import Orakas.Database.Database;
-import Orakas.ExcelOutput;
+import Orakas.Excel.ExcelOutput;
 import Orakas.GraphicalFunctions;
 import Orakas.JavaFXCustomComponents.AssistantViewConSetup;
 import Orakas.Mediator.InternalController;
@@ -33,6 +33,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.poi.ss.usermodel.*;
@@ -56,7 +57,7 @@ import static com.opencsv.ICSVWriter.*;
 Controller for shift picker window. It is used to select when are assistants available. Select name from the list and
 left click to field to add the assistant for specific shift. Right click to remove.
  */
-public class ShiftPickerController  implements ControllerInterface {
+public class ShiftPickerController   implements ControllerInterface {
 
 
     //region graphical components
@@ -158,16 +159,9 @@ public class ShiftPickerController  implements ControllerInterface {
                 grid.setConstraints(rowTitleFlow,i,row,1,1);
                 int shift = 0;
                 for (ArrayList arList : listOfAssistantLists) {
+                    //TODO rewrite to use scroll pane
                     ShiftGrid rowTitleAr = new ShiftGrid (shift == 0);
                     rowTitleAr.getStyleClass().add(dayStyles[shift]);
-                   // rowTitleAr.setContextMenu(emptyContextMenu);
-                   // rowTitleAr.setEditable(false);
-                    //rowTitleAr.getStyleClass().add(dayStyles[shift]);
-                    inputText= "";
-                   //w rowTitleAr.setText(inputText);
-                    //rowTitleAr.displayContent(assistantIndex);
-                    //rowTitleAr.setType(shift);
-                    //rowTitleAr.setID(i);
                     rowTitleAr.setOnMouseClicked(this :: onTextAreaClicked);
                     arList.add(rowTitleAr);
                     rowTitleAr.setPrefSize(250,410);
@@ -203,16 +197,13 @@ public class ShiftPickerController  implements ControllerInterface {
         int year = settings.getCurrentYear();
         int mont = settings.getCurrentMonth();
 
-
         AvailableAssistants avl= Database.loadAssistantAvailability(year,mont);
+        listOfAssist = Database.loadAssistants().getAssistantList();
         Platform.runLater(() -> {
                 populateTable(Month.of(mont),year);
                 loadAvailableAssistants(avl);
-
         });
-
     }
-
     private void prepareIndexes(ArrayList<Assistant> aList){
         for(Assistant a : aList){
             dayAvIndex.put(a.getID(),new AssistantAvailability(a.getID(),new Availability(settings.getDefStart()[0],settings.getDefStart()[1],settings.getDefEnd()[0],settings.getDefEnd()[1])));
@@ -230,7 +221,6 @@ public class ShiftPickerController  implements ControllerInterface {
         assistantList.setItems(observAssistantList);
         populateTable(Month.of(settings.getCurrentMonth()),settings.getCurrentYear());
         loadAvailableAssistants(Database.loadAssistantAvailability(settings.getCurrentYear(),settings.getCurrentMonth()));
-        //writeXSLX();
         setupViewCon();
         Platform.runLater(() -> {
             GraphicalFunctions.screenResizing(mainPane,mainGrid);
@@ -238,8 +228,8 @@ public class ShiftPickerController  implements ControllerInterface {
     }
     private void setupViewCon(){
         vac = new AssistantViewConSetup();
-        editMode = new ToggleButton("On","Off");
-        singleSelectionMode = new ToggleButton("Multi","Single");
+        editMode = new ToggleButton("Úprava dní","Úprava hodin");
+        singleSelectionMode = new ToggleButton("Všichni asistenti","Indivudální asistent");
         GridPane.setValignment(editMode.getLocalGrid(), VPos.BOTTOM);
         GridPane.setMargin(editMode.getLocalGrid(), new Insets(0,1,5,1));
         GridPane.setConstraints(editMode.getLocalGrid(),0,0);
@@ -317,7 +307,6 @@ public class ShiftPickerController  implements ControllerInterface {
             int i = assistantsDayList.indexOf(parentGrid);
             for(AssistantAvailability a : AAGlobal.getAvailableAssistantsAtDays().get(i)){
                 if(a.getAssistant().equals(selectedAssistant.getID())){
-                    System.out.println("Removed");
                     toBeRemoved = a;
                 }
             }
@@ -555,13 +544,10 @@ public class ShiftPickerController  implements ControllerInterface {
     //TODO better save system
      */
     public void saveCurrentState() throws IOException {
-       // JsonManip jsom =
         if(!singleSelectionMode.isState()){
-
         }else{
             saveCurrentAlg();
         }
-
     }
     private void saveCurrentAlg(){
         AvailableAssistants availableAssistants = new AvailableAssistants(settings.getCurrentYear(), settings.getCurrentMonth());
@@ -615,12 +601,8 @@ public class ShiftPickerController  implements ControllerInterface {
                     }else{
                         nightList.add(ExcelOutput.parseCell(acceptableInputs,editedCell,mapOfAssistants));
                     }
-
-
                 }
             }
-           // out.setAvailableAssistantsAtDays(dayList);
-            //out.setAvailableAssistantsAtNights(nightList);
             loadAvailableAssistants(out);
             return out;
         } catch (IOException e) {
@@ -677,65 +659,16 @@ public class ShiftPickerController  implements ControllerInterface {
             loadIndividualExcel(st);
         }
     }
-    private void writeCSV() throws IOException {
-       int year = settings.getCurrentYear();
-       int month = settings.getCurrentMonth();
-       File fil = new File("C:\\Users\\matej\\VSE\\delete\\test.csv");
-       fil.createNewFile();
-        ArrayList<String> titles = new ArrayList<String>();
-        String first = "Směna";
-        String[] line2 = new String[]{"Denni smena"};
-        String[] line3 = new String[]{"Nocni smena"};
-        titles.add(first);
-        int length = Month.of(settings.getCurrentMonth()).length(Year.isLeap(year));
-       try( FileOutputStream fos = new FileOutputStream("C:\\Users\\matej\\VSE\\delete\\test.csv"); CSVWriter writer = new CSVWriter(new OutputStreamWriter(fos, StandardCharsets.UTF_8), ';' ,DEFAULT_QUOTE_CHARACTER, DEFAULT_ESCAPE_CHARACTER,DEFAULT_LINE_END)){
-           fos.write(0xEF);
-           fos.write(0xBB);
-           fos.write(0xBF);
-           for(int i =1; i<=length;i++){
-               titles.add(new String (1+"."+month+"."+year));
-           }
-           String[] st = new String[titles.size()];
-           st =   titles.toArray(st);
-           writer.writeNext(st);
-           writer.writeNext(line2);
-           writer.writeNext(line3);
-       }
-    }
-    private void loadXSLX(){
-
-    }
-    private void writeXSLX(){
-        CompletableFuture<Void> future = CompletableFuture.runAsync(()->
-        {Database.saveAssistantAvailability(AAGlobal.getYear(),AAGlobal.getMonth(),AAGlobal);});
-        XSSFWorkbook workbook = ExcelOutput.convert(AAGlobal);
-        try (FileOutputStream fos = new FileOutputStream("C:\\Users\\matej\\VSE\\delete\\"+"available assistants "+ AAGlobal.getYear()+"."+AAGlobal.getMonth()+".xlsx")) {
-            workbook.write(fos);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                workbook.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void writeXSLXTemplate(String name, int year, int month){
-        CompletableFuture<Void> future = CompletableFuture.runAsync(()->
-        {Database.saveAssistantAvailability(AAGlobal.getYear(),AAGlobal.getMonth(),AAGlobal);});
-        XSSFWorkbook workbook = ExcelOutput.convert(AAGlobal);
-        try (FileOutputStream fos = new FileOutputStream("C:\\Users\\matej\\VSE\\delete\\"+"available assistants "+ AAGlobal.getYear()+"."+AAGlobal.getMonth()+".xlsx")) {
-            workbook.write(fos);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                workbook.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    public void generateTemplates(ActionEvent actionEvent) throws IOException {
+        ListOfAssistants assistantList = Database.loadAssistants();
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        Stage stage = (Stage)((Node) actionEvent.getSource()).getScene().getWindow();
+        directoryChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        // Open the DirectoryChooser
+        File selectedDirectory = directoryChooser.showDialog(stage);
+        String st = selectedDirectory.getAbsolutePath();
+        if(st != null){
+            ExcelOutput.writeAllAssistantTemplatesFor(listOfAssist, settings.getCurrentYear(), settings.getCurrentMonth(), st);
         }
     }
     public static ArrayList prepareAcceptableInputs(HashMap<String, Assistant> mapOfAssistants) {

@@ -13,15 +13,18 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
-public class ClientViewController implements ControllerInterface{
+public class ClientViewController extends SaveableControllerInterface implements ControllerInterface{
     //region graphical components
     @FXML
     private  Pane mainPane;
@@ -45,20 +48,10 @@ public class ClientViewController implements ControllerInterface{
     private ListOfClientsProfiles listOfc;
     private ClientProfile selectedClient;
     private InternalController internalController = new InternalController(this);
+    private ArrayList<Node> requiredNodes = new ArrayList<>(Arrays.asList(nameField,surnameField,homeLocationBox));
     //endregion
     public void saveClient(MouseEvent mouseEvent) throws IOException {
-        if(selectedClient != null){
-            selectedClient.setName(nameField.getText());
-            selectedClient.setSurname(surnameField.getText());
-            selectedClient.setComment(comments.getText());
-            selectedClient.setActivityStatus(statusChoiceBox.isSelected());
-            selectedClient.setHomeLocation((Location) homeLocationBox.getValue());
-            //jsoMap.saveClientInfo(listOfc);
-            Database.saveClientProfile(selectedClient);
-            ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
-            listViewofC.setItems(observClientList);
-            internalController.send("Assistant");
-        }
+        save();
     }
     public void loadClient(MouseEvent mouseEvent) throws IOException {
         selectedClient = (ClientProfile) listViewofC.getSelectionModel().getSelectedItem();
@@ -83,6 +76,12 @@ public class ClientViewController implements ControllerInterface{
         Platform.runLater(() -> {
             GraphicalFunctions.screenResizing(mainPane,mainGrid);
         });
+        if(listViewofC.getItems().isEmpty()){
+            selectedClient = null;
+        }else{
+            listViewofC.getSelectionModel().select(0);
+            loadClient(null);
+        }
     }
     public void deleteClient(MouseEvent mouseEvent) throws IOException {
         listOfc.getFullClientList().remove(selectedClient);
@@ -101,13 +100,7 @@ public class ClientViewController implements ControllerInterface{
         internalController.send("Assistant");
     }
     public void saveNewClient(ActionEvent actionEvent) {
-        ClientProfile clip = new ClientProfile(UUID.randomUUID(),statusChoiceBox.isSelected(), nameField.getText(),surnameField.getText(), homeLocationBox.getValue() ,comments.getText());
-        listOfc.getFullClientList().add(clip);
-        Database.saveClientProfile(clip);
-        ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
-       // ListOfClientsProfiles asdasd = jsoMap.loadClientProfileInfo();
-        listViewofC.setItems(observClientList);
-        internalController.send("Assistant");
+        saveNew();
     }
 
     @Override
@@ -117,6 +110,64 @@ public class ClientViewController implements ControllerInterface{
 
     @Override
     public void loadAndUpdateScreen() {
+
+    }
+    @Override
+    public void addToRequiredFields(Node item) {
+        requiredNodes.add(item);
+    }
+
+    @Override
+    public Object getRequiredFields(int index) {
+        return requiredNodes.get(index);
+    }
+
+    @Override
+    public ArrayList<Node> getRequiredFields() {
+        return requiredNodes;
+    }
+    @Override
+    boolean verifyRequired() {
+        for(Node n : getRequiredFields()){
+            if(n instanceof TextField){
+                if(((TextField) n).getText().isEmpty()){
+                    return false;
+                }
+            } else if (n instanceof ChoiceBox<?>) {
+                if(((ChoiceBox<?>) n).getValue() ==null){
+                    return false;
+                }
+
+            }
+        }
+        return true;
+    }
+    @Override
+    void save() {
+        if(verifyRequired()){
+            if(selectedClient != null){
+                selectedClient.setName(nameField.getText());
+                selectedClient.setSurname(surnameField.getText());
+                selectedClient.setComment(comments.getText());
+                selectedClient.setActivityStatus(statusChoiceBox.isSelected());
+                selectedClient.setHomeLocation((Location) homeLocationBox.getValue());
+                Database.saveClientProfile(selectedClient);
+                ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
+                listViewofC.setItems(observClientList);
+                internalController.send("Assistant");
+            }
+        }
+    }
+    @Override
+    void saveNew() {
+        if(verifyRequired()){
+            ClientProfile clip = new ClientProfile(UUID.randomUUID(),statusChoiceBox.isSelected(), nameField.getText(),surnameField.getText(), homeLocationBox.getValue() ,comments.getText());
+            listOfc.getFullClientList().add(clip);
+            Database.saveClientProfile(clip);
+            ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
+            listViewofC.setItems(observClientList);
+            internalController.send("Assistant");
+        }
 
     }
 }

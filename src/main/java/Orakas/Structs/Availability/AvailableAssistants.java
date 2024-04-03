@@ -59,6 +59,7 @@ public AvailableAssistants(int year, int month ){
         for(ArrayList<AssistantAvailability> arrayAssistant: getAvailableAssistantsAtDays()){
             ArrayList<DateTimeAssistantAvailability> tempArray = new ArrayList<>(15);
             for(AssistantAvailability ar : arrayAssistant){
+                //TODO únor dělá problémy
                 DateTimeAssistantAvailability temp = new DateTimeAssistantAvailability(year,month,iter,true,ar);
                 tempArray.add(temp);
             }

@@ -26,7 +26,6 @@ public class StartViewController  implements ControllerInterface {
     private TabPane mainTabPane;
     private  HashMap<Tab, FXMLLoader> map = new HashMap<Tab, FXMLLoader>();
     private InternalController internalController = new InternalController(this);
-    private Settings set = Settings.getSettings();
     private static final List<String> monthNames = Arrays.asList(
             "Leden",    // 0 - January
             "Únor",     // 1 - February
@@ -89,7 +88,7 @@ public class StartViewController  implements ControllerInterface {
     }
     public void setDate(){
         informationFlow.getChildren().clear();
-        Text text = new Text(monthNames.get(set.getCurrentMonth()-1) + " " + set.getCurrentYear());
+        Text text = new Text(monthNames.get(Settings.getSettings().getCurrentMonth()-1) + " " + Settings.getSettings().getCurrentYear());
         text.getStyleClass().add("DateTextFormat");
         informationFlow.getChildren().add(text);
     }

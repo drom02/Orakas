@@ -1,5 +1,6 @@
 package Orakas.AssistantAvailability;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -11,7 +12,15 @@ public class DateTimeAssistantAvailability {
     private boolean isDay;
 
     public DateTimeAssistantAvailability(int year, int month, int day, boolean isDay,AssistantAvailability av){
-        LocalDate date = LocalDate.of(year,month,day);
+        LocalDate date;
+        try{
+             date = LocalDate.of(year,month,day);
+        }catch (DateTimeException e){
+            System.out.println(day);
+            LocalDate temp  = LocalDate.of(year,month,day-1);
+            date = temp.plusDays(1);
+        }
+
         setStart(createStart(date,isDay,av));
         setEnd(createEnd(date,isDay,av));
         setDay(isDay);

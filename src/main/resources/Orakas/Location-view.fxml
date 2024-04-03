@@ -84,7 +84,7 @@
                 <RowConstraints minHeight="10.0" percentHeight="33.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Button fx:id="saveNewButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#saveNewLocation" onMouseClicked="#saveLocation" text="Uložit novou lokaci" GridPane.columnSpan="2" />
+                  <Button fx:id="saveNewButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#saveNew" onMouseClicked="#saveNewLocation" text="Uložit novou lokaci" GridPane.columnSpan="2" />
                   <Button fx:id="saveButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#saveLocation" text="Uložit změny" GridPane.columnSpan="2" GridPane.rowIndex="1" />
                   <Button fx:id="deleteButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#deleteLocation" text="Smazat" GridPane.columnSpan="2" GridPane.rowIndex="2" />
                </children>
