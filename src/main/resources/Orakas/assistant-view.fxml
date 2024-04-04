@@ -174,7 +174,6 @@
                   <CheckBox fx:id="vacationCountsWorkCheck" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Počítá se do pracovní doby" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                </children>
             </GridPane>
-            <Button mnemonicParsing="false" onAction="#testWorkedHours" text="TestWorkedHours" GridPane.columnIndex="1" GridPane.rowIndex="5" />
          </children>
       </GridPane>
    </children>
