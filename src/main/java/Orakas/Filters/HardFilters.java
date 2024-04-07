@@ -97,11 +97,12 @@ public class HardFilters {
         }
         return input;
     }
+    //TODO change the 12 to use length of current work day
     public ArrayList<UUID>  removeByWorkTime(ArrayList<UUID> input, int day, ListOfAssistants asL, AssistantMonthWorks wok){
         ArrayList<UUID> toRemove = new ArrayList<>();
         for(UUID id : input){
            Assistant aTemp = asL.getAssistantFromID(id);
-           if(wok.getWorkedTillDate(day,id) >= aTemp.getContractTime()-11 && !aTemp.getContractType().equals("HPP")&& !aTemp.getContractType().equals("HPP-Vlastní")){
+           if(wok.getWorkedTillDate(day,id) > aTemp.getContractTime()-12 && !aTemp.getContractType().equals("HPP")&& !aTemp.getContractType().equals("HPP-Vlastní")){
                 toRemove.add(id);
            }
         }
@@ -123,9 +124,13 @@ public class HardFilters {
     }
     public ArrayList<UUID>  removeByTooFrequent(ArrayList<UUID> input, AssistantMonthWorks workMonth, ClientDay cl){
         ArrayList<UUID> toRemove = new ArrayList<>();
+        int switchValue = 0;
+        if(!cl.getDayStatus()){
+            switchValue = 100;
+        }
         for(UUID id : input){
             if(workMonth.getFinishedWork().get(id)!=null){
-                if(workMonth.getFinishedWork().get(id).get(cl.getDay()-1)!=null && workMonth.getFinishedWork().get(id).get(cl.getDay()-2)!=null&& workMonth.getFinishedWork().get(id).get(cl.getDay()-3)!=null){
+                if(doubleCheck(workMonth,id,cl,1) && doubleCheck(workMonth,id,cl,2)&& doubleCheck(workMonth,id,cl,3)){
                     toRemove.add(id);
                 }
             }
@@ -133,5 +138,11 @@ public class HardFilters {
         input.removeAll(toRemove);
 
         return input;
+    }
+    private boolean doubleCheck(AssistantMonthWorks workMonth, UUID id, ClientDay cl, int shift){
+        if(workMonth.getFinishedWork().get(id).get(cl.getDay()-shift)!=null || workMonth.getFinishedWork().get(id).get(cl.getDay()+100-shift)!=null  ){
+            return true;
+        }
+        return false;
     }
 }

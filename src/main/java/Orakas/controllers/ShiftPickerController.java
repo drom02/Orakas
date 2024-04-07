@@ -2,6 +2,7 @@ package Orakas.controllers;
 
 import Orakas.AssistantAvailability.AssistantAvailability;
 import Orakas.AssistantAvailability.Availability;
+import Orakas.AssistantAvailability.AvailableAssistantsIndividual;
 import Orakas.Humans.Assistant;
 import Orakas.JavaFXCustomComponents.ShiftFlow;
 import Orakas.JavaFXCustomComponents.ShiftGrid;
@@ -611,40 +612,64 @@ public class ShiftPickerController   implements ControllerInterface {
         return null;
     }
     private void loadIndividualExcel(String path) throws IOException {
-       AvailableAssistants aa = ExcelOutput.parseIndividual(mapOfAssistants,path, settings.getCurrentYear(), settings.getCurrentMonth());
+       AvailableAssistantsIndividual aa = ExcelOutput.parseIndividual(mapOfAssistants,path, settings.getCurrentYear(), settings.getCurrentMonth());
        changeShiftType(aa,AAGlobal.getAvailableAssistantsAtDays());
         changeShiftType(aa,AAGlobal.getAvailableAssistantsAtNights());
        // populateTable(Month.of(settings.getCurrentMonth()), settings.getCurrentYear());
         loadAvailableAssistants(AAGlobal);
         //populateTable(Month.of(settings.getCurrentMonth()),settings.getCurrentYear());
     }
-    private void changeShiftType(AvailableAssistants aa,ArrayList<ArrayList<AssistantAvailability>> av){
+    private UUID identifyAssistant(AvailableAssistants aa){
+        aa.getAvailableAssistantsAtDays().getFirst();
+        Optional<UUID> optionalAssistantD = Optional.ofNullable(aa).map(f->f.getAvailableAssistantsAtDays()).map(s->s.getFirst()).map(t->t.getFirst()).map(f->f.getAssistant());
+        if(optionalAssistantD.isPresent()){
+            return  optionalAssistantD.get();
+        }
+        Optional<UUID> optionalAssistantN = Optional.ofNullable(aa).map(f->f.getAvailableAssistantsAtNights()).map(s->s.getFirst()).map(t->t.getFirst()).map(f->f.getAssistant());
+        if(optionalAssistantN.isPresent()){
+            return  optionalAssistantN.get();
+        }
+        return null;
+    }
+    private void changeShiftType(AvailableAssistantsIndividual aa,ArrayList<ArrayList<AssistantAvailability>> av){
         int iDay = 0;
-        HashMap<Integer, AssistantAvailability> toBeRemovedDay = new HashMap<>();
-        HashMap<Integer, AssistantAvailability> toBeAddedDay = new HashMap<>();
-        for(ArrayList<AssistantAvailability> ad : av){
-            for(AssistantAvailability a : ad){
-                if(aa.getAvailableAssistantsAtDays().get(iDay).getFirst().getAssistant() == null){
-                    if(a.getAssistant().equals(aa.getAvailableAssistantsAtDays().get(iDay).getFirst().getAssistant())){
-                        toBeRemovedDay.put(iDay,a);
+        UUID identifiedAssistant = aa.getAssistant();
+        if(identifiedAssistant!=null) {
+            HashMap<Integer, AssistantAvailability> toBeRemovedDay = new HashMap<>();
+            HashMap<Integer, AssistantAvailability> toBeAddedDay = new HashMap<>();
+            for (ArrayList<AssistantAvailability> ad : av) {
+                if(ad.isEmpty()){
+                    toBeAddedDay.put(iDay, aa.getAvailableAssistantsAtDays().get(iDay).getFirst());
+                    iDay++;
+                }else{
+                    for (AssistantAvailability a : ad) {
+                        if (aa.getAvailableAssistantsAtDays().get(iDay).getFirst() == null) {
+                            if (a.getAssistant().equals(identifiedAssistant)) {
+                                toBeRemovedDay.put(iDay, a);
+                            }
+
+                        } else if (a.getAssistant().equals(identifiedAssistant)) {
+                            toBeAddedDay.put(iDay, aa.getAvailableAssistantsAtDays().get(iDay).getFirst());
+                            toBeRemovedDay.put(iDay, a);
+                        } else {
+                           // toBeAddedDay.put(iDay, aa.getAvailableAssistantsAtDays().get(iDay).getFirst());
+                        }
                     }
-
-                }else if(a.getAssistant().equals(aa.getAvailableAssistantsAtDays().get(iDay).getFirst().getAssistant())){
-                    toBeAddedDay.put(iDay,aa.getAvailableAssistantsAtDays().get(iDay).getFirst());
-                    toBeRemovedDay.put(iDay,a);
+                    iDay++;
                 }
+
+
+                }
+            for (int i : toBeRemovedDay.keySet()) {
+                av.get(i).remove(toBeRemovedDay.get(i));
+
             }
-            iDay++;
-        }
-        for(int i : toBeRemovedDay.keySet()){
-            av.get(i).remove(toBeRemovedDay.get(i));
+            for (int i : toBeAddedDay.keySet()) {
+                av.get(i).add(toBeAddedDay.get(i));
+
+            }
 
         }
-        for(int i : toBeAddedDay.keySet()){
-            av.get(i).add(toBeAddedDay.get(i));
-
-        }
-
     }
     public void loadCsv(ActionEvent actionEvent) throws IOException, CsvException {
        // writeCSV();

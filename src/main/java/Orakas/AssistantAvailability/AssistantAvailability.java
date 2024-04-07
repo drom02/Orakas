@@ -11,7 +11,7 @@ public class AssistantAvailability {
 
 
     private Availability availability;
-@JsonCreator
+    @JsonCreator
     public AssistantAvailability(@JsonProperty("assistant")UUID assistant,@JsonProperty("availability")Availability availability){
         setAssistant(assistant);
         setAvailability(availability);

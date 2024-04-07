@@ -12,7 +12,7 @@
     -fx-border-width: 2px;
 }
 .night-area-pane{
-    -fx-background-color: #454343;
+    -fx-background-color: #2c27b8;
     -fx-border-color:  #000000;
     -fx-border-width: 2px;
 }
@@ -44,12 +44,12 @@
 .night-title-card{
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-background-color:  #454343;
+    -fx-background-color:  #2c27b8;
 }
 .night-title-card-stack{
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-background-color:  #454343;
+    -fx-background-color:  #2c27b8;
     -fx-border-color:  #000000;
     -fx-border-width: 2px;
 }
@@ -86,7 +86,7 @@
 .night-Area{
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-background-color: #454343;
+    -fx-background-color: #2c27b8;
     -fx-border-color:  #000000;
     -fx-border-width: 2px;
 }

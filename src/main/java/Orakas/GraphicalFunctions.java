@@ -34,6 +34,28 @@ public class GraphicalFunctions {
         Stage stage = (Stage) mainPane.getScene().getWindow();
 
         //stage.setFullScreen(!stage.isFullScreen());
+        Rectangle2D screenBounds =  Screen.getPrimary().getVisualBounds();
+                //
+                //new Rectangle2D(0,0,1280,800);
+
+
+        stage.setMaxHeight(screenBounds.getHeight());
+        stage.setMaxWidth(screenBounds.getWidth());
+        mainPane.setPrefSize(screenBounds.getWidth(),screenBounds.getHeight());
+        stage.setWidth(screenBounds.getWidth());
+        stage.setHeight(screenBounds.getHeight());
+        mainGrid.setPrefSize(screenBounds.getWidth(),screenBounds.getHeight()-80);
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(mainPane.widthProperty());
+        clip.heightProperty().bind((mainPane.heightProperty()));
+        mainPane.setClip(clip);
+
+    }
+    public static void screenResizingStandard(Pane mainPane, GridPane mainGrid){
+        GraphicalSettings GS = new GraphicalSettings(null, null);
+        Stage stage = (Stage) mainPane.getScene().getWindow();
+
+        //stage.setFullScreen(!stage.isFullScreen());
         Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
         stage.setMaxHeight(screenBounds.getHeight());
         stage.setMaxWidth(screenBounds.getWidth());
@@ -45,7 +67,6 @@ public class GraphicalFunctions {
         clip.widthProperty().bind(mainPane.widthProperty());
         clip.heightProperty().bind((mainPane.heightProperty()));
         mainPane.setClip(clip);
-       // mainPane.setStyle("-fx-control-inner-background: " +GS.getColors().get("PrimaryColor") +";");
-       // mainGrid.setStyle("-fx-background-color: " +GS.getColors().get("PrimaryColor") +";");
+
     }
 }

@@ -1,9 +1,6 @@
 package Orakas.Excel;
 
-import Orakas.AssistantAvailability.AssistantAvailability;
-import Orakas.AssistantAvailability.Availability;
-import Orakas.AssistantAvailability.DayReport;
-import Orakas.AssistantAvailability.MonthReport;
+import Orakas.AssistantAvailability.*;
 import Orakas.Database.Database;
 import Orakas.Humans.Assistant;
 import Orakas.Settings;
@@ -178,15 +175,16 @@ public class ExcelOutput {
         sheet.addValidationData(minuteValidation);
         return workbook;
     }
-    public static AvailableAssistants  parseIndividual(HashMap<String, Assistant> mapOfAssistants, String path, int year, int month){
+    public static AvailableAssistantsIndividual parseIndividual(HashMap<String, Assistant> mapOfAssistants, String path, int year, int month){
         ArrayList<String> acceptableInputs = ShiftPickerController.prepareAcceptableInputs(mapOfAssistants);
-        AvailableAssistants out = new AvailableAssistants(year,month);
+
         ArrayList<ArrayList<AssistantAvailability>> dayList = new ArrayList<ArrayList<AssistantAvailability>>();
         ArrayList<ArrayList<AssistantAvailability>>  nightList = new ArrayList<ArrayList<AssistantAvailability>>();
         try (FileInputStream fileInputStream = new FileInputStream(new File(path));
              Workbook workbook = new XSSFWorkbook(fileInputStream)) {
             Sheet sheet = workbook.getSheet("availableAssistants");
             UUID assistant = attemptIdentification(sheet.getRow(2).getCell(0).getStringCellValue(),acceptableInputs,mapOfAssistants);
+            AvailableAssistantsIndividual out = new AvailableAssistantsIndividual(assistant,year,month);
             if(assistant != null){
                 for(int i =0; i < Month.of(month).length(Year.isLeap(year)); i++){
                     Row row1 = sheet.getRow(2);
@@ -208,8 +206,8 @@ public class ExcelOutput {
         Cell startCell2 = row1.getCell(i*4+2);
         Cell endCell1 = row1.getCell(i*4+3);
         Cell endCell2 = row1.getCell(i*4+4);
-        if(startCell1.getStringCellValue() !=null && startCell2.getStringCellValue() !=null && endCell1.getStringCellValue() !=null &&
-                endCell2.getStringCellValue() !=null ){
+        if(!startCell1.getStringCellValue().equals("null") && !startCell2.getStringCellValue().equals("null") && !endCell1.getStringCellValue().equals("null") &&
+                !endCell2.getStringCellValue().equals("null") ){
             return new AssistantAvailability(assistantID, new Availability(Integer.parseInt(startCell1.getStringCellValue()),
                     Integer.parseInt(startCell2.getStringCellValue()),
                             Integer.parseInt(endCell1.getStringCellValue()),
