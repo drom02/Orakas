@@ -138,7 +138,7 @@ public class ExcelOutput {
         for(int i = 0; i< Month.of(month).length(Year.isLeap(year)); i++){
             CellRangeAddress cellRangeAddress = new CellRangeAddress(0, 0, i*4+1, i*4+4);
             sheet.addMergedRegion(cellRangeAddress);
-            createCellWithContent(i,1,year+"."+month+ "."+ (i+1) ,cellStyleLocked,rows,0);
+            createCellWithContent(i,1,(i+1)+"." +month+"."+year  ,cellStyleLocked,rows,0);
             createCellWithContent(i,1,"Hodiny začátku" ,cellStyleLocked,rows,1);
             createCellWithContent(i,2,"Minuty začátku" ,cellStyleLocked,rows,1);
             createCellWithContent(i,3,"Hodiny konce" ,cellStyleLocked,rows,1);

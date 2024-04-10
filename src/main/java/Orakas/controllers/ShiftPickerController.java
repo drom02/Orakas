@@ -197,15 +197,24 @@ public class ShiftPickerController   implements ControllerInterface {
         System.out.println("shiftPicker");
         int year = settings.getCurrentYear();
         int mont = settings.getCurrentMonth();
-
         AvailableAssistants avl= Database.loadAssistantAvailability(year,mont);
         listOfAssist = Database.loadAssistants().getAssistantList();
+
         Platform.runLater(() -> {
+            prepareIndexes(listOfAssist);
                 populateTable(Month.of(mont),year);
                 loadAvailableAssistants(avl);
+            try {
+                saveCurrentState();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         });
     }
     private void prepareIndexes(ArrayList<Assistant> aList){
+        dayAvIndex.clear();
+        nightAvIndex.clear();
+        assistantIndex.clear();
         for(Assistant a : aList){
             dayAvIndex.put(a.getID(),new AssistantAvailability(a.getID(),new Availability(settings.getDefStart()[0],settings.getDefStart()[1],settings.getDefEnd()[0],settings.getDefEnd()[1])));
             nightAvIndex.put(a.getID(),new AssistantAvailability(a.getID(),new Availability(settings.getDefEnd()[0],settings.getDefEnd()[1],settings.getDefStart()[0],settings.getDefStart()[1])));
@@ -474,12 +483,15 @@ public class ShiftPickerController   implements ControllerInterface {
         }
     }
     private void addAssistantToDisplay(ArrayList<ShiftFlow> flows,AssistantAvailability a, ShiftGrid arList, int iter ){
-        ShiftFlow temp = new ShiftFlow(a);
-        temp.displayContent(assistantIndex);
-        GridPane.setConstraints(temp,0,iter,1,1);
-        flows.add(temp);
-        arList.addAssistant(a.getAssistant());
-        temp.setOnMouseClicked(this :: onFlowAreaClicked);
+        if(a.getAssistant()!= null && assistantIndex.get(a.getAssistant())!=null){
+            ShiftFlow temp = new ShiftFlow(a);
+            temp.displayContent(assistantIndex);
+            GridPane.setConstraints(temp,0,iter,1,1);
+            flows.add(temp);
+            arList.addAssistant(a.getAssistant());
+            temp.setOnMouseClicked(this :: onFlowAreaClicked);
+        }
+
 
     }
     private void addAssistantToDisplay(AssistantAvailability a, ShiftGrid arList){

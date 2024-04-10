@@ -505,7 +505,6 @@ public class MainPageController implements ControllerInterface{
     public void findSolutionV3(ActionEvent actionEvent) throws IOException {
         clearTable();
         ListOfAssistants asL = Database.loadAssistants();
-
         int monthLength;
         AvailableAssistantsLocalDateTime avAs = null;
         AvailableAssistants test = Database.loadAssistantAvailability(selectedYearValue,selectedMonthValue);
@@ -1356,6 +1355,7 @@ public class MainPageController implements ControllerInterface{
     public void findNewSolution(ActionEvent actionEvent) throws IOException {
         JsonManip.getJsonManip().generateNewMonthsAssistants(settings.getCurrentYear(), settings.getCurrentMonth());
         findSolutionV3(actionEvent);
+        internalController.send("Assistant");
     }
     public void hideDayInfo() {
          if (selectedTextArea!=null) {

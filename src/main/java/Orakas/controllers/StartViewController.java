@@ -42,7 +42,7 @@ public class StartViewController  implements ControllerInterface {
     );
     public void  initialize()  {
         String[] str = new String[] {"Main-view","shiftPicker-view","client-view","assistant-view","Location-view"};
-        String[] title = new String[] {"Main view","Úpravy směn","Klienti","Asistenti","Lokace"};
+        String[] title = new String[] {"Hlavní přehled","Úpravy směn","Klienti","Asistenti","Lokace"};
         ArrayList<CompletableFuture> futures = new ArrayList<>();
         mainTabPane.getTabs().clear();
         Platform.runLater(() -> {

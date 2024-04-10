@@ -227,7 +227,7 @@ public class IntervalProcessing {
         if (av.size() != AAIter+1 && solutionFound.getValue()!=2) {
             //Try again for same interval with next assistant.
             if(mainLoop(startOfLoopAssistant,intervalIter,AAIter+1,av,cl, dayState,solutionFound)){
-                solutionFound.setValue(1);
+               // solutionFound.setValue(1);
             }
             //If assistant is last, the loop didn't start from first assistant and solution wasn't found.
         } else if (av.size() == AAIter+1 && startOfLoopAssistant !=0 && solutionFound.getValue()!=2) {
