@@ -13,14 +13,11 @@ import java.util.GregorianCalendar;
 import java.util.UUID;
 
 public class ClientMonth {
-
-
     private UUID clientId;
     private Month mon;
     private int year;
     private ArrayList<ClientDay> clientDaysInMonth = new ArrayList<ClientDay>();
     private ArrayList<ClientDay> clientNightsInMonth = new ArrayList<ClientDay>();
-
     public Month getMon() {
         return mon;
     }

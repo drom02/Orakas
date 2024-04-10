@@ -79,14 +79,24 @@
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
               </columnConstraints>
               <rowConstraints>
-                <RowConstraints minHeight="10.0" percentHeight="34.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" percentHeight="33.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" percentHeight="33.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints vgrow="SOMETIMES" />
+                <RowConstraints vgrow="SOMETIMES" />
+                <RowConstraints vgrow="SOMETIMES" />
+                  <RowConstraints vgrow="ALWAYS" />
               </rowConstraints>
                <children>
-                  <Button fx:id="saveNewButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#saveNew" onMouseClicked="#saveNewLocation" text="Uložit novou lokaci" GridPane.columnSpan="2" />
-                  <Button fx:id="saveButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#saveLocation" text="Uložit změny" GridPane.columnSpan="2" GridPane.rowIndex="1" />
-                  <Button fx:id="deleteButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#deleteLocation" text="Smazat" GridPane.columnSpan="2" GridPane.rowIndex="2" />
+                  <Button fx:id="saveNewButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#saveNew" onMouseClicked="#saveNewLocation" text="Nová lokace" GridPane.columnSpan="2">
+                     <GridPane.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </GridPane.margin></Button>
+                  <Button fx:id="saveButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#saveLocation" text="Uložit" GridPane.columnSpan="2" GridPane.rowIndex="1">
+                     <GridPane.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </GridPane.margin></Button>
+                  <Button fx:id="deleteButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#deleteLocation" text="Smazat" GridPane.columnSpan="2" GridPane.rowIndex="2">
+                     <GridPane.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </GridPane.margin></Button>
                </children>
             </GridPane>
          </children>

@@ -107,11 +107,14 @@ public class LocationController extends SaveableControllerInterface implements C
 
     public void loadLocation(MouseEvent mouseEvent) {
         Location selectedLocation = (Location) listViewofL.getSelectionModel().getSelectedItem();
-        addressField.setText(selectedLocation.getAddress());
-        nameField.setText(selectedLocation.getCasualName());
-        comments.setText(selectedLocation.getComments());
-        selectedID=selectedLocation.getID();
-        selectedLocationGlobal = selectedLocation;
+        if(verifyRequired()){
+            addressField.setText(selectedLocation.getAddress());
+            nameField.setText(selectedLocation.getCasualName());
+            comments.setText(selectedLocation.getComments());
+            selectedID=selectedLocation.getID();
+            selectedLocationGlobal = selectedLocation;
+        }
+
     }
     @Override
     public void saveNew() {

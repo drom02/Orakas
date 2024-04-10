@@ -113,6 +113,7 @@ public class AssistantViewController extends SaveableControllerInterface impleme
             listOfA.getFullAssistantList().remove(selectedAssistant);
             ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getFullAssistantList());
             listViewofA.setItems(observAssistantList);
+            internalController.send("Assistant");
             for(Control n : assistantNodes){
                 if (n instanceof TextArea) {
                     ((TextArea) n).clear();
@@ -288,6 +289,7 @@ public class AssistantViewController extends SaveableControllerInterface impleme
         selectedAssistant = temp;
         ObservableList<Assistant> observLocationList = FXCollections.observableList(listOfA.getFullAssistantList());
         listViewofA.setItems(observLocationList);
+        internalController.send("Assistant");
     }
     public void populateDaysInWeekTable(){
         ContextMenu emptyContextMenu = new ContextMenu();
@@ -589,6 +591,7 @@ public class AssistantViewController extends SaveableControllerInterface impleme
             Database.saveAssistant(selectedAssistant);
             ObservableList<Assistant> observAssistantList = FXCollections.observableList(listOfA.getFullAssistantList());
             listViewofA.setItems(observAssistantList);
+            internalController.send("Assistant");
         }
     }
 

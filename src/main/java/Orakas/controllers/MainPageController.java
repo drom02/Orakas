@@ -256,9 +256,6 @@ public class MainPageController implements ControllerInterface{
         }
         TextFlow newTextArea = new TextFlow();
         setTextArea(newTextArea,"Další měsíc",titleList);
-        //newTextArea.getChildren().add(new Text("Další měsíc"));
-       // TextArea newTextArea = new TextArea("Další měsíc");
-       // titleList.add(newTextArea);
         i = 0;
 
         for (TextFlow ar : titleList){
@@ -278,7 +275,7 @@ public class MainPageController implements ControllerInterface{
                 TextFlow dayTextAr = new TextFlow();
                 if(i==0){
                     TextFlow dayTextArT = new TextFlow();
-                    inputText = LiCcl.getActiveClients().get(clientIter).getName() + " " + LiCcl.getActiveClients().get(clientIter).getSurname();
+                    inputText = LiCcl.getActiveClients().get(clientIter).getName() + " " + LiCcl.getActiveClients().get(clientIter).getSurname()+ " -"+ "den";
                     StackPane stack = setTextAreaCard(dayTextArT,inputText,clientCardList);
                     dayTextArT.getStyleClass().add("day-title-card");
                     stack.getStyleClass().add("day-title-card-stack");
@@ -302,7 +299,7 @@ public class MainPageController implements ControllerInterface{
                 TextFlow nightTextAr = new TextFlow();
                 if(i==0){
                     TextFlow nightTextArT = new TextFlow();
-                    inputText = LiCcl.getClientList().get(clientIter).getName() + " " + LiCcl.getClientList().get(clientIter).getSurname();
+                    inputText = LiCcl.getClientList().get(clientIter).getName() + " " + LiCcl.getClientList().get(clientIter).getSurname()+ " -"+ "noc";
                     StackPane stack = setTextAreaCard(nightTextArT,inputText,clientCardList);
                     nightTextArT.getStyleClass().add("night-title-card");
                     stack.getStyleClass().add("night-title-card-stack");
@@ -508,7 +505,6 @@ public class MainPageController implements ControllerInterface{
     public void findSolutionV3(ActionEvent actionEvent) throws IOException {
         clearTable();
         ListOfAssistants asL = Database.loadAssistants();
-
         int monthLength;
         AvailableAssistantsLocalDateTime avAs = null;
         AvailableAssistants test = Database.loadAssistantAvailability(selectedYearValue,selectedMonthValue);
@@ -953,8 +949,6 @@ public class MainPageController implements ControllerInterface{
 
     }
     private void setIntervalDescription(AnchorPane anch, ServiceInterval serv){
-      //  Text start = new Text(serv.getStart().getHour() +":" + serv.getStart().getMinute());
-       // Text end = new Text(serv.getEnd().getHour() +":" + serv.getEnd().getMinute());
         Text start = new Text(serv.getStart().toString());
         Text end = new Text(serv.getEnd().toString());
         anch.setTopAnchor(start,1.0);
@@ -982,7 +976,7 @@ public class MainPageController implements ControllerInterface{
                 (int) (color.getGreen() * 255),
                 (int) (color.getBlue() * 255));
     }
-    public void removeInterval(ActionEvent actionEvent) throws IOException {
+    public void removeInterval(ActionEvent actionEvent) {
         ClientDay editedDay = textClientIndex.get(selectedTextArea);
         if(editedDay!=null){
             if(editedDay.getDayIntervalList().size()>1){
@@ -1009,10 +1003,7 @@ public class MainPageController implements ControllerInterface{
             }
             setIntervalBars(editedDay);
             Database.saveAllClientMonths(listOfClm);
-            //Database.saveIndividualClientDay(editedDay,DatabaseUtils.prepMID(selectedYearValue,selectedMonthValue,editedDay.getClient()));
-           // displayIntervalInfoDef(editedDay);
         }
-
     }
     public void prepareHoursAndMinutes(){
         hoursList = (ArrayList<Integer>) IntStream.rangeClosed(0, 24).boxed().collect(Collectors.toList());
@@ -1364,6 +1355,7 @@ public class MainPageController implements ControllerInterface{
     public void findNewSolution(ActionEvent actionEvent) throws IOException {
         JsonManip.getJsonManip().generateNewMonthsAssistants(settings.getCurrentYear(), settings.getCurrentMonth());
         findSolutionV3(actionEvent);
+        internalController.send("Assistant");
     }
     public void hideDayInfo() {
          if (selectedTextArea!=null) {
