@@ -4,13 +4,17 @@ import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-
+/*
+Assistant availability for specific date.
+ */
 public class DateTimeAssistantAvailability {
     private LocalDateTime start;
-   private LocalDateTime end;
-   private AssistantAvailability assistantAvailability;
+    private LocalDateTime end;
+    private AssistantAvailability assistantAvailability;
     private boolean isDay;
-
+    /*
+    constructor
+     */
     public DateTimeAssistantAvailability(int year, int month, int day, boolean isDay,AssistantAvailability av){
         LocalDate date;
         try{
@@ -26,6 +30,9 @@ public class DateTimeAssistantAvailability {
         setDay(isDay);
         setAssistantAvailability(av);
     }
+    /*
+    Converts localDate to local dateTime for start of availability
+     */
     private LocalDateTime createStart(LocalDate date,boolean isDay,AssistantAvailability av){
         LocalTime localStart = av.getAvailability().getLocalTimeStart();
         if(isDay==false){
@@ -35,6 +42,9 @@ public class DateTimeAssistantAvailability {
         }
         return LocalDateTime.of(date,localStart);
     }
+    /*
+    Converts localDate to local dateTime for end of availability
+     */
     private LocalDateTime createEnd(LocalDate date, boolean isDay,AssistantAvailability av){
         LocalTime localEnd = av.getAvailability().getLocalTimeEnd();
         if(isDay==false){

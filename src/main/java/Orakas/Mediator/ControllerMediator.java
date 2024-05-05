@@ -2,7 +2,9 @@ package Orakas.Mediator;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/*
+Singleton, central class of mediator
+ */
 public class ControllerMediator implements Mediator {
     private static ControllerMediator ControllerMediator;
     private List<Controller> controllers;
@@ -23,7 +25,6 @@ public class ControllerMediator implements Mediator {
     @Override
     public void send(String message, Controller originator) {
         for (Controller colleague : controllers) {
-            // Don't tell the originator
             if (colleague != originator) {
                 colleague.receive(message);
             }

@@ -6,7 +6,9 @@ import javafx.scene.control.ListView;
 
 
 import javafx.util.Callback;
-
+/*
+Custom cell factory that is used for classes that inherit from human. Allows for lists to display name and surname.
+ */
 public class HumanCellFactory implements Callback<ListView<Human>, ListCell<Human>> {
     @Override
     public ListCell<Human> call(ListView<Human> param) {

@@ -4,11 +4,10 @@ import Orakas.Structs.TimeStructs.ServiceInterval;
 
 import java.util.ArrayList;
 import java.util.UUID;
-
+/*
+Instance of class represents multiple intervals that will be serviced by single assistant.
+ */
 public class MergedRecord {
-
-
-
     private ArrayList<ServiceInterval> mergedIntervals = new ArrayList<>();
     private ServiceInterval primaryInterval;
     private boolean wasRead = false;

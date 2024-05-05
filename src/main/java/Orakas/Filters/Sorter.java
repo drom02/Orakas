@@ -15,13 +15,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
-
+/*
+Class responsible for finding the best available assistant.
+ */
 
 public class Sorter {
     private HashMap<String, ArrayList<ArrayList<UUID>>> past = new HashMap<>();
-    /*
-    Used for record keeping.
-     */
     private int day;
     private IntervalProcessing interProc ;
     private HashMap<UUID, DateTimeAssistantAvailability> IDAvailIndex;
@@ -84,6 +83,9 @@ public class Sorter {
                 softFilters.workedHoursHPP(soft,day,workMonth,workHoursOfMonth,aslList,Scores.getScores().getScoresMap().get("HppHour"));
                 softFilters.output(availableAssistantsID,soft);
                 ArrayList<DateTimeAssistantAvailability>  ordered = orderedDateTimeAA(availableAssistantsID,availableAssistants);
+                /*
+                Start of the process of finding the best assistant.
+                 */
                 interProc.start(ordered,cl,dayState);
                 return availableAssistantsID.getFirst();
         }else{
@@ -126,18 +128,5 @@ public class Sorter {
         for(Assistant a : assistants.getFullAssistantList()){
             assistantHashMap.put(a.getID(),a);
         }
-    }
-    public void report(){
-        //TODO repair
-        /*
-        for(UUID id: workMonth.getFinishedWork().keySet()){
-            System.out.println(id);
-            for(AssistantWorkShift list :workMonth.getFinishedWork().get(id)){
-                System.out.println(list.getDay());
-                System.out.println(list.getWorkedHours());
-            }
-        }
-         */
-
     }
 }

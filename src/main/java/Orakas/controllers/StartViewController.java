@@ -18,7 +18,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-
+/*
+JavaFX controller for view that manages all tabs and common properties.
+ */
 public class StartViewController  implements ControllerInterface {
     @FXML
     private TextFlow informationFlow;

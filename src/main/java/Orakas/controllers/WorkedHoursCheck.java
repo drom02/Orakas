@@ -1,5 +1,8 @@
 package Orakas.controllers;
-
+/*
+Class is used for management of parts of AssistantViewController.
+Specifically, for controlling types of assistant shifts.
+ */
 
 import Orakas.Humans.Assistant;
 import Orakas.Settings;
@@ -7,7 +10,6 @@ import Orakas.workHoursAllocation.WorkHoursCalcul;
 import javafx.scene.control.TextField;
 
 public class WorkedHoursCheck {
-
     WorkedHoursCheck(){
 
     }

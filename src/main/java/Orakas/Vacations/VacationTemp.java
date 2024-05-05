@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.UUID;
-
+/*
+Class used for serialization and deserialization of all vacations if an assistant.
+ */
 public class VacationTemp {
     private ArrayList<Vacation> tempVacation;
     private UUID assistantID;

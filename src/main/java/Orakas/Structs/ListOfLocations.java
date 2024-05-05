@@ -7,7 +7,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
-
+/*
+Class used for manipulations with locations at the same time.
+ */
 public class ListOfLocations implements Saveable {
 
     public ArrayList<Location> getListOfLocations() {

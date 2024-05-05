@@ -7,6 +7,9 @@ import javafx.scene.layout.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+/*
+Custom JavaFX components. This component is essentially a switch button, tha represents two positions.
+ */
 
 public class ToggleButton {
     public GridPane getLocalGrid() {

@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDate;
-
+/*
+Class used for storing information about single vacation of an assistant.
+ */
 public class Vacation {
 
     private LocalDate start;

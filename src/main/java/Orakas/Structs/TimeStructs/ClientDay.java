@@ -11,7 +11,9 @@ import java.time.Month;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.UUID;
-
+/*
+Class representing individual shift, contains all intervals that pertain said shift.
+ */
 public class ClientDay {
 
 
@@ -26,22 +28,6 @@ public class ClientDay {
     private LocalDateTime defEndTime;
     private ServiceIntervalArrayList dayIntervalList = new ServiceIntervalArrayList();
 
-    public void test(){
-        /*
-        ServiceInterval test2 = new ServiceInterval(LocalTime.of(10,00,00), LocalTime.of(14,00,00), null, null,false);
-        ServiceInterval test1 = new ServiceInterval(LocalTime.of(15,00,00), LocalTime.of(16,00,00), null, null,false);
-        ServiceInterval test3 = new ServiceInterval(LocalTime.of(8,00,00), LocalTime.of(9,00,00), null, null,false);
-        ServiceInterval test4 = new ServiceInterval(LocalTime.of(5,00,00), LocalTime.of(6,00,00), null, null,false);
-        dayIntervalList.add(test1);
-        dayIntervalList.add(test2);
-        dayIntervalList.add(test3);
-        dayIntervalList.add(test4);
-        System.out.println("test");
-         */
-
-
-
-    }
     @JsonCreator
      public ClientDay(@JsonProperty("client")UUID client,@JsonProperty("dayI")Integer dayI,
                @JsonProperty("monthI")Month monthI, @JsonProperty("year")Integer yearI,
@@ -74,7 +60,6 @@ public class ClientDay {
                 toBeResized.add(s);
             }
             if ((start.isAfter(startNew) && end.isBefore(endNew)) || start.isEqual(startNew) && end.isBefore(endNew) || start.isAfter(startNew) && end.isEqual(endNew)) {
-                //   System.out.println("toBeRemoved");
                 toBeRemoved.add(s);
             }
         }
@@ -118,7 +103,6 @@ public class ClientDay {
                 , endNew, day.getDayIntervalList().getFirst().getOverseeingAssistant(), null,null, false, false,day.getLocation().getID(),false));
         if(day.getDayIntervalList().getFirst().getStart().isEqual(startNew) || day.getDayIntervalList().getLast().getEnd().isEqual(endNew)){
         }
-       // day.getDayIntervalListUsefull().get(0).setComment("Testing save logic");
     }
     public boolean isMerged() {
         return isMerged;

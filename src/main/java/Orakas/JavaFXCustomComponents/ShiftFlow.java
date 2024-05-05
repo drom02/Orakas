@@ -8,7 +8,9 @@ import javafx.scene.text.TextFlow;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
-
+/*
+Extended TextFlow for use in shiftViewer. Always includes information about contained assistantAvailability
+ */
 public class ShiftFlow extends TextFlow {
 
     public Orakas.AssistantAvailability.AssistantAvailability getAssistantAvailability() {

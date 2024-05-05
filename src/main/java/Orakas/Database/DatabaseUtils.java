@@ -5,7 +5,9 @@ import Orakas.Structs.TimeStructs.ClientMonth;
 
 import java.util.Arrays;
 import java.util.UUID;
-
+/*
+Database containing tools used in database manipulation.
+ */
 public class DatabaseUtils {
     public static int[] stringToIntArray(String st){
         String[] processed = st.split(",");
@@ -50,15 +52,4 @@ public class DatabaseUtils {
         output.append(clientID.toString());
         return  output.toString();
     }
-    /*
-      public static String prepSIID(ServiceIntervalArrayList serv){
-        int i = 0;
-        StringBuilder output = new StringBuilder();
-        for(ServiceInterval se : serv){
-            prepCDID(se.get)
-        }
-
-    }
-     */
-
 }

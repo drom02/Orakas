@@ -4,7 +4,9 @@ import Orakas.Vacations.Vacation;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
-
+/*
+Cell factory that allows for custom display in JavaFX list.
+ */
 public class VacationCellFactory implements Callback<ListView<Vacation>, ListCell<Vacation>> {
     @Override
     public ListCell<Vacation> call(ListView<Vacation> param) {

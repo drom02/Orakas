@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 /*
-
+Singleton class used to access score values used in filters.
  */
 public class Scores {
     private static Scores scores;

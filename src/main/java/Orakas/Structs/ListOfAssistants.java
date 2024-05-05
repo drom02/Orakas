@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
+/*
+Class used for manipulations with multiple assistants at the same time.
+ */
 public class ListOfAssistants implements Saveable {
 
 

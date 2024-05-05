@@ -6,7 +6,9 @@ import Orakas.Structs.TimeStructs.ServiceInterval;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
-
+/*
+Class grouping all MergedRecords for one month.
+ */
 public class MergedRegistry {
     public HashMap<Integer, HashMap<Boolean,HashMap<UUID, MergedRecord>>> getMergedRegistry() {
         return mergedRegistry;

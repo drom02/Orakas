@@ -51,7 +51,7 @@
                   <RowConstraints vgrow="ALWAYS" />
               </rowConstraints>
                <children>
-                  <Button fx:id="fromCsvButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#loadCsv" text="Načíst z exceluu" GridPane.columnSpan="2" GridPane.valignment="TOP">
+                  <Button fx:id="fromCsvButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#loadCsv" text="Načíst z excelu" GridPane.columnSpan="2" GridPane.valignment="TOP">
                      <GridPane.margin>
                         <Insets bottom="2.0" right="2.0" top="2.0" />
                      </GridPane.margin></Button>

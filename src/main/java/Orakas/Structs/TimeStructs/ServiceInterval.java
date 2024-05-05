@@ -8,7 +8,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+/*
 
+ */
 public class ServiceInterval {
     private Assistant overseeingAssistant;
     private LocalDateTime start;

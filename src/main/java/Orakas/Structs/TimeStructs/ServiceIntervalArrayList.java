@@ -1,7 +1,9 @@
 package Orakas.Structs.TimeStructs;
 
 import java.util.ArrayList;
-
+/*
+Custom implementation of ArrayList for service intervals. All inputted intervals are always ordered chronologically.
+ */
 public class ServiceIntervalArrayList extends ArrayList<ServiceInterval> {
     @Override
     public boolean add(ServiceInterval e){

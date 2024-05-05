@@ -7,7 +7,9 @@ import Orakas.Structs.ListOfAssistants;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.UUID;
-
+/*
+Class used for tracking work done by assistant for purposes of filtering  when selecting the best assistant for shift.
+ */
 public class AssistantMonthWorks {
     public HashMap<UUID, HashMap<Integer, AssistantWorkShift>> getFinishedWork() {
         return finishedWork;

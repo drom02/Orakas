@@ -1,9 +1,11 @@
 package Orakas.Structs;
 
-import Orakas.ClientProfile;
+import Orakas.Humans.ClientProfile;
 import Orakas.Structs.TimeStructs.ClientDay;
 import Orakas.Structs.TimeStructs.ServiceInterval;
-
+/*
+Class used for
+ */
 public class LocationRepresentative {
 
     public ClientProfile getClp() {

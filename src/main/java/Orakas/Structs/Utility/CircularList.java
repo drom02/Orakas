@@ -3,7 +3,9 @@ package Orakas.Structs.Utility;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
+/*
+Linked list where last element refers to first one
+ */
 public class CircularList<E> extends LinkedList<E> {
     public CircularList() {
     }

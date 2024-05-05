@@ -5,7 +5,9 @@ import Orakas.Structs.ListOfAssistants;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
+/*
+Class contains method that are implementations of soft filters.
+ */
 public class SoftFilters {
 
     public HashMap<UUID,Integer> prepare(ArrayList<UUID> availableAssistants){

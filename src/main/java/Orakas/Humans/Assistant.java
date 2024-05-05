@@ -7,6 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.UUID;
 
+/*
+Class whose instances represent individual assistants
+ */
 public class Assistant extends Human {
     //Typ pracovní smlouvy
     private String ContractType;

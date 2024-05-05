@@ -9,7 +9,9 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.UUID;
-
+/*
+Class containing all filters that remove assistants from shift
+ */
 public class HardFilters {
 
     public ArrayList<UUID> removePreviousShift(ArrayList<UUID> input, int day, AssistantMonthWorks aMW, int daystate){

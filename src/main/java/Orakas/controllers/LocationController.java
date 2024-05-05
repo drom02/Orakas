@@ -45,11 +45,10 @@ public class LocationController extends SaveableControllerInterface implements C
     private UUID selectedID;
     private Location selectedLocationGlobal;
     private ArrayList<Node> requiredNodes = new ArrayList<>(Arrays.asList(nameField,addressField));
-    JsonManip jsoMap;
     Settings set;
     public void initialize() throws IOException {
         set = Settings.getSettings();
-        listOfL = Database.loadLocations();
+        listOfL = Database.loadActiveLocations();
         listOfLoc = listOfL.getListOfLocations();
         ObservableList<Location> observLocationList = FXCollections.observableList(listOfL.getListOfLocations());
         listViewofL.setItems(observLocationList);
@@ -62,19 +61,11 @@ public class LocationController extends SaveableControllerInterface implements C
             loadLocation(null);
         }
     }
-    public void switchPage(ActionEvent actionEvent) throws IOException {
-        Scene scen = listViewofL.getScene();
-        FXMLLoader fxmlLoader = new FXMLLoader(Start.class.getResource("Main-view.fxml"));
-        Parent rot = fxmlLoader.load();
-        scen.setRoot(rot);
-    }
-
     public void deleteLocation(MouseEvent mouseEvent) throws IOException {
-        System.out.println();
         if(!(selectedID==null)){
+            Database.saveLocation(selectedLocationGlobal,1);
             listOfLoc.remove(selectedLocationGlobal);
             selectedLocationGlobal = null;
-            jsoMap.saveLocations(listOfL);
             addressField.clear();
             nameField.clear();
             comments.clear();

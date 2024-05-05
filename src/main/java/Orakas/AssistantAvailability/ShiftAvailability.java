@@ -6,26 +6,23 @@ import Orakas.Settings;
 
 import java.time.DayOfWeek;
 import java.util.ArrayList;
-
+/*
+Class containing data about default availability of assistant
+ */
 public class ShiftAvailability {
     DayOfWeek day;
-
     public DayOfWeek getDay() {
         return day;
     }
-
     public void setDay(DayOfWeek day) {
         this.day = day;
     }
-
     public boolean getIsDay() {
         return isDay;
     }
-
     public void setIsDay(boolean day) {
         isDay = day;
     }
-
     boolean isDay;
     boolean state;
     Availability availability;
@@ -39,17 +36,18 @@ public class ShiftAvailability {
     public Availability getAvailability() {
         return availability;
     }
-
     public void setAvailability(Availability availability) {
         this.availability = availability;
     }
     public boolean getState() {
         return state;
     }
-
     public void setState(boolean state) {
         this.state = state;
     }
+    /*
+    Prepares entire week of shiftAvailabilities.
+     */
     public static ArrayList<ShiftAvailability> generateWeek(){
         Settings set = Settings.getSettings();
         ArrayList<ShiftAvailability> output = new ArrayList<>(14);

@@ -4,7 +4,9 @@ import Orakas.AssistantAvailability.AssistantAvailability;
 import javafx.scene.control.TextArea;
 
 import java.util.ArrayList;
-
+/*
+Deprecated class for management of Shifts
+ */
 public class ShiftTextArea extends TextArea {
     //Text area with added ID and ArrayList<Assistant>
     private int ID;

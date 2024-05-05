@@ -5,6 +5,7 @@ import Orakas.AssistantAvailability.Availability;
 import Orakas.AssistantAvailability.ShiftAvailability;
 import Orakas.Database.Database;
 import Orakas.Humans.Assistant;
+import Orakas.Humans.ClientProfile;
 import Orakas.JavaFXCustomComponents.AssistantViewConSetup;
 import Orakas.Structs.ListOfClientsProfiles;
 import Orakas.Structs.VacationCellFactory;
@@ -35,7 +36,9 @@ import javafx.scene.text.TextFlow;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-
+/*
+JavaFX controller for assistant view
+ */
 public class AssistantViewController extends SaveableControllerInterface implements ControllerInterface{
 
 
@@ -94,7 +97,6 @@ public class AssistantViewController extends SaveableControllerInterface impleme
     //region variables
     private Assistant selectedAssistant;
     private  ArrayList<ShiftAvailability> stateOfDays= ShiftAvailability.generateWeek();
-   // private JsonManip jsoMap;
     private ListOfAssistants listOfA;
     private ArrayList<Control> assistantNodes;
     private HashMap<UUID, ArrayList<Object>> itemIndex;
@@ -324,11 +326,8 @@ public class AssistantViewController extends SaveableControllerInterface impleme
     }
     private void positionGrid(ArrayList<GridPane> ar, int iRow, int iCol, ArrayList<AssistantViewConSetup> completeList){
     AssistantViewConSetup temp = new AssistantViewConSetup();
-    //linkedViewConList.set((iCol == 0) ? iRow/2 : iRow/2+7,temp);
-      //  System.out.println(iCol);
-      //  System.out.println(iRow/2+iCol);
         linkedViewConList.set(iRow+iCol,temp);
-    completeList.add(temp);
+        completeList.add(temp);
         GridPane.setConstraints(temp.getLocalGrid(),iCol,iRow+1,1,1);
         ar.add(temp.getLocalGrid());
         for(Node n : temp.getItemList()){
@@ -417,8 +416,6 @@ public class AssistantViewController extends SaveableControllerInterface impleme
                 temp.setToggleGroup(group);
                 templist.add(temp);
             }
-           // ArrayList<CheckBox> listOfB = new ArrayList<>(Arrays.asList(new CheckBox(),new CheckBox(),new CheckBox()));
-           // templist.add(listOfB);
            int[] columnWidth = new int[]{20,20,20,20,20};
            int it = 1;
            for(int i : columnWidth){
@@ -434,9 +431,6 @@ public class AssistantViewController extends SaveableControllerInterface impleme
             clientOpinionGrid.getChildren().add(grp);
            clientOpinionGrid.setConstraints(grp,0,citer++);
             clientOpinionGrid.setMargin(grp, new Insets(0,10,0,10));
-           // clientOpinionGrid.setValignment(grp,VPos.CENTER);
-            //clientOpinionGrid.setHalignment(grp,HPos.CENTER);
-            //clientOpinionGrid.getRowConstraints().add(new RowConstraints() {{ setPercentHeight(10);}});
             itemIndex.put(clp.getID(),templist);
 
         }
@@ -485,15 +479,6 @@ public class AssistantViewController extends SaveableControllerInterface impleme
 
     @Override
     public void updateScreen() {
-        /*
-        try {
-            populateClientOpinion();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-         */
-
-
     }
 
     @Override

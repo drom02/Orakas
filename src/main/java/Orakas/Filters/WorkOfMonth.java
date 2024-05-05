@@ -7,7 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashMap;
 import java.util.UUID;
 
-
+/*
+Class used for tracking work done by assistant in month
+ */
 public class WorkOfMonth {
 
     private HashMap<UUID, Double>  resultOfMonth;
@@ -18,8 +20,6 @@ public class WorkOfMonth {
     public WorkOfMonth(HashMap<UUID, Double> input){
        setResultOfMonth(input);
     }
-
-
     public HashMap<UUID, Double> getResultOfMonth() {
         return resultOfMonth;
     }

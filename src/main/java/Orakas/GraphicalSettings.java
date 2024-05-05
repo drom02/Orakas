@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import javafx.scene.paint.Color;
 
 import java.util.HashMap;
-
+/*
+Deprecated class used for central management of graphical components. Replaced by CSS files.
+ */
 public class GraphicalSettings {
     public HashMap<String, String> getColors() {
         return colors;
@@ -41,7 +43,6 @@ public class GraphicalSettings {
         }
     }
     private void populate(){
-        //region colors
         getColors().put("Day", GraphicalFunctions.toHexFromRGBO(Color.GRAY,0.1));
         getColors().put("Night", GraphicalFunctions.toHexFromRGBO(Color.BLACK,0.75));
         getColors().put("Error",GraphicalFunctions.toHexFromRGBO(Color.RED,1.00));
@@ -50,7 +51,6 @@ public class GraphicalSettings {
         getColors().put("TertiaryColor", GraphicalFunctions.toHexFromRGBO(Color.ORANGE,1.00));
         getColors().put("","");
 
-        //regionend
     }
 
 }

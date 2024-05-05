@@ -4,7 +4,9 @@ import Orakas.Location;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
-
+/*
+Cell factory for javaFX lists of locations, displays casual name.
+ */
 public class LocationCellFactory implements Callback<ListView<Location>, ListCell<Location>> {
     @Override
     public ListCell<Location> call(ListView<Location> param) {

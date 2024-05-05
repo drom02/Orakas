@@ -7,7 +7,9 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.UUID;
-
+/*
+Class used for tracking of work done by assistant in space of single shift
+ */
 public class AssistantWorkShift {
     private UUID assistantID;
     private long workedMinutes;

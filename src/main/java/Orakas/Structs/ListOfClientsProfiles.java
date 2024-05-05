@@ -3,13 +3,15 @@ package Orakas.Structs;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import Orakas.ClientProfile;
+import Orakas.Humans.ClientProfile;
 import Orakas.JsonManip;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
-
+/*
+Class used for manipulations with multiple clientProfiles at the same time.
+ */
 public class ListOfClientsProfiles implements Saveable{
 
     @JsonIgnore

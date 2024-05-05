@@ -4,7 +4,9 @@ import Orakas.Structs.TimeStructs.ClientMonth;
 
 import java.util.ArrayList;
 import java.util.UUID;
-
+/*
+Class used for manipulations with multiple clientMonths at the same time.
+ */
 public class ListOfClientMonths {
     public ArrayList<ClientMonth> getListOfClientMonths() {
         return listOfClientMonths;

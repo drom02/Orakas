@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalTime;
-
+/*
+Class representing two points in time, is used to represent time when somebody is available.
+ */
 public class Availability {
     @JsonCreator
     public Availability(@JsonProperty("startHours") int startHours,
@@ -16,12 +18,11 @@ public class Availability {
     setStartMinutes(startMinutes);
     setEndHours(endHours);
     setEndMinutes(endMinutes);
-
     }
     private int[] start = new int[2];
     private int[] end = new int[2];
-@JsonIgnore
-public LocalTime getLocalTimeStart(){
+    @JsonIgnore
+    public LocalTime getLocalTimeStart(){
         return LocalTime.of(start[0],start[1]);
     }
     @JsonIgnore

@@ -12,7 +12,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
+/*
+Class responsible for setup of template of assistant work hours.
+ */
 public class AssistantViewConSetup {
     private GridPane localGrid = new GridPane();
     private Spinner<Integer> startHours = new Spinner<>();

@@ -1,19 +1,34 @@
 package Orakas.AssistantAvailability;
-
+/*
+Contains information about work done in specific day. Is used for reporting;
+ */
 public class DayReport {
-
     public int getDay() {
         return day;
     }
-
     public void setDay(int day) {
         this.day = day;
     }
-
+    /*
+    Which day of month
+     */
     int day;
+    /*
+    Total worked hours
+     */
     double worked = 0D;
+    /*
+    How many hours were worked at day
+     */
     double workedAtDay = 0D;
+    /*
+    How many hours were worked at night
+     */
     double workedAtNight = 0D;
+    /*
+   How many hours were worked at weekend
+    */
+    double workedAtWeekend = 0D;
 
     public double getWorkedAtWeekend() {
         return workedAtWeekend;
@@ -23,7 +38,7 @@ public class DayReport {
         this.workedAtWeekend = workedAtWeekend;
     }
 
-    double workedAtWeekend = 0D;
+
 
     DayReport(double work, double workAtDay, double workedAtNight, double workedAtWeekend, int day){
     setWorked(work);

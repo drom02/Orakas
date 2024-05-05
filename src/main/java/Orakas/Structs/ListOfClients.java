@@ -1,11 +1,13 @@
 package Orakas.Structs;
 
 import Orakas.Humans.Client;
-import Orakas.ClientProfile;
+import Orakas.Humans.ClientProfile;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 import java.util.ArrayList;
-
+/*
+Class used for manipulations with multiple clients at the same time.
+ */
 public class ListOfClients {
 
 

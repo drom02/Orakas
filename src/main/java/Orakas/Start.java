@@ -14,7 +14,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Objects;
+/*
 
+ */
 public class Start extends Application {
     @Override
     public void start(Stage stage) throws IOException {
@@ -26,7 +28,6 @@ public class Start extends Application {
         stage.setTitle("Orakas");
         stage.setScene(scene);
         stage.show();
-        WorkHoursCalcul work = new WorkHoursCalcul();
         Database.prepareTables();
     }
 

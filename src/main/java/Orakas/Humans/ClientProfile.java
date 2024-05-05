@@ -1,13 +1,16 @@
-package Orakas;
+package Orakas.Humans;
 
 import Orakas.Humans.Client;
 import Orakas.Humans.Human;
+import Orakas.Location;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import Orakas.Structs.TimeStructs.ClientMonth;
 
 import java.util.UUID;
-
+/*
+Class representing information about client.
+ */
 public class ClientProfile extends Human {
 
     public Location getHomeLocation() {

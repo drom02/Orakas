@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.IntStream;
-
+/*
+Class for manipulation with multiple vacations.
+ */
 public class VacationList  {
 private HashMap<Integer,HashMap<Integer, ArrayList<Vacation>>> yearMap = new HashMap<Integer,HashMap<Integer, ArrayList<Vacation>>>();
 

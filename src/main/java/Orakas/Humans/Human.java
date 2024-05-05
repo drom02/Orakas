@@ -1,7 +1,9 @@
 package Orakas.Humans;
 
 import java.util.UUID;
-
+/*
+Super class from which all classes that represent humans inherit.
+ */
 public class Human {
 
     private UUID ID;

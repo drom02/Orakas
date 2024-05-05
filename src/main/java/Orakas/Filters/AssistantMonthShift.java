@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class AssistantMonthShift {
-
-
     private UUID assistantID;
     private long workedHours;
     private int lastDayInWork;

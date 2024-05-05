@@ -15,12 +15,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static de.focus_shift.jollyday.core.HolidayCalendar.CZECH_REPUBLIC;
-
+/*
+Class containing methods for calculation regarding work fund of an assistant.
+ */
 public class WorkHoursCalcul {
 
     public WorkHoursCalcul(){
-    //countWorkDays(2025,1,Month.of(1).length(Year.isLeap(2025)));
-        //System.out.println(workDaysCalcul(25,1,7.5));
     }
     public static double workDaysCalcul(int year, int month, double standardWorkDay, UUID assistant, double contractLength ){
         int length = Month.of(month).length(Year.isLeap(year));

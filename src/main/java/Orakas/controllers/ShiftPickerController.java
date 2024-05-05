@@ -14,7 +14,6 @@ import Orakas.Mediator.InternalController;
 import Orakas.Settings;
 import Orakas.Structs.HumanCellFactory;
 import Orakas.Structs.ListOfAssistants;
-import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
 import Orakas.JavaFXCustomComponents.ToggleButton;
 import Orakas.Structs.Availability.AvailableAssistants;
@@ -43,17 +42,12 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
 import java.time.format.TextStyle;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-
-import static com.opencsv.ICSVWriter.*;
-
 /*
 Controller for shift picker window. It is used to select when are assistants available. Select name from the list and
 left click to field to add the assistant for specific shift. Right click to remove.
@@ -100,7 +94,6 @@ public class ShiftPickerController   implements ControllerInterface {
     private boolean individualWasSelected = false;
 
     //endregion
-
 
    /*
    Method will generate empty table with only column and row titles.
@@ -181,7 +174,7 @@ public class ShiftPickerController   implements ControllerInterface {
         TestScrollPane.setContent(grid);
     }
     /*
-    Method initialize
+    Updates screen
     */
     @Override
     public void updateScreen()  {
@@ -192,9 +185,11 @@ public class ShiftPickerController   implements ControllerInterface {
         assistantList.setItems(observAssistantList);
     }
 
+    /*
+
+     */
     @Override
     public void loadAndUpdateScreen() {
-        System.out.println("shiftPicker");
         int year = settings.getCurrentYear();
         int mont = settings.getCurrentMonth();
         AvailableAssistants avl= Database.loadAssistantAvailability(year,mont);
@@ -236,6 +231,7 @@ public class ShiftPickerController   implements ControllerInterface {
             GraphicalFunctions.screenResizing(mainPane,mainGrid);
         });
     }
+
     private void setupViewCon(){
         vac = new AssistantViewConSetup();
         editMode = new ToggleButton("Úprava dní","Úprava hodin");
@@ -306,7 +302,6 @@ public class ShiftPickerController   implements ControllerInterface {
                 if(!singleSelectionMode.isState()){
                     removeAssistantFromGlobal(parentGrid);
                 }
-               // loadedArea.setText(oldText.replace("," +selectedAssistant.getName() +" "+ selectedAssistant.getSurname(),""));
             }
         }
     }
@@ -335,7 +330,6 @@ public class ShiftPickerController   implements ControllerInterface {
     }
     private void addAssistantToGlobal(ShiftGrid parentGrid){
         boolean toBeAdded = true;
-       // AssistantAvailability toBeAdded = null;
         if(parentGrid.isDay()){
             int i = assistantsDayList.indexOf(parentGrid);
             for(AssistantAvailability a : AAGlobal.getAvailableAssistantsAtDays().get(i)){
@@ -357,9 +351,7 @@ public class ShiftPickerController   implements ControllerInterface {
             if(toBeAdded){
                 AAGlobal.getAvailableAssistantsAtNights().get(i).add(new AssistantAvailability(selectedAssistant.getID(),new Availability(20,30,8,30)));
             }
-
         }
-
     }
     private void saveChangesToShift(){
         boolean isDay = assistantsDayList.contains(selectedFlow.getParent());
@@ -384,10 +376,6 @@ public class ShiftPickerController   implements ControllerInterface {
         }
 
     }
-    /*
-    Will populate the table with latest saved state.
-    //Todo option to select save to load.
-     */
     private void removeFromAssistantAVAr(ArrayList<AssistantAvailability> list, UUID id){
         for(AssistantAvailability av : list){
             if(av.getAssistant().equals(id)){
@@ -543,19 +531,12 @@ public class ShiftPickerController   implements ControllerInterface {
                     inputNightList.add(new AssistantAvailability(asis.getID(),asis.getWorkDays().get(LocalDate.of(year, month, i + 1).getDayOfWeek().getValue()+ 6).getAvailability()));
                 }
 
-
             }
-
-
         }
         availableAssistants.setAvailableAssistantsAtDays(dayList);
         availableAssistants.setAvailableAssistantsAtNights(nightList);
         Database.saveAssistantAvailability(year, month, availableAssistants);
     }
-    /*
-    Will save current state to json file.
-    //TODO better save system
-     */
     public void saveCurrentState() throws IOException {
         if(!singleSelectionMode.isState()){
         }else{
@@ -623,25 +604,12 @@ public class ShiftPickerController   implements ControllerInterface {
         }
         return null;
     }
+
     private void loadIndividualExcel(String path) throws IOException {
        AvailableAssistantsIndividual aa = ExcelOutput.parseIndividual(mapOfAssistants,path, settings.getCurrentYear(), settings.getCurrentMonth());
        changeShiftType(aa,AAGlobal.getAvailableAssistantsAtDays());
         changeShiftType(aa,AAGlobal.getAvailableAssistantsAtNights());
-       // populateTable(Month.of(settings.getCurrentMonth()), settings.getCurrentYear());
         loadAvailableAssistants(AAGlobal);
-        //populateTable(Month.of(settings.getCurrentMonth()),settings.getCurrentYear());
-    }
-    private UUID identifyAssistant(AvailableAssistants aa){
-        aa.getAvailableAssistantsAtDays().getFirst();
-        Optional<UUID> optionalAssistantD = Optional.ofNullable(aa).map(f->f.getAvailableAssistantsAtDays()).map(s->s.getFirst()).map(t->t.getFirst()).map(f->f.getAssistant());
-        if(optionalAssistantD.isPresent()){
-            return  optionalAssistantD.get();
-        }
-        Optional<UUID> optionalAssistantN = Optional.ofNullable(aa).map(f->f.getAvailableAssistantsAtNights()).map(s->s.getFirst()).map(t->t.getFirst()).map(f->f.getAssistant());
-        if(optionalAssistantN.isPresent()){
-            return  optionalAssistantN.get();
-        }
-        return null;
     }
     private void changeShiftType(AvailableAssistantsIndividual aa,ArrayList<ArrayList<AssistantAvailability>> av){
         int iDay = 0;
@@ -664,28 +632,24 @@ public class ShiftPickerController   implements ControllerInterface {
                             toBeAddedDay.put(iDay, aa.getAvailableAssistantsAtDays().get(iDay).getFirst());
                             toBeRemovedDay.put(iDay, a);
                         } else {
-                           // toBeAddedDay.put(iDay, aa.getAvailableAssistantsAtDays().get(iDay).getFirst());
+                            toBeAddedDay.put(iDay, aa.getAvailableAssistantsAtDays().get(iDay).getFirst());
                         }
                     }
                     iDay++;
                 }
-
-
                 }
             for (int i : toBeRemovedDay.keySet()) {
                 av.get(i).remove(toBeRemovedDay.get(i));
-
             }
             for (int i : toBeAddedDay.keySet()) {
                 av.get(i).add(toBeAddedDay.get(i));
-
             }
-
         }
     }
+    /*
+    Opens menu for selection of file and attempts to parse the file as shift template
+     */
     public void loadCsv(ActionEvent actionEvent) throws IOException, CsvException {
-       // writeCSV();
-        //writeXSLX();
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("csv files (*.csv)","*.csv", "*.xlsx");
         fileChooser.getExtensionFilters().add(extFilter);
@@ -696,8 +660,10 @@ public class ShiftPickerController   implements ControllerInterface {
             loadIndividualExcel(st);
         }
     }
-    public void generateTemplates(ActionEvent actionEvent) throws IOException {
-        ListOfAssistants assistantList = Database.loadAssistants();
+    /*
+    Generates templates for shift selection into selected folder.
+     */
+    public void generateTemplates(ActionEvent actionEvent){
         DirectoryChooser directoryChooser = new DirectoryChooser();
         Stage stage = (Stage)((Node) actionEvent.getSource()).getScene().getWindow();
         directoryChooser.setInitialDirectory(new File(System.getProperty("user.home")));
@@ -708,6 +674,9 @@ public class ShiftPickerController   implements ControllerInterface {
             ExcelOutput.writeAllAssistantTemplatesFor(listOfAssist, settings.getCurrentYear(), settings.getCurrentMonth(), st);
         }
     }
+    /*
+    Method prepares strings that represent available assistants for parsing of external excel files.
+     */
     public static ArrayList prepareAcceptableInputs(HashMap<String, Assistant> mapOfAssistants) {
         mapOfAssistants.clear();
         ArrayList<String> acceptable = new ArrayList<>();

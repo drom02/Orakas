@@ -4,6 +4,7 @@ import Orakas.AssistantAvailability.ShiftAvailability;
 import Orakas.Filters.WorkOfMonth;
 import Orakas.Humans.Assistant;
 import Orakas.Humans.Client;
+import Orakas.Humans.ClientProfile;
 import Orakas.Structs.*;
 import Orakas.Vacations.Vacation;
 import Orakas.Vacations.VacationTemp;
@@ -27,14 +28,17 @@ import java.util.Comparator;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-
+/*
+Class used to manage all direct operations with database.
+ */
 public class Database {
     public static  String databaseName = "jdbc:sqlite:"+ JsonManip.loadRedirect()+ "mainSorter.db";
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     private static ObjectMapper objectMapper = new ObjectMapper();
-
+/*
+Method defines and creates tables inside a database.
+ */
     public static void prepareTables(){
-
         String clientTable = "CREATE TABLE IF NOT EXISTS clientTable (\n"
                 + " clientID text PRIMARY KEY,\n"
                 + " status integer NOT NULL,\n"
@@ -71,9 +75,7 @@ public class Database {
                 + " clientID text NOT NULL,\n"
                 + " year text NOT NULL,\n"
                 + " month integer NOT NULL,\n"
-             //   + " locationID text NOT NULL,\n"
                 + " FOREIGN KEY (clientID) REFERENCES clientTable(clientID) ON DELETE CASCADE \n"
-             //   + " FOREIGN KEY (locationID) REFERENCES locationTable(locationID )\n"
                 + ");";
         String clientDayTable = "CREATE TABLE IF NOT EXISTS clientDayTable (\n"
                 + " clientDayID text PRIMARY KEY,\n"
@@ -124,7 +126,8 @@ public class Database {
                 + ");";
         String vacationTable = "CREATE TABLE IF NOT EXISTS vacationTable (\n"
                 + " assistantID text PRIMARY KEY,\n"
-                + " jsonContent text NOT NULL \n"
+                + " jsonContent text NOT NULL, \n"
+                + " FOREIGN KEY (assistantID) REFERENCES assistantTable(assistantID) \n"
                 + ");";
         String settingsTable = "CREATE TABLE IF NOT EXISTS settingsTable (\n"
                 + " settingsID text PRIMARY KEY,\n"
@@ -141,7 +144,6 @@ public class Database {
         String scoreTable = "CREATE TABLE IF NOT EXISTS scoreTable (\n"
                 + " scoreID text PRIMARY KEY,\n"
                 + " jsonScores text NOT NULL\n"
-
                 + ");";
         String lastMonthWorkTable = "CREATE TABLE IF NOT EXISTS lastMonthWorkTable (\n"
                 + " lastMonthWorkID text PRIMARY KEY,\n"
@@ -152,7 +154,6 @@ public class Database {
         try (Connection conn = DriverManager.getConnection(databaseName);
         Statement stmt = conn.createStatement()) {
             for(String st : tables){
-                //stmt.execute(st);
                 stmt.execute(st);
             }
             stmt.execute("PRAGMA journal_mode = WAL");
@@ -161,71 +162,10 @@ public class Database {
             System.out.println(e.getMessage());
         }
     }
-    public static void dataTest() {
-
-        String name = "jdbc:sqlite:"+ Settings.getSettings().getFilePath()+ "mainSorter.db";
-        String sql = "CREATE TABLE IF NOT EXISTS clientTable (\n"
-                + " ID text PRIMARY KEY,\n"
-                + " status integer NOT NULL,\n"
-                + " name text NOT NULL,\n"
-                + " surname text NOT NULL,\n"
-                + " homeLocation text NOT NULL,\n"
-                + " comment text \n"
-                + ");";
-
-        String sqlAlt = "CREATE TABLE IF NOT EXISTS clientTableAlt (\n"
-                + " ID text PRIMARY KEY,\n"
-                + " content text NOT NULL\n"
-                + ");";
-        String sqlLocation = "CREATE TABLE IF NOT EXISTS locationTable (\n"
-                + " ID text PRIMARY KEY,\n"
-                + " address text NOT NULL,\n"
-                + " casualName text NOT NULL\n"
-                + ");";
-        try (Connection conn = DriverManager.getConnection(name);
-             Statement stmt = conn.createStatement()) {
-
-            // Create a new table
-            stmt.execute(sql);
-            stmt.execute(sqlAlt);
-            stmt.execute(sqlLocation);
-            System.out.println("A new table has been created.");
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
-    public static void testUser(){
-
-        String query = "INSERT OR REPLACE INTO clientTable (ID, status,name,surname,homeLocation,comment) VALUES (?, ?, ?, ?, ?, ?)";
-        String queryAlt = "INSERT OR REPLACE INTO clientTableAlt (ID, content) VALUES (?, ?)";
-        String name = "jdbc:sqlite:"+ Settings.getSettings().getFilePath()+ "test.db";
-
-        try (Connection conn = DriverManager.getConnection(name);
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            ClientProfile testP = JsonManip.getJsonManip().loadClientProfileInfo().getClientList().getFirst();
-            stmt.setString(1, String.valueOf(testP.getID()));
-            stmt.setBoolean(2, testP.getActivityStatus());
-            stmt.setString(3,testP.getName());
-            stmt.setString(4,testP.getSurname());
-            stmt.setString(5, String.valueOf(testP.getHomeLocation()));
-            stmt.setString(6,testP.getComment());
-            stmt.executeUpdate();
-
-            PreparedStatement stmtAlt = conn.prepareStatement(queryAlt);
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.registerModule(new JavaTimeModule());
-            String st =   objectMapper.writeValueAsString(testP);
-            stmtAlt.setString(1, String.valueOf(testP.getID()));
-            stmtAlt.setString(2,st);
-            stmtAlt.executeUpdate();
-        }catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
+    /*
+    Saves location into database using new connection
+     */
     public static void saveLocation(Location loc){
-
         String query = "INSERT OR REPLACE INTO locationTable (locationID, address,casualName,isDeleted,comment ) VALUES (?, ?, ?, ?, ?)";
         try(Connection conn = DriverManager.getConnection(databaseName );
             PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -239,8 +179,10 @@ public class Database {
             System.out.println(e.getMessage());
         }
     }
+    /*
+    Saves location into database using existing connection
+     */
     public static void saveLocation(Connection conn, Location loc){
-
         String query = "INSERT OR REPLACE INTO locationTable (locationID, address,casualName,isDeleted,comment ) VALUES (?, ?, ?, ?, ?)";
         try(
             PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -254,10 +196,14 @@ public class Database {
             System.out.println(e.getMessage());
         }
     }
-    public static void saveLocation(Connection conn, Location loc, Integer state){
+    /*
+    Saves location into database using new connection and with different state than it currently has. This is used for
+    removal or recovery of locations.
+     */
+    public static void saveLocation(Location loc, Integer state){
 
         String query = "INSERT OR REPLACE INTO locationTable (locationID, address,casualName,isDeleted,comment) VALUES (?, ?, ?, ?, ?)";
-        try(
+        try(Connection conn = DriverManager.getConnection(databaseName );
                 PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, loc.getID().toString());
             stmt.setString(2, loc.getAddress());
@@ -269,6 +215,9 @@ public class Database {
             System.out.println(e.getMessage());
         }
     }
+    /*
+    Loads location with the target UUID using new connection.
+     */
     public static Location loadLocation(UUID locID){
         String query = "SELECT * FROM locationTable WHERE locationID = ?";
         try(Connection conn = DriverManager.getConnection(databaseName );
@@ -286,6 +235,9 @@ public class Database {
         }
         return null;
     }
+    /*
+    Loads all locations without regard for their state.
+     */
     public static ListOfLocations loadLocations(){
         ListOfLocations loc = new ListOfLocations();
         String query = "SELECT * FROM locationTable";
@@ -304,6 +256,30 @@ public class Database {
         }
         return null;
     }
+    /*
+    Loads all active locations.
+     */
+    public static ListOfLocations loadActiveLocations(){
+        ListOfLocations loc = new ListOfLocations();
+        String query = "SELECT * FROM locationTable WHERE isDeleted = 0";
+        try(Connection conn = DriverManager.getConnection(databaseName );
+            PreparedStatement stmt = conn.prepareStatement(query)){
+            try(ResultSet rs = stmt.executeQuery()){
+                while(rs.next()){
+                    Location outputLocation = new Location(UUID.fromString(rs.getString("locationID")),rs.getString("address"),rs.getString("casualName"));
+                    outputLocation.setComments(rs.getString("comment"));
+                    loc.getListOfLocations().add(outputLocation);
+                }
+                return  loc;
+            }
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+    /*
+     Loads location with the target UUID using existing connection.
+      */
     public static Location loadLocation(String locID, Connection conn){
         String query = "SELECT * FROM locationTable WHERE locationID = ?";
         try(conn;
@@ -321,6 +297,9 @@ public class Database {
         }
         return null;
     }
+    /*
+    Returns ClientProfile of a client.
+     */
     public static ClientProfile loadClientProfile(UUID clientID){
         String query = "SELECT * FROM clientTable WHERE clientID = ?";
         try(Connection conn = DriverManager.getConnection(databaseName);
@@ -328,7 +307,6 @@ public class Database {
             stmt.setString(1,String.valueOf(clientID));
             try(ResultSet rs = stmt.executeQuery()){
                 if(rs.next()){
-                    //String out = rs.getString(2);
                     String ID = rs.getString("clientID");
                     String name = rs.getString("name");
                     Boolean status = rs.getBoolean("status");
@@ -341,12 +319,15 @@ public class Database {
             }catch (Exception e) {
                 System.out.println(e.getMessage());
             }
-            //
+
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
         return null;
     }
+    /*
+    Returns list of all ClientProfiles of active clients.
+     */
     public static ListOfClientsProfiles loadClientProfiles(){
         String query = "SELECT * FROM clientTable WHERE isDeleted = ?";
         ListOfClientsProfiles lis = new ListOfClientsProfiles(new ArrayList<ClientProfile>());
@@ -408,7 +389,6 @@ public class Database {
                     Boolean likesOvertime = rs.getBoolean("likesOvertime");
                     Boolean emergencyAssistant= rs.getBoolean("emergencyAssistant");
                     Boolean isDriver= rs.getBoolean("isDriver");
-                   // ShiftAvailabilityArray workDays = objectMapper.readValue(rs.getString("workDays"), ShiftAvailabilityArray.class);
                     ArrayList<ShiftAvailability> workDays=  objectMapper.readValue(rs.getString("workDays"),new TypeReference<ArrayList<ShiftAvailability>>() {});
                     String comment = rs.getString("comment");
                     ArrayList<ArrayList<UUID>> compatibility = loadCompatibility(assistantID);
@@ -439,7 +419,6 @@ public class Database {
                     stmt.setString(++order, id.toString());
                     stmt.setString(++order, assistantID.toString());
                     stmt.setInt(++order, type);
-
                 }
                 type++;
             }
@@ -447,7 +426,6 @@ public class Database {
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
     }
     private static String prepareCompatibilityString(int input ){
         StringBuilder query = new StringBuilder("INSERT OR REPLACE INTO compatibilityTable (compatibilityID,clientID, assistantID, compatibility) VALUES");
@@ -492,7 +470,6 @@ public class Database {
             stmt.setString(2, assistant.getID().toString());
             stmt.execute();
             //TODO add delete compatibility on SoftDelete
-            //saveCompatibility(assistant.getClientPreference(), assistant.getID());
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -511,9 +488,7 @@ public class Database {
                 delete.executeUpdate();
                 conn.commit();
                 //TODO add delete compatibility on SoftDelete
-               //saveCompatibility(assistant.getClientPreference(), assistant.getID());
         }catch (SQLException e) {
-                // Attempt to rollback transaction if SQLException occurs in the try block
                 conn.rollback();
                 throw new RuntimeException("Transaction rolled back due to an exception", e);
             }
@@ -529,7 +504,6 @@ public class Database {
             stmt.setBoolean(1,false);
             try(ResultSet rs = stmt.executeQuery()){
                 while(rs.next()){
-                    //String out = rs.getString(2);
                     String ID = rs.getString("assistantID");
                     String name = rs.getString("name");
                     Boolean status = rs.getBoolean("status");
@@ -549,7 +523,7 @@ public class Database {
             }catch (Exception e) {
                 System.out.println(e.getMessage());
             }
-            //
+
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -582,7 +556,6 @@ public class Database {
         String query = "INSERT OR REPLACE INTO clientDayTable (clientDayID, clientID, monthID,isMerged, isDay, " +
                 "day,month,year,locationID) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
         try(PreparedStatement stmt = conn.prepareStatement(query)) {
             for(ClientDay clD : clDA){
             String clDID = DatabaseUtils.prepCDID(clD);
@@ -594,8 +567,6 @@ public class Database {
             stmt.setInt(6, clD.getDay());
             stmt.setInt(7, clD.getMonth().getValue());
             stmt.setInt(8,clD.getYear());
-           // stmt.setString(9, String.valueOf(clD.getDefStarTime()));
-            //stmt.setString(10, String.valueOf(clD.getYear()));
             if(clD.getLocation()==null){
                 stmt.setString(9,null);
             }else{
@@ -656,8 +627,6 @@ public class Database {
                     int day = rs.getInt("day");
                     int month = rs.getInt("month");
                     int year = rs.getInt("year");
-                  //  LocalDateTime defStartTime = LocalDateTime.parse(rs.getString("defStartTime"),formatter);
-                   // LocalDateTime defEndTime = LocalDateTime.parse(rs.getString("defEndTime"),formatter);
                     String location = rs.getString("locationID");
                     ClientDay cl = new ClientDay(UUID.fromString(clientID), day, Month.of(month), year,null,null,loadLocation(UUID.fromString(location)),isMerged,isDay);
                     lis.add(cl);
@@ -811,7 +780,6 @@ public class Database {
                      String clientID = rs.getString("clientID");
                      int year = rs.getInt("year");
                      int month = rs.getInt("month");
-                     //String location = rs.getString("locationID");
                      ArrayList<ClientDay> dayList = loadClientDays(monthID,true,conn);
                      ArrayList<ClientDay> nightList = loadClientDays(monthID,false,conn);
                      ClientMonth output = new ClientMonth(Month.of(month),year,UUID.fromString(clientID),dayList,nightList);
@@ -826,7 +794,6 @@ public class Database {
                  }
              }
          }catch (SQLException e) {
-                     // Attempt to rollback transaction if SQLException occurs in the try block
                      conn.rollback();
                      conn.setAutoCommit(true);
                      throw new RuntimeException("Transaction rolled back due to an exception", e);
@@ -919,6 +886,7 @@ public class Database {
         }
         return null;
     }
+
     public static void saveSettings(Settings set){
         String query = "INSERT OR REPLACE INTO settingsTable (settingsID, filePath, selectedYear,selectedMonth," +
                 "defStart1,defStart2,defEnd1,defEnd2,maxShiftLength,standardWorkDay) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?)";

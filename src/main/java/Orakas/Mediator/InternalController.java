@@ -3,7 +3,9 @@ package Orakas.Mediator;
 import Orakas.controllers.ControllerInterface;
 
 import java.util.concurrent.CompletableFuture;
+/*
 
+ */
 public class InternalController extends Controller {
     ControllerInterface controllerInterface;
     public InternalController(ControllerInterface controllerInterfaceI) {

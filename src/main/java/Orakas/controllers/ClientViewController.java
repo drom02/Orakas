@@ -1,6 +1,6 @@
 package Orakas.controllers;
 
-import Orakas.ClientProfile;
+import Orakas.Humans.ClientProfile;
 import Orakas.Database.Database;
 import Orakas.GraphicalFunctions;
 import Orakas.Location;
@@ -23,7 +23,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
-
+/*
+JavaFX controller for client view
+ */
 public class ClientViewController extends SaveableControllerInterface implements ControllerInterface{
     //region graphical components
     @FXML
@@ -68,7 +70,6 @@ public class ClientViewController extends SaveableControllerInterface implements
         listViewofC.setCellFactory(new ClientProfileCellFactory());
         settings = Settings.getSettings();
         listOfc = Database.loadClientProfiles();
-        //listOfc = Database.loadClientProfiles();
         homeLocationBox.getItems().setAll(Database.loadLocations().getListOfLocations());
         ObservableList<ClientProfile> observClientList = FXCollections.observableList(listOfc.getFullClientList());
         listViewofC.setItems(observClientList);

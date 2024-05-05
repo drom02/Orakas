@@ -6,7 +6,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-
+/*
+Class responsible for management of screen size and other graphic related functions.
+ */
 public class GraphicalFunctions {
     public static String toHexWithAlphaString(javafx.scene.paint.Color color) {
         return String.format("#%02X%02X%02X%02X",
@@ -33,11 +35,7 @@ public class GraphicalFunctions {
         GraphicalSettings GS = new GraphicalSettings(null, null);
         Stage stage = (Stage) mainPane.getScene().getWindow();
 
-        //stage.setFullScreen(!stage.isFullScreen());
         Rectangle2D screenBounds =  Screen.getPrimary().getVisualBounds();
-                //
-                //new Rectangle2D(0,0,1280,800);
-
 
         stage.setMaxHeight(screenBounds.getHeight());
         stage.setMaxWidth(screenBounds.getWidth());

@@ -8,7 +8,9 @@ import Orakas.Structs.ListOfAssistants;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
-
+/*
+Class used for management of all Assistant month shifts and work done by assistants
+ */
 public class ListOfAssistantMonthShifts {
     public ArrayList<AssistantMonthShift> monthShiftList;
     public ArrayList<AssistantMonthShift> getMonthShiftList() {

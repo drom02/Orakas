@@ -1,13 +1,15 @@
 package Orakas.Humans;
 
-import Orakas.ClientProfile;
 import Orakas.Location;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import Orakas.Structs.TimeStructs.ClientMonth;
 
 import java.util.UUID;
-
+/*
+Class whose instances represent individual clients in specific month. Apart from information about client also contains
+information about client requirements for specific month.
+ */
 public class Client extends ClientProfile {
 
 

@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.UUID;
-
+/*
+Class whose instance represent individual locations.
+ */
 public class Location {
-
-
     private UUID ID;
     private String address;
     private String casualName;
@@ -54,18 +54,12 @@ public class Location {
     }
     @Override
     public boolean equals(Object o) {
-
-        // If the object is compared with itself then return true
         if (o == this) {
             return true;
         }
-
-        /* Check if o is an instance of Location or not
-          "null instanceof [type]" also returns false */
         if (!(o instanceof Location)) {
             return false;
         }
-        // Compare the data members and return accordingly
         return this.ID.equals(((Location) o).getID());
     }
     @Override

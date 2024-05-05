@@ -5,12 +5,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.UUID;
 
+/*
+Custom data class representing when is assistant available
+ */
 public class AssistantAvailability {
     private UUID assistant;
-
-
-
     private Availability availability;
+
     @JsonCreator
     public AssistantAvailability(@JsonProperty("assistant")UUID assistant,@JsonProperty("availability")Availability availability){
         setAssistant(assistant);

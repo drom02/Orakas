@@ -1,7 +1,9 @@
 package Orakas.Filters;
 
 import java.time.LocalDateTime;
-
+/*
+Data class used for subsections of workShift.
+ */
 public class WorkShiftSubInterval {
     public LocalDateTime getStartOf() {
         return startOf;

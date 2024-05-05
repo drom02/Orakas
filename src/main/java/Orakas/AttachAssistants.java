@@ -8,7 +8,9 @@ import Orakas.Structs.ListOfClients;
 
 import java.io.IOException;
 import java.util.ArrayList;
+/*
 
+ */
 public class AttachAssistants {
 
      private AvailableAssistants availableAssistants;

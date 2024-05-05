@@ -4,16 +4,17 @@ import java.time.Month;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.UUID;
-
+/*
+Class containing data for report of work done by single assistant over entire month.
+ */
 public class MonthReport {
-
     String name;
     UUID ID;
-
-
-
     int month;
     int year;
+    /*
+    Pracovní fond for the assistant in this month.
+     */
     double workFund= 0D;
     double workedTotal = 0D;
     double workedAtDayTotal = 0D;
@@ -34,15 +35,12 @@ public class MonthReport {
     public String getName() {
         return name;
     }
-
     public void setName(String name) {
         this.name = name;
     }
-
     public UUID getID() {
         return ID;
     }
-
     public void setID(UUID ID) {
         this.ID = ID;
     }
@@ -93,7 +91,6 @@ public class MonthReport {
     public void setMonth(int month) {
         this.month = month;
     }
-
     public int getYear() {
         return year;
     }

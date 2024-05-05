@@ -10,7 +10,9 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
 import java.time.LocalDate;
-
+/*
+Currently unused class for new interface for vacations.
+ */
 public class AssistantVacationManager {
 
     public void parseDate(DatePicker data){

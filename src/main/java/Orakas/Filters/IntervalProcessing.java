@@ -15,23 +15,21 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
-
+/*
+Class responsible for processing intervals
+ */
 public class IntervalProcessing {
-
     private AssistantMonthWorks workMonth;
     private Integer maxShiftLength;
     private HashMap<UUID, Assistant> assistantHashMap;
     private boolean secondRun = false;
     private HashMap< UUID,Integer> orderHashMap = new HashMap<>();
-
     public MergedRegistry getMergedRegistry() {
         return mergedRegistry;
     }
-
     public void setMergedRegistry(MergedRegistry mergedRegistry) {
         this.mergedRegistry = mergedRegistry;
     }
-
     private MergedRegistry mergedRegistry;
     public void start(ArrayList<DateTimeAssistantAvailability>  ordered, ClientDay cl, int dayState){
         prepareAssistantHash(ordered);
@@ -50,8 +48,6 @@ public class IntervalProcessing {
         maxShiftLength = (maxShiftLengthI*60);
         assistantHashMap = assistantHashMapI;
         setMergedRegistry(mergedRegistryI);
-
-
     }
     private boolean endOfIntervals(int intervalIter , ClientDay cl){
         if(intervalIter == cl.getDayIntervalListUsefull().size()){
@@ -119,6 +115,9 @@ public class IntervalProcessing {
             }
             activeInterval.setOverseeingAssistant(assistantHashMap.get(activeAA.getAssistantAvailability().getAssistant()));
     }
+    /*
+    Split's interval to cover the largest possible amount of required time.
+     */
     private boolean splitToFitLoop(int intervalIter, int AAIter, ArrayList<DateTimeAssistantAvailability> av, ClientDay cl,AssistantWorkShift workShift, int dayState){
         //Set up local variables
         ServiceInterval activeInterval = cl.getDayIntervalListUsefull().get(intervalIter);
@@ -154,6 +153,9 @@ public class IntervalProcessing {
         }
         return false;
     }
+    /*
+    Last cycle aiming to verify if all assistants were tested.
+     */
     private boolean lastLoop(int targetAAiter, int intervalIter, int AAIter, ArrayList<DateTimeAssistantAvailability> av, ClientDay cl,AssistantWorkShift workShift, int dayState,ReferentialBoolean solutionFound){
         //If all unchecked assistants were checked, return.
         if(AAIter==targetAAiter){
@@ -192,6 +194,9 @@ public class IntervalProcessing {
             return  true;
         }
     }
+    /*
+    Main method, where the process of finding the best possible assistant for shift is executed.
+     */
     private boolean mainLoop(int startOfLoopAssistant, int intervalIter , int AAIter, ArrayList<DateTimeAssistantAvailability> av, ClientDay cl, int dayState, ReferentialBoolean solutionFound){
         //If interval iterator points out of bounds, exit.
         if(endOfIntervals(intervalIter,cl)){

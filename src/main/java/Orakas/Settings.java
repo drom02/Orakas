@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.IOException;
-
+/*
+Class responsible for management of general settings of the app. In the future should be replaced by simple Json.
+ */
 public class Settings {
     private static Settings settings;
     public double getStandardWorkDay() {

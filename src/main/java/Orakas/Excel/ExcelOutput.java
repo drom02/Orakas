@@ -21,12 +21,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
-
+/*
+Class is used for management of external excel files.
+ */
 public class ExcelOutput {
 
     public ExcelOutput(){
 
     }
+    /*
+    Deprecated method of parsing a cell.
+     */
     public static ArrayList<AssistantAvailability> parseCell(ArrayList<String> acceptableInputs, Cell c, HashMap<String, Assistant> map){
         ArrayList<AssistantAvailability> out= new ArrayList<>(25);
        String inp = c.getStringCellValue();
@@ -250,7 +255,6 @@ public class ExcelOutput {
     }
     private static  void createCellWithContent(int i, int offset, String content, CellStyle cellStyle, ArrayList<XSSFRow> rows, int rowIter){
         Cell cellTitle = rows.get(rowIter).createCell(i*4+offset); // Create a cell in the first column of the current row
-       // cellTitle.setCellValue(year+"."+month+ "."+ i+1 );
         cellTitle.setCellValue(content);
         cellTitle.setCellStyle(cellStyle);
     }
@@ -259,6 +263,9 @@ public class ExcelOutput {
         cellTitle.setCellValue(content);
         cellTitle.setCellStyle(cellStyle);
     }
+    /*
+    Method saves all inserted reports into new excel workbook.
+     */
     public static void saveReports(ArrayList<MonthReport> reports,HashMap<UUID,Assistant> assistantHashMap){
         String userHome = System.getProperty("user.home");
         String desktopPath = userHome + System.getProperty("file.separator") + "Desktop";
@@ -275,6 +282,9 @@ public class ExcelOutput {
                 }
             }
     }
+    /*
+    Method converts all MonthReports into pages in excel workbook.
+     */
     private static Workbook composeReport(ArrayList<MonthReport> reports,HashMap<UUID,Assistant> assistantHashMap){
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFCellStyle cellStyle = workbook.createCellStyle();
@@ -308,7 +318,6 @@ public class ExcelOutput {
                     reportDay(report,rep,cellStyle,rows,assistant,6);
                 }else{
                    reportDay(report,rep,cellStyle,rows,assistant,6);
-                    // createCellWithContent(report.getDay(),String.valueOf(report.getWorkedAtDay()),cellStyle,rows,9);
                 }
                 i++;
             }
@@ -325,14 +334,11 @@ public class ExcelOutput {
         cellStyle.setLocked(false);
         cellStyle.setDataFormat(format.getFormat("@"));
         cellStyle.setWrapText(true);
-        /*
-        sheet.autoSizeColumn(editedColumn);
-        if (sheet.getColumnWidth(editedColumn) > maxWidth) {
-            sheet.setColumnWidth(editedColumn, maxWidth);
-        }
-         */
         return workbook;
     }
+    /*
+    Creates cells with content of report for specific day.
+     */
     private static void reportDay(DayReport report,MonthReport rep, CellStyle cellStyle,ArrayList<XSSFRow> rows, Assistant assistant, int start){
         createCellWithContent(report.getDay(), report.getDay()+"."+ rep.getMonth()+"."+rep.getYear(),cellStyle,rows,start);
         createCellWithContent(report.getDay(), String.valueOf((report.getWorkedAtDay()/60)),cellStyle,rows,start+1);
@@ -340,6 +346,9 @@ public class ExcelOutput {
         createCellWithContent(report.getDay(),String.valueOf(report.getWorkedAtWeekend()/60),cellStyle,rows,start+3);
     }
 
+    /*
+    Saves created work availability templates in provided location.
+     */
     public static void writeAllAssistantTemplatesFor(ArrayList<Assistant> assistantList, int year, int month, String path){
         for(Assistant a : assistantList){
             XSSFWorkbook workbook = generateXSSFTemplate(a.getName()+" "+a.getSurname(),year,month);

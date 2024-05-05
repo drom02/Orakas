@@ -4,7 +4,9 @@ import javafx.scene.layout.GridPane;
 
 import java.util.ArrayList;
 import java.util.UUID;
-
+/*
+Modified JavaFX GridPane used for management of assistant signed on a shift.
+ */
 public class ShiftGrid extends GridPane {
     public ArrayList<UUID> getDisplayedAssistants() {
         return displayedAssistants;
