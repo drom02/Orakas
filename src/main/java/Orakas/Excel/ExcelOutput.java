@@ -119,6 +119,22 @@ public class ExcelOutput {
         }
         XSSFCellStyle cellStyleUnlocked = workbook.createCellStyle();
         XSSFCellStyle cellStyleLocked = workbook.createCellStyle();
+        XSSFCellStyle styleLockedDay = workbook.createCellStyle();
+
+        styleLockedDay.cloneStyleFrom(cellStyleLocked);
+        styleLockedDay.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        byte[] argb = new byte[] {(byte) 255, (byte) 173, (byte) 216, (byte) 230};
+        XSSFColor dayColor = new XSSFColor(argb, new DefaultIndexedColorMap());
+        styleLockedDay.setFillForegroundColor(dayColor);
+
+        XSSFCellStyle styleLockedNight = workbook.createCellStyle();
+
+        styleLockedNight.cloneStyleFrom(cellStyleLocked);
+        styleLockedNight.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        byte[] argN = new byte[] {(byte) 255, (byte) 211, (byte) 211, (byte) 211};
+        XSSFColor nightColor = new XSSFColor(argN, new DefaultIndexedColorMap());
+        styleLockedNight.setFillForegroundColor(nightColor);
+
         DataFormat format = workbook.createDataFormat();
         cellStyleUnlocked.setLocked(false);
         cellStyleUnlocked.setDataFormat(format.getFormat("@"));
@@ -132,8 +148,8 @@ public class ExcelOutput {
         CellRangeAddressList addressListHours = new CellRangeAddressList();
         CellRangeAddressList addressListMinutes = new CellRangeAddressList();
         int maxWidth = 256 * 50;
-        createCellWithContent(0,0,"Denní směna "+"-" + name,cellStyleLocked,rows,2);
-        createCellWithContent(0,0,"Noční směna "+"-" + name ,cellStyleLocked,rows,3);
+        createCellWithContent(0,0,"Denní směna "+"-" + name,styleLockedDay,rows,2);
+        createCellWithContent(0,0,"Noční směna "+"-" + name ,styleLockedNight,rows,3);
         ArrayList<String> startedValues = new ArrayList<>();
         startedValues.add(String.valueOf(Settings.getSettings().getDefStart()[0]));
         startedValues.add(String.valueOf(Settings.getSettings().getDefStart()[1]));
@@ -149,8 +165,8 @@ public class ExcelOutput {
             createCellWithContent(i,3,"Hodiny konce" ,cellStyleLocked,rows,1);
             createCellWithContent(i,4,"Minuty konce" ,cellStyleLocked,rows,1);
             for(int iInter =0; iInter <4;iInter++){
-                createCellWithContent(i,iInter+1,startedValues.get(iInter),cellStyleUnlocked,rows,2);
-                createCellWithContent(i,iInter+1,startedValues.get(((iInter>1)? (iInter-2):(iInter+2))),cellStyleUnlocked,rows,3);
+                createCellWithContent(i,iInter+1,startedValues.get(iInter),styleLockedDay,rows,2);
+                createCellWithContent(i,iInter+1,startedValues.get(((iInter>1)? (iInter-2):(iInter+2))),styleLockedNight,rows,3);
             }
             addressListHours.addCellRangeAddress(new CellRangeAddress(2, 3, i*4+1, i*4+1));
             addressListMinutes.addCellRangeAddress(new CellRangeAddress(2, 3, i*4+2, i*4+2));
@@ -211,8 +227,8 @@ public class ExcelOutput {
         Cell startCell2 = row1.getCell(i*4+2);
         Cell endCell1 = row1.getCell(i*4+3);
         Cell endCell2 = row1.getCell(i*4+4);
-        if(!startCell1.getStringCellValue().equals("null") && !startCell2.getStringCellValue().equals("null") && !endCell1.getStringCellValue().equals("null") &&
-                !endCell2.getStringCellValue().equals("null") ){
+        if(!startCell1.getStringCellValue().equals("ne") && !startCell2.getStringCellValue().equals("ne") && !endCell1.getStringCellValue().equals("ne") &&
+                !endCell2.getStringCellValue().equals("ne") ){
             return new AssistantAvailability(assistantID, new Availability(Integer.parseInt(startCell1.getStringCellValue()),
                     Integer.parseInt(startCell2.getStringCellValue()),
                             Integer.parseInt(endCell1.getStringCellValue()),
@@ -371,6 +387,7 @@ public class ExcelOutput {
         for(int i = 0; i <60; i++){
             output[i] = String.valueOf(i);
         }
+        output[output.length-1] = "ne";
         return output;
     }
     private static  String[] generateHours(){
@@ -378,6 +395,7 @@ public class ExcelOutput {
         for(int i = 0; 24 > i; i++){
             output[i] = String.valueOf(i);
         }
+        output[output.length-1] = "ne";
         return output;
     }
     public static XSSFWorkbook convert(AvailableAssistants avs ){

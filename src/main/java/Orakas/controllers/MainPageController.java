@@ -502,6 +502,7 @@ public class MainPageController implements ControllerInterface{
            }
         }
     }
+
     public void findSolutionV3(ActionEvent actionEvent) throws IOException {
         clearTable();
         ListOfAssistants asL = Database.loadAssistants();
@@ -1352,11 +1353,7 @@ public class MainPageController implements ControllerInterface{
         }
     }
 
-    public void findNewSolution(ActionEvent actionEvent) throws IOException {
-        JsonManip.getJsonManip().generateNewMonthsAssistants(settings.getCurrentYear(), settings.getCurrentMonth());
-        findSolutionV3(actionEvent);
-        internalController.send("Assistant");
-    }
+
     public void hideDayInfo() {
          if (selectedTextArea.get()!=null) {
             mainGrid.setConstraints(calendarScrollPane,mainGrid.getColumnIndex(calendarScrollPane),mainGrid.getRowIndex(calendarScrollPane),mainGrid.getColumnSpan(calendarScrollPane),mainGrid.getRowSpan(calendarScrollPane)+1);

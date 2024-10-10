@@ -392,11 +392,12 @@ public class AssistantViewController extends SaveableControllerInterface impleme
                 (int) (color.getGreen() * 255),
                 (int) (color.getBlue() * 255));
     }
-    public void populateClientOpinion() throws IOException {
-    clientOpinionGrid.getRowConstraints().clear();
-    ListOfClientsProfiles lip = Database.loadClientProfiles();
-    itemIndex = new HashMap<>();
-    int citer = 0;
+    public void populateClietnOpinionInner(){
+        clientOpinionGrid.getRowConstraints().clear();
+        clientOpinionGrid.getChildren().clear();
+        ListOfClientsProfiles lip = Database.loadClientProfiles();
+        itemIndex = new HashMap<>();
+        int citer = 0;
         for(ClientProfile clp : lip.getFullClientList()) {
             ArrayList<Object> templist = new ArrayList<Object>();
             GridPane grp = new GridPane();
@@ -416,25 +417,32 @@ public class AssistantViewController extends SaveableControllerInterface impleme
                 temp.setToggleGroup(group);
                 templist.add(temp);
             }
-           int[] columnWidth = new int[]{20,20,20,20,20};
-           int it = 1;
-           for(int i : columnWidth){
-               ColumnConstraints row = new ColumnConstraints();
-               row.setPercentWidth(i);
-               grp.getColumnConstraints().add(row);
-               grp.setConstraints((Node) templist.get(it),it-1,0,1,1);
-               grp.getChildren().add((Node) templist.get(it));
-               grp.setValignment((Node) templist.get(it),VPos.CENTER);
-               it++;
-           }
+            int[] columnWidth = new int[]{20,20,20,20,20};
+            int it = 1;
+            for(int i : columnWidth){
+                ColumnConstraints row = new ColumnConstraints();
+                row.setPercentWidth(i);
+                grp.getColumnConstraints().add(row);
+                grp.setConstraints((Node) templist.get(it),it-1,0,1,1);
+                grp.getChildren().add((Node) templist.get(it));
+                grp.setValignment((Node) templist.get(it),VPos.CENTER);
+                it++;
+            }
             grp.getRowConstraints().add(new RowConstraints(){{setValignment(VPos.CENTER);}});
             clientOpinionGrid.getChildren().add(grp);
-           clientOpinionGrid.setConstraints(grp,0,citer++);
+            clientOpinionGrid.setConstraints(grp,0,citer++);
             clientOpinionGrid.setMargin(grp, new Insets(0,10,0,10));
             itemIndex.put(clp.getID(),templist);
-
         }
+    }
+    public void populateClientOpinion() throws IOException {
+        populateClietnOpinionInner();
         }
+    public void refreshClientOpinion() throws IOException {
+        Platform.runLater(() -> {
+        populateClietnOpinionInner();
+        });
+    }
         private void loadClientOpinion(Assistant as){
             for(UUID rowID : itemIndex.keySet()){
                 int i = 0;
@@ -483,7 +491,11 @@ public class AssistantViewController extends SaveableControllerInterface impleme
 
     @Override
     public void loadAndUpdateScreen() {
-        System.out.println("Assistant");
+        try {
+            refreshClientOpinion();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void createVacation(ActionEvent actionEvent) {

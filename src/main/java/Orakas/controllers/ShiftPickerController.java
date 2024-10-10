@@ -10,6 +10,7 @@ import Orakas.Database.Database;
 import Orakas.Excel.ExcelOutput;
 import Orakas.GraphicalFunctions;
 import Orakas.JavaFXCustomComponents.AssistantViewConSetup;
+import Orakas.JsonManip;
 import Orakas.Mediator.InternalController;
 import Orakas.Settings;
 import Orakas.Structs.HumanCellFactory;
@@ -673,6 +674,10 @@ public class ShiftPickerController   implements ControllerInterface {
         if(st != null){
             ExcelOutput.writeAllAssistantTemplatesFor(listOfAssist, settings.getCurrentYear(), settings.getCurrentMonth(), st);
         }
+    }
+    public void findNewSolution(ActionEvent actionEvent) throws IOException {
+        JsonManip.getJsonManip().generateNewMonthsAssistants(settings.getCurrentYear(), settings.getCurrentMonth());
+        internalController.send("Assistant");
     }
     /*
     Method prepares strings that represent available assistants for parsing of external excel files.

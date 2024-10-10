@@ -48,6 +48,8 @@
                 <RowConstraints vgrow="SOMETIMES" />
                 <RowConstraints vgrow="SOMETIMES" />
                 <RowConstraints vgrow="SOMETIMES" />
+                  <RowConstraints vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                   <RowConstraints vgrow="ALWAYS" />
               </rowConstraints>
                <children>
@@ -64,6 +66,7 @@
                      <GridPane.margin>
                         <Insets bottom="2.0" right="2.0" top="2.0" />
                      </GridPane.margin></Button>
+                  <Button fx:id="newSolution" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#findNewSolution" text="Najdi nové řešení" GridPane.columnSpan="2" GridPane.rowIndex="3" />
                </children>
             </GridPane>
          </children>
